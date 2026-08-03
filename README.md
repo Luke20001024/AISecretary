@@ -8,6 +8,9 @@ Memento 以 **AI friendly、轻量本地化、0 摩擦和模块化**为产品哲
 
 [打开 Memento 3.0 产品故事与可操作演示](https://luke20001024.github.io/Memento/Memento-3.0.html?v=20260720)
 
+- [阅读产品命题：一种轻度理解](https://luke20001024.github.io/Memento/Memento-Product-Thesis.html)
+- [查看产品演进规划](docs/PRODUCT_ROADMAP.md)
+
 进入封面后，点击任意位置、滚动或按键即可开始。
 
 3.0 从散落在不同窗口里的意图出发，沿着三个问题展开：意图在哪里发生，如何在用户允许的边界内被承接，以及怎样沉淀为长期 Context。故事最后在 **Re:member** 收束——让新的记录不断补充、修正已有理解，逐渐拼出一个持续变化的人。Re:member 属于 Memento 的最后一层，不是独立产品。
