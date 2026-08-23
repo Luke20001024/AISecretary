@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/relation-v2.schema.json",
+  "title": "RelationRevision V2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "kind", "relation_id", "revision", "previous_revision_sha256",
+    "status", "operation", "relation_type", "direction", "from_ref", "to_ref",
+    "statement", "confidence", "evidence_refs", "change_reason", "policy_version",
+    "created_at", "committed_by"
+  ],
+  "properties": {
+    "schema_version": { "const": "2.0" },
+    "kind": { "const": "memento_relation_revision" },
+    "relation_id": { "type": "string", "pattern": "^rel_[0-9a-f]{24}$" },
+    "revision": { "type": "integer", "minimum": 1 },
+    "previous_revision_sha256": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/sha256" }] },
+    "status": { "enum": ["active", "tombstone"] },
+    "operation": { "enum": ["materialize", "reinforce", "revise", "user_edit", "user_delete"] },
+    "relation_type": { "enum": ["supports", "counterexample", "revises", "scope_boundary", "same_topic", "derived_from", "theme_supports_insight", "theme_limits_insight", "external_trace_updates_source"] },
+    "direction": { "enum": ["directed", "undirected"] },
+    "from_ref": { "$ref": "#/$defs/domainRef" },
+    "to_ref": { "$ref": "#/$defs/domainRef" },
+    "statement": { "type": "string", "minLength": 1, "maxLength": 600 },
+    "confidence": { "enum": ["low", "medium", "high"] },
+    "evidence_refs": { "type": "array", "minItems": 1, "maxItems": 64, "uniqueItems": true, "items": { "$ref": "#/$defs/evidenceRef" } },
+    "change_reason": { "type": "string", "minLength": 1, "maxLength": 600 },
+    "policy_version": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "created_at": { "type": "string", "format": "date-time" },
+    "committed_by": { "enum": ["workflow", "user", "migration"] }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "revision": { "const": 1 } } },
+      "then": { "properties": { "previous_revision_sha256": { "type": "null" }, "operation": { "const": "materialize" } } },
+      "else": { "properties": { "previous_revision_sha256": { "$ref": "#/$defs/sha256" } } }
+    },
+    {
+      "if": { "properties": { "relation_type": { "const": "same_topic" } } },
+      "then": { "properties": { "direction": { "const": "undirected" } } },
+      "else": { "properties": { "direction": { "const": "directed" } } }
+    },
+    {
+      "if": { "properties": { "status": { "const": "tombstone" } } },
+      "then": { "properties": { "operation": { "const": "user_delete" } } }
+    }
+  ],
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "memoryAtomRef": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "id", "revision", "revision_sha256"],
+      "properties": { "kind": { "const": "memory_atom" }, "id": { "type": "string", "pattern": "^mat_[0-9a-f]{24}$" }, "revision": { "type": "integer", "minimum": 1 }, "revision_sha256": { "$ref": "#/$defs/sha256" } }
+    },
+    "themeRef": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "id", "revision", "revision_sha256"],
+      "properties": { "kind": { "const": "theme" }, "id": { "type": "string", "pattern": "^thm_[0-9a-f]{24}$" }, "revision": { "type": "integer", "minimum": 1 }, "revision_sha256": { "$ref": "#/$defs/sha256" } }
+    },
+    "selfInsightRef": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "id", "revision", "revision_sha256"],
+      "properties": { "kind": { "const": "self_insight" }, "id": { "type": "string", "pattern": "^sin_[0-9a-f]{24}$" }, "revision": { "type": "integer", "minimum": 1 }, "revision_sha256": { "$ref": "#/$defs/sha256" } }
+    },
+    "interpretationRef": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "id", "revision", "revision_sha256"],
+      "properties": { "kind": { "const": "record_interpretation" }, "id": { "type": "string", "pattern": "^int_[0-9a-f]{24}$" }, "revision": { "type": "integer", "minimum": 1 }, "revision_sha256": { "$ref": "#/$defs/sha256" } }
+    },
+    "domainRef": { "oneOf": [{ "$ref": "#/$defs/memoryAtomRef" }, { "$ref": "#/$defs/themeRef" }, { "$ref": "#/$defs/selfInsightRef" }] },
+    "evidenceRef": { "oneOf": [{ "$ref": "#/$defs/interpretationRef" }, { "$ref": "#/$defs/memoryAtomRef" }, { "$ref": "#/$defs/themeRef" }] }
+  }
+}

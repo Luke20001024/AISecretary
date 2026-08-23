@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/shadow-consent-v1.schema.json",
+  "title": "Memento Shadow Consent V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "kind", "consent_id", "status", "dataset_scope", "thresholds", "material_gates", "sensitivity_policy", "agent_schedule", "provider", "confirmed_at"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "kind": {"const": "memento_shadow_consent"},
+    "consent_id": {"type": "string", "pattern": "^shc_[0-9a-f]{24}$"},
+    "status": {"const": "confirmed"},
+    "dataset_scope": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source_label", "source_root", "snapshot_kind", "allowed_suffixes", "read_only_only"],
+      "properties": {
+        "source_label": {"type": "string", "minLength": 1, "maxLength": 160},
+        "source_root": {"type": "string", "minLength": 2, "maxLength": 1024, "pattern": "^/"},
+        "snapshot_kind": {"const": "real_vault_snapshot"},
+        "allowed_suffixes": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": [".json", ".md", ".txt"]}},
+        "read_only_only": {"const": true}
+      }
+    },
+    "thresholds": {"$ref": "#/$defs/thresholds"},
+    "material_gates": {
+      "type": "object", "additionalProperties": false,
+      "required": ["theme", "self"],
+      "properties": {
+        "theme": {
+          "type": "object", "additionalProperties": false,
+          "required": ["min_active_atoms", "min_distinct_days", "require_formal_relation", "dormant_after_days"],
+          "properties": {
+            "min_active_atoms": {"const": 2},
+            "min_distinct_days": {"const": 2},
+            "require_formal_relation": {"const": true},
+            "dormant_after_days": {"const": 30}
+          }
+        },
+        "self": {
+          "type": "object", "additionalProperties": false,
+          "required": ["min_distinct_themes", "min_evidence_per_theme"],
+          "properties": {
+            "min_distinct_themes": {"const": 2},
+            "min_evidence_per_theme": {"const": 2}
+          }
+        }
+      }
+    },
+    "sensitivity_policy": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sensitive_inference_action", "external_context_default", "user_override_priority"],
+      "properties": {
+        "sensitive_inference_action": {"const": "stop_for_user_confirmation"},
+        "external_context_default": {"const": "exclude_unconfirmed"},
+        "user_override_priority": {"const": true}
+      }
+    },
+    "agent_schedule": {
+      "type": "object", "additionalProperties": false,
+      "required": ["capture_understanding", "record_interpreter", "daily_integrator", "theme_synthesizer", "self_understanding", "context_router"],
+      "properties": {
+        "capture_understanding": {"$ref": "#/$defs/event_schedule"},
+        "record_interpreter": {"$ref": "#/$defs/event_schedule"},
+        "daily_integrator": {"$ref": "#/$defs/daily_schedule"},
+        "theme_synthesizer": {"$ref": "#/$defs/long_term_schedule"},
+        "self_understanding": {"$ref": "#/$defs/long_term_schedule"},
+        "context_router": {"$ref": "#/$defs/event_schedule"}
+      }
+    },
+    "provider": {
+      "type": "object", "additionalProperties": false,
+      "required": ["provider", "model", "prompt_versions", "policy_versions", "budget"],
+      "properties": {
+        "provider": {"type": "string", "minLength": 1, "maxLength": 120},
+        "model": {"type": "string", "minLength": 1, "maxLength": 160},
+        "prompt_versions": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 120}},
+        "policy_versions": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 120}},
+        "budget": {
+          "type": "object", "additionalProperties": false,
+          "required": ["max_prompt_tokens", "max_completion_tokens", "max_cost_usd", "max_latency_ms"],
+          "properties": {
+            "max_prompt_tokens": {"type": "integer", "minimum": 1},
+            "max_completion_tokens": {"type": "integer", "minimum": 1},
+            "max_cost_usd": {"type": "number", "exclusiveMinimum": 0},
+            "max_latency_ms": {"type": "integer", "minimum": 1}
+          }
+        }
+      }
+    },
+    "confirmed_at": {"type": "string", "format": "date-time"}
+  },
+  "$defs": {
+    "rate": {"type": "number", "minimum": 0, "maximum": 1},
+    "thresholds": {
+      "type": "object", "additionalProperties": false,
+      "required": ["false_link_rate_max", "missed_link_rate_max", "over_inference_rate_max", "stop_f1_min", "stop_case_count_min", "source_reference_valid_rate_min", "self_traceability_rate_min", "resource_as_user_false_rate_max", "stale_resurrection_count_max", "adapter_pass_rate_min", "source_hash_stability_rate_min", "estimated_cost_usd_max", "latency_p95_ms_max"],
+      "properties": {
+        "false_link_rate_max": {"$ref": "#/$defs/rate"},
+        "missed_link_rate_max": {"$ref": "#/$defs/rate"},
+        "over_inference_rate_max": {"$ref": "#/$defs/rate"},
+        "stop_f1_min": {"$ref": "#/$defs/rate"},
+        "stop_case_count_min": {"type": "integer", "minimum": 1},
+        "source_reference_valid_rate_min": {"$ref": "#/$defs/rate"},
+        "self_traceability_rate_min": {"$ref": "#/$defs/rate"},
+        "resource_as_user_false_rate_max": {"$ref": "#/$defs/rate"},
+        "stale_resurrection_count_max": {"type": "integer", "minimum": 0},
+        "adapter_pass_rate_min": {"$ref": "#/$defs/rate"},
+        "source_hash_stability_rate_min": {"$ref": "#/$defs/rate"},
+        "estimated_cost_usd_max": {"type": "number", "exclusiveMinimum": 0},
+        "latency_p95_ms_max": {"type": "integer", "minimum": 1}
+      }
+    },
+    "event_schedule": {
+      "type": "object", "additionalProperties": false,
+      "required": ["frequency", "local_time", "weekday"],
+      "properties": {"frequency": {"const": "event_driven"}, "local_time": {"type": "null"}, "weekday": {"type": "null"}}
+    },
+    "daily_schedule": {
+      "type": "object", "additionalProperties": false,
+      "required": ["frequency", "local_time", "weekday"],
+      "properties": {"frequency": {"const": "daily"}, "local_time": {"$ref": "#/$defs/time"}, "weekday": {"type": "null"}}
+    },
+    "long_term_schedule": {
+      "type": "object", "additionalProperties": false,
+      "required": ["frequency", "local_time", "weekday"],
+      "properties": {
+        "frequency": {"enum": ["daily", "weekly", "manual"]},
+        "local_time": {"oneOf": [{"$ref": "#/$defs/time"}, {"type": "null"}]},
+        "weekday": {"type": ["integer", "null"], "minimum": 0, "maximum": 6}
+      }
+    },
+    "time": {"type": "string", "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"}
+  }
+}

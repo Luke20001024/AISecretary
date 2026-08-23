@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/theme-v2.schema.json",
+  "title": "ThemeRevision V2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "kind", "theme_id", "revision", "previous_revision_sha256",
+    "title", "statement", "scope", "lifecycle", "confidence", "evidence_refs",
+    "evidence_days", "counterevidence_refs", "relation_refs", "change_reason",
+    "policy_version", "prompt_version", "created_at", "committed_by"
+  ],
+  "properties": {
+    "schema_version": { "const": "2.0" },
+    "kind": { "const": "memento_theme_revision" },
+    "theme_id": { "type": "string", "pattern": "^thm_[0-9a-f]{24}$" },
+    "revision": { "type": "integer", "minimum": 1 },
+    "previous_revision_sha256": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/sha256" }] },
+    "title": { "type": "string", "minLength": 2, "maxLength": 18 },
+    "statement": { "type": "string", "minLength": 1, "maxLength": 800 },
+    "scope": { "type": "string", "minLength": 1, "maxLength": 600 },
+    "lifecycle": { "enum": ["forming", "active", "tension", "dormant", "tombstone"] },
+    "confidence": { "enum": ["forming", "observed", "stable"] },
+    "evidence_refs": { "type": "array", "minItems": 2, "maxItems": 128, "uniqueItems": true, "items": { "$ref": "#/$defs/memoryAtomRef" } },
+    "evidence_days": { "type": "array", "minItems": 2, "maxItems": 128, "uniqueItems": true, "items": { "type": "string", "format": "date" } },
+    "counterevidence_refs": { "type": "array", "maxItems": 64, "uniqueItems": true, "items": { "$ref": "#/$defs/memoryAtomRef" } },
+    "relation_refs": { "type": "array", "maxItems": 128, "uniqueItems": true, "items": { "$ref": "#/$defs/relationRef" } },
+    "change_reason": { "type": "string", "minLength": 1, "maxLength": 600 },
+    "policy_version": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "prompt_version": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "created_at": { "type": "string", "format": "date-time" },
+    "committed_by": { "enum": ["workflow", "user", "migration"] }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "revision": { "const": 1 } } },
+      "then": { "properties": { "previous_revision_sha256": { "type": "null" } } },
+      "else": { "properties": { "previous_revision_sha256": { "$ref": "#/$defs/sha256" } } }
+    }
+  ],
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "memoryAtomRef": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "id", "revision", "revision_sha256"],
+      "properties": { "kind": { "const": "memory_atom" }, "id": { "type": "string", "pattern": "^mat_[0-9a-f]{24}$" }, "revision": { "type": "integer", "minimum": 1 }, "revision_sha256": { "$ref": "#/$defs/sha256" } }
+    },
+    "relationRef": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "id", "revision", "revision_sha256"],
+      "properties": { "kind": { "const": "relation" }, "id": { "type": "string", "pattern": "^rel_[0-9a-f]{24}$" }, "revision": { "type": "integer", "minimum": 1 }, "revision_sha256": { "$ref": "#/$defs/sha256" } }
+    }
+  }
+}

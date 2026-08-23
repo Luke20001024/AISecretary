@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/action-result-v1.schema.json",
+  "title": "Action Result V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "kind", "result_id", "action_id", "action_sha256", "status", "reason_code", "target_ref", "current_ref", "committed_ref", "processed_at", "user_action_watermark_sha256"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "kind": {"const": "memento_action_result"},
+    "result_id": {"type": "string", "pattern": "^ares_[0-9a-f]{24}$"},
+    "action_id": {"type": "string", "pattern": "^uact_[0-9a-f]{24}$"},
+    "action_sha256": {"$ref": "#/$defs/sha256"},
+    "status": {"enum": ["applied", "rejected", "conflict"]},
+    "reason_code": {"type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}$"},
+    "target_ref": {"$ref": "#/$defs/objectRef"},
+    "current_ref": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/objectRef"}]},
+    "committed_ref": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/objectRef"}]},
+    "processed_at": {"type": "string", "format": "date-time"},
+    "user_action_watermark_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "objectRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id", "revision", "revision_sha256"],
+      "properties": {
+        "kind": {"enum": ["source_record", "capture_decision", "resource_card", "read_later_intent", "record_interpretation", "memory_atom", "relation", "theme", "self_insight"]},
+        "id": {"type": "string", "pattern": "^(rec|cap|res|rli|int|mat|rel|thm|sin)_[0-9a-f]{24}$"},
+        "revision": {"type": "integer", "minimum": 1},
+        "revision_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}

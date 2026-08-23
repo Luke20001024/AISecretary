@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://memento.local/schemas/self-insight-detail-projection-v1.schema.json",
+  "title": "SelfInsightDetailProjection V1", "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "kind", "projection_version", "projection_id", "bundle_id", "generated_at", "as_of", "input_sha256", "insight_ref", "title", "statement", "scope", "uncertainty", "maturity", "confirmation", "sensitivity", "visibility", "themes", "support_refs", "boundary_refs", "change_reason"],
+  "properties": {
+    "schema_version": {"const": "1.0"}, "kind": {"const": "memento_self_insight_detail_projection"}, "projection_version": {"const": "memento-self-insight-detail-v1"},
+    "projection_id": {"type": "string", "pattern": "^sdt_[0-9a-f]{24}$"}, "bundle_id": {"type": "string", "pattern": "^prjb_[0-9a-f]{24}$"},
+    "generated_at": {"type": "string", "format": "date-time"}, "as_of": {"type": "string", "format": "date"}, "input_sha256": {"$ref": "#/$defs/sha256"},
+    "insight_ref": {"$ref": "#/$defs/selfInsightRef"}, "title": {"type": "string", "minLength": 1, "maxLength": 80}, "statement": {"type": "string", "minLength": 1, "maxLength": 1000},
+    "scope": {"type": "string", "minLength": 1, "maxLength": 800}, "uncertainty": {"type": "string", "minLength": 1, "maxLength": 600},
+    "maturity": {"enum": ["forming", "observed", "stable", "dormant"]}, "confirmation": {"enum": ["draft", "observed", "user_confirmed", "restricted"]}, "sensitivity": {"enum": ["normal", "sensitive", "restricted"]}, "visibility": {"enum": ["local_only", "grant_only", "restricted"]},
+    "themes": {"type": "array", "minItems": 2, "maxItems": 32, "items": {"$ref": "#/$defs/themeEntry"}},
+    "support_refs": {"type": "array", "minItems": 2, "maxItems": 128, "uniqueItems": true, "items": {"$ref": "#/$defs/supportRef"}},
+    "boundary_refs": {"type": "array", "maxItems": 64, "uniqueItems": true, "items": {"$ref": "#/$defs/supportRef"}}, "change_reason": {"type": "string", "minLength": 1, "maxLength": 600}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "ref": {"type": "object", "additionalProperties": false, "required": ["kind", "id", "revision", "revision_sha256"], "properties": {"kind": {"enum": ["self_insight", "theme", "memory_atom"]}, "id": {"type": "string", "pattern": "^(sin|thm|mat)_[0-9a-f]{24}$"}, "revision": {"type": "integer", "minimum": 1}, "revision_sha256": {"$ref": "#/$defs/sha256"}}},
+    "selfInsightRef": {"allOf": [{"$ref": "#/$defs/ref"}, {"properties": {"kind": {"const": "self_insight"}, "id": {"pattern": "^sin_"}}}]},
+    "themeRef": {"allOf": [{"$ref": "#/$defs/ref"}, {"properties": {"kind": {"const": "theme"}, "id": {"pattern": "^thm_"}}}]},
+    "supportRef": {"allOf": [{"$ref": "#/$defs/ref"}, {"properties": {"kind": {"enum": ["theme", "memory_atom"]}}}]},
+    "themeEntry": {"type": "object", "additionalProperties": false, "required": ["theme_ref", "title", "statement", "detail_projection_id"], "properties": {"theme_ref": {"$ref": "#/$defs/themeRef"}, "title": {"type": "string", "minLength": 1, "maxLength": 80}, "statement": {"type": "string", "minLength": 1, "maxLength": 800}, "detail_projection_id": {"type": "string", "pattern": "^tdt_[0-9a-f]{24}$"}}}
+  }
+}

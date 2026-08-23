@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Memento / 今天留下的记录</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#records-workspace">跳到今天的记录</a>
+
+  <div class="app-shell" id="app-shell">
+    <header class="topbar">
+      <div class="title-lockup">
+        <span class="brand">Memento</span>
+        <span class="title-divider" aria-hidden="true"></span>
+        <div>
+          <h1>今天留下的记录 <span>/ 整理回执</span></h1>
+          <p>原文已安全保留；AI 的拆解、关联与去向都可以校准</p>
+        </div>
+      </div>
+
+      <div class="day-summary" aria-label="今日整理摘要" aria-live="polite">
+        <span><strong data-summary-records>0</strong> 条记录</span>
+        <span><strong data-summary-memories>0</strong> 条记忆拆解</span>
+        <span><strong data-summary-peaks>0</strong> 个认知去向</span>
+      </div>
+
+      <nav class="topbar-actions" aria-label="记录次级功能">
+        <button class="text-button" type="button" data-secondary-view="history">每日历史</button>
+        <button class="text-button" type="button" data-secondary-view="library">资料库</button>
+        <button class="text-button" type="button" data-secondary-view="export">输出与导出</button>
+      </nav>
+    </header>
+
+    <div class="system-notice" data-scene-notice hidden role="status">
+      <span>部分记录暂未完成读取；当前只展示 4 条已确认原文，缺失内容不会被当作“今天没有记录”。</span>
+      <button type="button" data-secondary-view="all-records">查看恢复入口</button>
+    </div>
+
+    <section class="connector-band" aria-labelledby="connector-title">
+      <div class="connector-copy">
+        <p class="eyebrow" id="connector-title">从当下的记录，走向长期理解</p>
+        <p class="connector-state"><span class="state-dot" aria-hidden="true"></span><span data-schedule-status>已计划：今晚 21:00 自动归并</span></p>
+      </div>
+
+      <div class="ninety-day-track">
+        <div class="track-labels" aria-hidden="true"><span>90 天前</span><span>今天</span></div>
+        <div class="track-bars" role="img" aria-label="过去 90 天的记录密度" data-track-bars></div>
+      </div>
+
+      <div class="merge-control">
+        <div>
+          <strong data-merge-title>今日记录持续整理中</strong>
+          <span data-merge-detail>归并后才会稳定进入认知地景</span>
+        </div>
+        <button class="primary-action" type="button" data-merge-today>归并今天</button>
+      </div>
+    </section>
+
+    <main class="workspace" id="records-workspace">
+      <section class="records-panel" aria-labelledby="records-title">
+        <header class="day-head">
+          <div class="date-lockup">
+            <span class="date-number">8.17</span>
+            <div>
+              <h2 id="records-title">2026 年 8 月 17 日</h2>
+              <p>周一 · 每一条原始记录都保留在其整理结果之下</p>
+            </div>
+          </div>
+
+          <div class="day-tools">
+            <div class="filter-set" role="group" aria-label="筛选今日记录">
+              <button type="button" aria-pressed="true" data-filter="all">全部</button>
+              <button type="button" aria-pressed="false" data-filter="pending">待归并</button>
+              <button type="button" aria-pressed="false" data-filter="review">需校准</button>
+            </div>
+            <button class="quiet-action" type="button" data-secondary-view="all-records">查看全部记录</button>
+          </div>
+        </header>
+
+        <div class="ledger" aria-label="今日整理回执">
+          <div class="ledger-head" aria-hidden="true">
+            <span>时间 / 来源</span>
+            <span>本条整理结果</span>
+            <span>记忆拆解</span>
+            <span>认知去向</span>
+            <span>状态</span>
+          </div>
+          <div class="record-list" data-record-list></div>
+        </div>
+
+        <div class="records-empty" data-records-empty hidden>
+          <span class="empty-mark" aria-hidden="true"></span>
+          <h3>今天还没有留下记录</h3>
+          <p>Memento 会安静等待。下一条内容出现后，它会先被安全保留，再开始整理。</p>
+        </div>
+
+        <footer class="records-foot">
+          <p>主页只展示当日整理回执。完整原文、修改痕迹与归并关系收在右侧详情中。</p>
+          <span>完全离线 / 演示数据</span>
+        </footer>
+      </section>
+
+      <aside class="context-drawer" data-context-drawer hidden aria-labelledby="drawer-title">
+        <header class="drawer-head">
+          <div>
+            <p data-drawer-eyebrow>记录详情</p>
+            <h2 id="drawer-title" data-drawer-title>本条整理回执</h2>
+          </div>
+          <button class="drawer-close" type="button" data-drawer-close aria-label="关闭详情">×</button>
+        </header>
+        <div class="drawer-body" data-drawer-body></div>
+        <footer class="drawer-foot" data-drawer-foot></footer>
+      </aside>
+    </main>
+  </div>
+
+  <div class="toast" data-toast hidden role="status" aria-live="polite"></div>
+  <div class="live-region visually-hidden" aria-live="polite" data-live-region></div>
+  <script src="app.js"></script>
+</body>
+</html>

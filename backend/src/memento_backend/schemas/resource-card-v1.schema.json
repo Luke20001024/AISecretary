@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/resource-card-v1.schema.json",
+  "title": "ResourceCardRevision V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "resource_id",
+    "revision",
+    "previous_revision_sha256",
+    "status",
+    "operation",
+    "source_record_ref",
+    "resource_type",
+    "url",
+    "title",
+    "local_asset_refs",
+    "ocr_index_ref",
+    "user_selected_spans",
+    "user_note",
+    "processing_route",
+    "created_at",
+    "committed_by"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "kind": { "const": "memento_resource_card_revision" },
+    "resource_id": { "type": "string", "pattern": "^res_[0-9a-f]{24}$" },
+    "revision": { "type": "integer", "minimum": 1 },
+    "previous_revision_sha256": {
+      "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/sha256" }]
+    },
+    "status": { "enum": ["active", "tombstone"] },
+    "operation": { "enum": ["index", "refresh", "user_edit", "user_delete"] },
+    "source_record_ref": { "$ref": "#/$defs/sourceRecordRef" },
+    "resource_type": { "enum": ["web_page", "pdf", "screenshot", "image", "file", "conversation"] },
+    "url": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "format": "uri", "maxLength": 4096 }
+      ]
+    },
+    "title": { "type": "string", "minLength": 1, "maxLength": 500 },
+    "local_asset_refs": {
+      "type": "array",
+      "maxItems": 128,
+      "items": { "$ref": "#/$defs/attachment" }
+    },
+    "ocr_index_ref": {
+      "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/relativePath" }]
+    },
+    "user_selected_spans": {
+      "type": "array",
+      "maxItems": 32,
+      "items": { "$ref": "#/$defs/sourceSpan" }
+    },
+    "user_note": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "minLength": 1, "maxLength": 2000 }
+      ]
+    },
+    "processing_route": { "enum": ["ask_on_use", "resource_index", "resource_reader", "completed", "archived"] },
+    "created_at": { "type": "string", "format": "date-time" },
+    "committed_by": { "enum": ["workflow", "user", "migration"] }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "revision": { "const": 1 } } },
+      "then": {
+        "properties": {
+          "previous_revision_sha256": { "type": "null" },
+          "operation": { "const": "index" }
+        }
+      },
+      "else": { "properties": { "previous_revision_sha256": { "$ref": "#/$defs/sha256" } } }
+    },
+    {
+      "if": { "properties": { "status": { "const": "tombstone" } } },
+      "then": { "properties": { "operation": { "const": "user_delete" } } }
+    },
+    {
+      "if": { "properties": { "operation": { "const": "user_delete" } } },
+      "then": { "properties": { "status": { "const": "tombstone" } } }
+    }
+  ],
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?/)(?!.*\\\\)[^\\u0000]+$"
+    },
+    "sourceRecordRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id", "revision", "revision_sha256"],
+      "properties": {
+        "kind": { "const": "source_record" },
+        "id": { "type": "string", "pattern": "^rec_[0-9a-f]{24}$" },
+        "revision": { "type": "integer", "minimum": 1 },
+        "revision_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "attachment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "mime_type", "byte_size", "sha256"],
+      "properties": {
+        "path": { "$ref": "#/$defs/relativePath" },
+        "mime_type": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "byte_size": { "type": "integer", "minimum": 0 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "sourceSpan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_id",
+        "record_revision",
+        "record_revision_sha256",
+        "source_file",
+        "line_start",
+        "line_end",
+        "quote",
+        "quote_sha256"
+      ],
+      "properties": {
+        "record_id": { "type": "string", "pattern": "^rec_[0-9a-f]{24}$" },
+        "record_revision": { "type": "integer", "minimum": 1 },
+        "record_revision_sha256": { "$ref": "#/$defs/sha256" },
+        "source_file": { "$ref": "#/$defs/relativePath" },
+        "line_start": { "type": "integer", "minimum": 1 },
+        "line_end": { "type": "integer", "minimum": 1 },
+        "quote": { "type": "string", "minLength": 1, "maxLength": 20000 },
+        "quote_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  }
+}

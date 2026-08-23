@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Memento · 时间回声</title>
+  <link rel="stylesheet" href="shared/base.css">
+  <link rel="stylesheet" href="03-time-echo.css">
+</head>
+<body class="time-echo-page">
+  <a class="skip-link" href="#today-records">跳到今天的记录</a>
+
+  <header class="masthead" aria-label="Memento 页面信息">
+    <div class="brand-lockup">
+      <strong>Memento</strong>
+      <span>认知秘书桌面</span>
+    </div>
+    <div class="header-status status-line" aria-live="polite">
+      <div>
+        <strong data-run-status-title>本次核对没有更新</strong>
+        <span data-run-status-detail>保留上一版理解</span>
+      </div>
+    </div>
+    <div class="header-date">
+      <time data-date>2026-08-17</time>
+      <span data-weekday>周一</span>
+    </div>
+    <button class="header-tool" type="button" data-dialog-open="tools-dialog" aria-label="打开整理与导出工具">
+      整理与导出
+    </button>
+  </header>
+
+  <main>
+    <section class="understanding-stage" aria-labelledby="understanding-section-title">
+      <div class="understanding-copy">
+        <div class="section-intro">
+          <p class="section-kicker" id="understanding-section-title">她眼中的我 · 暂时理解</p>
+          <button class="quiet-link" type="button" data-dialog-open="memories-dialog" data-memory-content>查看全部 <span data-memory-total>3</span> 条</button>
+        </div>
+
+        <div data-memory-content>
+          <div class="memory-tabs" aria-label="切换当前理解" data-memory-content>
+            <button type="button" data-memory-select="mem_review_failures">反复出现</button>
+            <button type="button" data-memory-select="mem_calibration_first">最近变化</button>
+            <button type="button" data-memory-select="mem_order_without_pressure">仍在权衡</button>
+          </div>
+
+          <h1 id="understanding-title" class="understanding-statement" data-current-statement>
+            在评审方案时，你倾向先检查反例和失败条件，再判断方案是否完整。
+          </h1>
+
+          <dl class="memory-meta" aria-label="当前理解履历">
+            <div>
+              <dt>适用范围</dt>
+              <dd data-current-scope>产品方案评审</dd>
+            </div>
+            <div>
+              <dt>最近核对</dt>
+              <dd data-current-updated>2026-08-16</dd>
+            </div>
+            <div>
+              <dt>当前版本</dt>
+              <dd data-current-version>REV 03</dd>
+            </div>
+            <div>
+              <dt>理解来路</dt>
+              <dd><span data-current-evidence-count>3 条依据</span> / <span data-current-counter-count>1 条反例</span></dd>
+            </div>
+            <div>
+              <dt>来源</dt>
+              <dd><span data-echo-source-count>4</span> 条演示来源</dd>
+            </div>
+          </dl>
+
+          <div class="understanding-actions" aria-label="当前理解操作">
+            <button class="evidence-button" type="button" data-dialog-open="evidence-dialog">查看完整来路</button>
+            <button class="quiet-link" type="button" data-dialog-open="edit-dialog">改一下</button>
+            <button class="quiet-link" type="button" data-dialog-open="delete-dialog">删除这条理解</button>
+          </div>
+        </div>
+
+        <div class="memory-empty" data-memory-empty hidden>
+          <h1 id="empty-understanding-title">还没有可保留的理解</h1>
+          <p>原始记录仍然存在。你可以等待更多记录，或稍后再次整理。</p>
+        </div>
+
+        <div class="run-strip" aria-label="整理状态与计划">
+          <div>
+            <span class="run-label">下一次整理</span>
+            <strong data-schedule-label>21:00 计划已保存 · 尚未验证自动成功</strong>
+          </div>
+          <button class="run-now" type="button" data-run-now>立即整理最近 14 天</button>
+        </div>
+      </div>
+
+      <aside class="echo-window" aria-labelledby="echo-window-title" data-memory-content>
+        <figure class="echo-atmosphere">
+          <img
+            src="../../poster-intent/03-time-echo/03-interpret.png"
+            alt="视觉意向：旧相片与透明描摹纸叠放，蓝线勾勒一把椅子"
+            data-echo-main>
+          <figcaption>意象化背景，不参与判断</figcaption>
+        </figure>
+
+        <section class="evidence-sheet" aria-labelledby="echo-window-title">
+          <span class="sheet-tape" aria-hidden="true"></span>
+          <div class="echo-window-head">
+            <div>
+              <p class="section-kicker">理解来路</p>
+              <h2 id="echo-window-title">这条理解如何成立</h2>
+            </div>
+            <span data-current-version>REV 03</span>
+          </div>
+          <ol class="evidence-glimpse">
+            <li>
+              <div><span>支持</span><time data-echo-support-date>2026-08-15</time></div>
+              <blockquote data-echo-support-quote>“在评审方案时，我会先检查反例和失败条件，再评估完整方案。”</blockquote>
+            </li>
+            <li class="is-counter">
+              <div><span data-echo-counter-label>反例</span><time data-echo-counter-date>2026-08-03</time></div>
+              <blockquote data-echo-counter-quote>“这次范围很小，我先搭出完整方案再统一检查。”</blockquote>
+            </li>
+          </ol>
+          <button class="sheet-link" type="button" data-dialog-open="evidence-dialog">展开全部依据与反例</button>
+        </section>
+      </aside>
+    </section>
+
+    <section class="today-section" id="today-records" aria-labelledby="today-title">
+      <div class="today-heading">
+        <div>
+          <p class="section-kicker"><time data-date>2026-08-17</time> · <span data-weekday>周一</span></p>
+          <h2 id="today-title">今天留下了 <span data-record-count>5</span> 条记录</h2>
+        </div>
+        <div class="record-filters" aria-label="筛选今天的记录">
+          <button type="button" class="is-active" data-record-filter="全部">全部</button>
+          <button type="button" data-record-filter="想法">想法</button>
+          <button type="button" data-record-filter="灵感">灵感</button>
+          <button type="button" data-record-filter="产品">产品</button>
+          <button type="button" data-record-filter="决定">决定</button>
+        </div>
+      </div>
+
+      <div class="trace-block">
+        <div class="trace-label">
+          <span>最近 90 天的记录数量</span>
+          <span>只表示每天留下了几条记录</span>
+        </div>
+        <div class="record-trace" role="img" data-record-trace aria-label="最近 90 天每日记录数量。颜色越深表示当天保留的记录越多，不表示情绪或理解强度。"></div>
+        <div class="trace-legend" aria-hidden="true"><span>90 天前</span><span>今天</span></div>
+      </div>
+
+      <ol class="record-list today-record-list" id="today-record-list" data-record-list aria-live="polite"></ol>
+      <button class="mobile-record-toggle" type="button" aria-controls="today-record-list" aria-expanded="false" hidden>
+        查看今天全部 5 条
+      </button>
+    </section>
+
+    <section class="secondary-tools" aria-labelledby="secondary-tools-title">
+      <div>
+        <p class="section-kicker">辅助入口</p>
+        <h2 id="secondary-tools-title">需要时再打开</h2>
+      </div>
+      <div class="secondary-links">
+        <button type="button" data-dialog-open="daily-dialog">每日总结</button>
+        <button type="button" data-dialog-open="daily-dialog">当日完整记录</button>
+        <button type="button" data-dialog-open="archive-dialog">归档</button>
+        <button type="button" data-dialog-open="archive-dialog">导出</button>
+        <button type="button" data-dialog-open="tools-dialog">整理详情</button>
+        <button type="button" data-dialog-open="about-dialog">关于本方案</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="page-foot">
+    <span class="demo-flag" data-demo-flag>完全离线 · 演示数据 · 操作只在当前页面模拟</span>
+    <span>Time Echo 方向 · 03</span>
+  </footer>
+
+  <dialog class="modal echo-modal" id="evidence-dialog" aria-labelledby="evidence-dialog-title">
+    <div class="modal-head">
+      <div>
+        <h2 id="evidence-dialog-title">这份理解的来路</h2>
+        <p><span data-evidence-title>反复出现的我</span> · 逐字依据、反例与来源</p>
+      </div>
+      <button class="modal-close" type="button" data-dialog-close aria-label="关闭依据">×</button>
+    </div>
+    <div class="modal-body">
+      <p class="dialog-boundary">这份理解会随证据继续修订。照片不属于以下证据。</p>
+      <ol class="evidence-list" data-evidence-list></ol>
+    </div>
+    <div class="modal-foot">
+      <button class="app-button is-secondary" type="button" data-dialog-close>关闭</button>
+      <button class="app-button" type="button" data-dialog-open="edit-dialog">改一下</button>
+    </div>
+  </dialog>
+
+  <dialog class="modal echo-modal" id="memories-dialog" aria-labelledby="memories-dialog-title">
+    <div class="modal-head">
+      <div>
+        <h2 id="memories-dialog-title">她眼中的我</h2>
+        <p>选择一条当前保留的理解</p>
+      </div>
+      <button class="modal-close" type="button" data-dialog-close aria-label="关闭全部理解">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="memory-picker" data-memory-picker></div>
+    </div>
+  </dialog>
+
+  <dialog class="modal echo-modal" id="edit-dialog" aria-labelledby="edit-dialog-title">
+    <form class="edit-form" data-edit-form method="dialog">
+      <div class="modal-head">
+        <div>
+          <h2 id="edit-dialog-title">修改这条理解</h2>
+          <p>修改只在当前离线页面中模拟保存</p>
+        </div>
+        <button class="modal-close" type="button" data-dialog-close aria-label="关闭修改">×</button>
+      </div>
+      <div class="modal-body">
+        <label for="statement-edit">你希望怎样表述</label>
+        <textarea id="statement-edit" required></textarea>
+      </div>
+      <div class="modal-foot">
+        <button class="app-button is-secondary" type="button" data-dialog-close>取消</button>
+        <button class="app-button" type="submit">保存修改</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="modal echo-modal" id="delete-dialog" aria-labelledby="delete-dialog-title">
+    <div class="modal-head">
+      <div>
+        <h2 id="delete-dialog-title">删除这条理解</h2>
+        <p>删除人物理解，不删除组成它的原始记录</p>
+      </div>
+      <button class="modal-close" type="button" data-dialog-close aria-label="关闭删除确认">×</button>
+    </div>
+    <div class="modal-body">
+      <p class="dialog-boundary">此 Demo 只会在当前页面隐藏同一条理解，刷新页面后恢复。它不写入本地文件。</p>
+      <p class="delete-preview" data-current-statement>在评审方案时，你倾向先检查反例和失败条件，再判断方案是否完整。</p>
+    </div>
+    <div class="modal-foot">
+      <button class="app-button is-secondary" type="button" data-dialog-close>保留</button>
+      <button class="app-button delete-action" type="button" data-delete-memory>删除这条理解</button>
+    </div>
+  </dialog>
+
+  <dialog class="modal echo-modal daily-modal" id="daily-dialog" aria-labelledby="daily-dialog-title">
+    <div class="modal-head">
+      <div>
+        <h2 id="daily-dialog-title">今天的记录</h2>
+        <p><time data-date>2026-08-17</time> · 原始记录与演示总结分开呈现</p>
+      </div>
+      <button class="modal-close" type="button" data-dialog-close aria-label="关闭今天的记录">×</button>
+    </div>
+    <div class="modal-body">
+      <section class="daily-summary" aria-labelledby="daily-summary-title">
+        <p class="section-kicker">每日总结 · 演示文本</p>
+        <h3 id="daily-summary-title">今天主要在收紧 Memento 主页的产品秩序。</h3>
+        <p>从今天的记录来看，最明确的方向是把对你的理解放到主页，同时保留今天的记录；复制给 AI 被收回低频工具层。</p>
+        <div class="first-frame">
+          <span>今天第一条记录 · 07:30 · 文字</span>
+          <blockquote>“关于我放在最上面，下面是今天留下的记录。”</blockquote>
+        </div>
+      </section>
+      <section class="daily-full" aria-labelledby="daily-full-title">
+        <div class="daily-full-head">
+          <h3 id="daily-full-title">当日完整记录</h3>
+          <span><span data-record-count>5</span> 条</span>
+        </div>
+        <ol class="record-list" data-full-record-list></ol>
+      </section>
+    </div>
+    <div class="modal-foot">
+      <button class="app-button is-secondary" type="button" data-dialog-close>关闭</button>
+      <button class="app-button" type="button" data-dialog-open="archive-dialog">归档与导出</button>
+    </div>
+  </dialog>
+
+  <dialog class="modal echo-modal" id="archive-dialog" aria-labelledby="archive-dialog-title">
+    <div class="modal-head">
+      <div>
+        <h2 id="archive-dialog-title">归档与导出</h2>
+        <p>低频整理能力留在主流程之外</p>
+      </div>
+      <button class="modal-close" type="button" data-dialog-close aria-label="关闭归档与导出">×</button>
+    </div>
+    <div class="modal-body archive-explainer">
+      <section>
+        <span>HTML 归档</span>
+        <h3>导入、查看或删除单文件 HTML</h3>
+        <p>生产版已有该能力。本离线 Demo 只说明入口，不读取你的本地归档。</p>
+      </section>
+      <section>
+        <span>导出与复制</span>
+        <h3>把记录带到下一项任务</h3>
+        <p>复制给 AI 保留为需要时使用的工具，不再占据新标签页的第一注意力。</p>
+      </section>
+      <section>
+        <span>数据边界</span>
+        <h3>本页没有连接存储</h3>
+        <p>点击下面按钮不会访问剪贴板，不会下载文件，也不会发送网络请求。</p>
+      </section>
+    </div>
+    <div class="modal-foot">
+      <button class="app-button is-secondary" type="button" data-dialog-close>关闭</button>
+      <button class="app-button" type="button" data-export-simulate>模拟导出</button>
+    </div>
+  </dialog>
+
+  <dialog class="modal echo-modal tools-modal" id="tools-dialog" aria-labelledby="tools-dialog-title">
+    <div class="modal-head">
+      <div>
+        <h2 id="tools-dialog-title">整理与其他工具</h2>
+        <p>运维信息和低频能力留在第二层</p>
+      </div>
+      <button class="modal-close" type="button" data-dialog-close aria-label="关闭工具">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="tool-list">
+        <div class="tool-row">
+          <div>
+            <strong>每日自动整理</strong>
+            <small data-schedule-label>21:00 计划已保存 · 尚未验证自动成功</small>
+          </div>
+          <label class="switch">
+            <input type="checkbox" data-schedule-toggle aria-label="每日自动整理">
+            <span aria-hidden="true"></span>
+          </label>
+        </div>
+        <div class="tool-row">
+          <div>
+            <strong data-run-status-title>本次核对没有更新</strong>
+            <small data-run-status-detail>保留上一版理解</small>
+          </div>
+          <button class="app-button is-secondary" type="button" data-run-now>现在整理</button>
+        </div>
+        <div class="tool-row">
+          <div><strong>导出与复制</strong><small>Demo 不访问剪贴板，也不写入文件</small></div>
+          <button class="app-button is-secondary" type="button" data-export-simulate>模拟导出</button>
+        </div>
+      </div>
+      <details class="state-lab">
+        <summary>演示状态</summary>
+        <div>
+          <button type="button" data-state-demo="processing">处理中</button>
+          <button type="button" data-state-demo="empty">证据不足</button>
+          <button type="button" data-state-demo="no_change">无变化</button>
+          <button type="button" data-state-demo="updated">已更新</button>
+          <button type="button" data-state-demo="error">失败</button>
+        </div>
+      </details>
+    </div>
+  </dialog>
+
+  <dialog class="modal echo-modal" id="about-dialog" aria-labelledby="about-dialog-title">
+    <div class="modal-head">
+      <div>
+        <h2 id="about-dialog-title">关于 Time Echo 方案</h2>
+        <p>为什么这样设计，以及这一版要验证什么</p>
+      </div>
+      <button class="modal-close" type="button" data-dialog-close aria-label="关闭方案说明">×</button>
+    </div>
+    <div class="modal-body about-plan">
+      <section>
+        <span>体验目标</span>
+        <h3>体验假设：打开新标签页时，先读懂一条可校准的理解，再自然回到今天真实留下的内容。</h3>
+      </section>
+      <section>
+        <span>视觉选择</span>
+        <p>视觉假设：暖奶油纸和旧相片让页面保留生活痕迹；群青线只表达时间连接与修订，不表达人格结论。</p>
+      </section>
+      <section class="about-echo-gallery" aria-labelledby="about-echo-gallery-title">
+        <span>五个视觉阶段</span>
+        <h3 id="about-echo-gallery-title">从捕捉到复用</h3>
+        <figure class="about-echo-main">
+          <img
+            src="../../poster-intent/03-time-echo/03-interpret.png"
+            alt="视觉意向：旧相片与透明描摹纸叠放，蓝线勾勒一把椅子"
+            data-echo-main>
+          <figcaption data-echo-caption>03 · 理解 · 视觉意向</figcaption>
+        </figure>
+        <div class="echo-timeline" aria-label="五张 Time Echo 视觉意向">
+          <button type="button" data-echo-select aria-label="01 捕捉"
+            data-src="../../poster-intent/03-time-echo/01-capture.png"
+            data-alt="视觉意向：旧相片记录一张有纸张和铅笔的桌面"
+            data-caption="01 · 捕捉 · 视觉意向"><span>01 捕捉</span></button>
+          <button type="button" data-echo-select aria-label="02 留证"
+            data-src="../../poster-intent/03-time-echo/02-evidence.png"
+            data-alt="视觉意向：两个旧相片裁切由蓝线连接"
+            data-caption="02 · 留证 · 视觉意向"><span>02 留证</span></button>
+          <button type="button" data-echo-select class="is-active" aria-pressed="true" aria-label="03 理解"
+            data-src="../../poster-intent/03-time-echo/03-interpret.png"
+            data-alt="视觉意向：旧相片与透明描摹纸叠放，蓝线勾勒一把椅子"
+            data-caption="03 · 理解 · 视觉意向"><span>03 理解</span></button>
+          <button type="button" data-echo-select aria-label="04 校准"
+            data-src="../../poster-intent/03-time-echo/04-correct.png"
+            data-alt="视觉意向：一本旧笔记由一条蓝色修补胶带连接"
+            data-caption="04 · 校准 · 视觉意向"><span>04 校准</span></button>
+          <button type="button" data-echo-select aria-label="05 复用"
+            data-src="../../poster-intent/03-time-echo/05-return.png"
+            data-alt="视觉意向：两个不同时态的桌面相片由蓝线连接"
+            data-caption="05 · 复用 · 视觉意向"><span>05 复用</span></button>
+        </div>
+        <p class="image-boundary">这些图像只定义页面材质与时间感，不属于用户证据。</p>
+      </section>
+      <section>
+        <span>产品边界</span>
+        <p>理解正文、来源日期、依据与反例来自演示数据。五张 Time Echo 照片只作为视觉意向，明确不属于用户证据。</p>
+      </section>
+      <section>
+        <span>本轮观察点</span>
+        <ul>
+          <li>待验证：图片是否增加长期陪伴感，同时没有压过当前理解。</li>
+          <li>待验证：用户是否能在 10 秒内找到依据、编辑、删除和现在整理。</li>
+          <li>待验证：今天的 5 条原始记录是否仍然拥有足够视觉重量。</li>
+        </ul>
+      </section>
+    </div>
+    <div class="modal-foot">
+      <button class="app-button" type="button" data-dialog-close>回到桌面</button>
+    </div>
+  </dialog>
+
+  <div class="toast" role="status" aria-live="polite" data-toast></div>
+
+  <script src="shared/demo-data.js" defer></script>
+  <script src="shared/demo-core.js" defer></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const mainImages = Array.from(document.querySelectorAll('[data-echo-main]'));
+      const captions = Array.from(document.querySelectorAll('[data-echo-caption]'));
+      const selectors = Array.from(document.querySelectorAll('[data-echo-select]'));
+
+      selectors.forEach(function (button) {
+        if (!button.hasAttribute('aria-pressed')) button.setAttribute('aria-pressed', 'false');
+        button.addEventListener('click', function () {
+          mainImages.forEach(function (image) {
+            image.src = button.dataset.src;
+            image.alt = button.dataset.alt;
+          });
+          captions.forEach(function (caption) { caption.textContent = button.dataset.caption; });
+          selectors.forEach(function (peer) {
+            const active = peer === button;
+            peer.classList.toggle('is-active', active);
+            peer.setAttribute('aria-pressed', String(active));
+          });
+        });
+      });
+
+      function renderEvidenceGlimpse(memory) {
+        const hiddenIds = window.MementoDemo ? window.MementoDemo.state.hiddenMemoryIds : new Set();
+        const visibleCount = window.MementoDemo
+          ? window.MementoDemo.data.understandings.filter(function (item) { return !hiddenIds.has(item.id); }).length
+          : 3;
+        document.querySelectorAll('[data-memory-total]').forEach(function (node) { node.textContent = String(visibleCount); });
+        document.querySelectorAll('[data-memory-select]').forEach(function (button) {
+          button.hidden = hiddenIds.has(button.dataset.memorySelect);
+        });
+        if (!memory) return;
+        const support = memory.evidence.find(function (item) { return item.relation === '支持'; });
+        const counter = memory.evidence.find(function (item) { return item.relation === '反例'; })
+          || memory.evidence.find(function (item) { return item.relation === '边界'; });
+        const supportDate = document.querySelector('[data-echo-support-date]');
+        const supportQuote = document.querySelector('[data-echo-support-quote]');
+        const counterLabel = document.querySelector('[data-echo-counter-label]');
+        const counterDate = document.querySelector('[data-echo-counter-date]');
+        const counterQuote = document.querySelector('[data-echo-counter-quote]');
+        const sourceCount = document.querySelector('[data-echo-source-count]');
+        if (supportDate) supportDate.textContent = support ? support.date : '尚无';
+        if (supportQuote) supportQuote.textContent = support ? '“' + support.quote + '”' : '尚未找到支持依据。';
+        if (counterLabel) counterLabel.textContent = counter ? counter.relation : '待观察';
+        if (counterDate) counterDate.textContent = counter ? counter.date : '尚无';
+        if (counterQuote) counterQuote.textContent = counter ? '“' + counter.quote + '”' : '尚未找到反例，仍需继续观察。';
+        if (sourceCount) sourceCount.textContent = String(memory.evidence.length);
+
+      }
+
+      document.addEventListener('memento:memory-rendered', function (event) {
+        renderEvidenceGlimpse(event.detail.memory);
+      });
+      if (window.MementoDemo) {
+        const activeId = window.MementoDemo.state.activeMemoryId;
+        renderEvidenceGlimpse(window.MementoDemo.data.understandings.find(function (item) { return item.id === activeId; }));
+      }
+
+      const recordList = document.querySelector('[data-record-list]');
+      const recordToggle = document.querySelector('.mobile-record-toggle');
+      function syncRecordToggle() {
+        if (!recordList || !recordToggle) return;
+        recordList.classList.remove('is-expanded');
+        recordToggle.setAttribute('aria-expanded', 'false');
+        recordToggle.textContent = '查看今天全部 ' + recordList.children.length + ' 条';
+        recordToggle.hidden = recordList.children.length <= 3;
+      }
+      if (recordList && recordToggle) {
+        recordToggle.addEventListener('click', function () {
+          const expanded = recordList.classList.toggle('is-expanded');
+          recordToggle.setAttribute('aria-expanded', String(expanded));
+          recordToggle.textContent = expanded ? '收起为 3 条' : '查看今天全部 ' + recordList.children.length + ' 条';
+        });
+        new MutationObserver(syncRecordToggle).observe(recordList, { childList: true });
+        syncRecordToggle();
+      }
+
+      const fullRecordList = document.querySelector('[data-full-record-list]');
+      if (fullRecordList && window.MementoDemoData) {
+        window.MementoDemoData.records.forEach(function (record) {
+          const item = document.createElement('li');
+          item.className = 'record-row';
+
+          const time = document.createElement('time');
+          time.className = 'record-time';
+          time.textContent = record.time;
+
+          const source = document.createElement('div');
+          source.className = 'record-source';
+          source.append(document.createTextNode(record.source));
+          source.append(document.createElement('br'));
+          const tag = document.createElement('span');
+          tag.className = 'record-tag';
+          tag.textContent = '# ' + record.tag;
+          source.append(tag);
+
+          const copy = document.createElement('p');
+          copy.className = 'record-copy';
+          copy.textContent = record.text;
+
+          item.append(time, source, copy);
+          fullRecordList.append(item);
+        });
+      }
+
+      const deleteDialog = document.getElementById('delete-dialog');
+      const deleteAction = deleteDialog && deleteDialog.querySelector('[data-delete-memory]');
+      if (deleteAction) {
+        deleteAction.addEventListener('click', function () {
+          window.setTimeout(function () {
+            if (deleteAction.dataset.armed !== 'true' && deleteDialog.open) deleteDialog.close();
+          }, 0);
+        });
+      }
+      if (deleteDialog && deleteAction) {
+        deleteDialog.addEventListener('close', function () {
+          deleteAction.removeAttribute('data-armed');
+          deleteAction.textContent = '删除这条理解';
+        });
+      }
+    });
+  </script>
+</body>
+</html>

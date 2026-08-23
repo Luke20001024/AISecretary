@@ -1,0 +1,45 @@
+{
+  "name": "explicit durable work preference",
+  "live_eval": true,
+  "sources": {
+    "2026-08-01.md": "# 2026-08-01\n\n## 09:10 · 项目复盘\n\n以后给我技术方案时，先写结论，再写实现细节。\n",
+    "2026-08-02.md": "# 2026-08-02\n\n## 18:30 · 文档反馈\n\n产品文档依然先说结论，再展开技术细节。\n"
+  },
+  "mock_response": {
+    "schema_version": "1.0",
+    "status": "candidate",
+    "candidate": {
+      "statement": "输出技术或产品方案时先给结论，再展开实现细节。",
+      "scope": "global",
+      "why_now": "两次记录表达了相同且可复用的输出偏好。",
+      "category": "work_preference",
+      "sensitive": false,
+      "uncertainty": "low",
+      "evidence": [
+        {
+          "file": "2026-08-01.md",
+          "line": 5,
+          "quote": "以后给我技术方案时，先写结论，再写实现细节。"
+        },
+        {
+          "file": "2026-08-02.md",
+          "line": 5,
+          "quote": "产品文档依然先说结论，再展开技术细节。"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "contract_valid": true,
+    "evidence_valid": true,
+    "status": "candidate",
+    "category": "work_preference"
+  },
+  "usage": {
+    "prompt_tokens": 900,
+    "completion_tokens": 130,
+    "total_tokens": 1030,
+    "prompt_cache_hit_tokens": 300,
+    "prompt_cache_miss_tokens": 600
+  }
+}

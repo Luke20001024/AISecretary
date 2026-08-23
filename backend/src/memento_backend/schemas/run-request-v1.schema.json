@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/run-request-v1.schema.json",
+  "title": "Run Request V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "kind", "request_id", "run_kind", "scope", "base_user_action_watermark_sha256", "requested_at", "requested_by"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "kind": {"const": "memento_run_request"},
+    "request_id": {"type": "string", "pattern": "^rrq_[0-9a-f]{24}$"},
+    "run_kind": {"enum": ["capture_understanding", "record_interpreter", "daily_integrator", "theme_synthesizer", "self_understanding", "context_router", "resource_reader", "rebuild_projections"]},
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "target_refs": {"type": "array", "maxItems": 128, "uniqueItems": true, "items": {"$ref": "#/$defs/objectRef"}},
+        "local_date": {"oneOf": [{"type": "null"}, {"type": "string", "format": "date"}]},
+        "topics": {"type": "array", "maxItems": 64, "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 120}}
+      }
+    },
+    "base_user_action_watermark_sha256": {"$ref": "#/$defs/sha256"},
+    "requested_at": {"type": "string", "format": "date-time"},
+    "requested_by": {"const": "user"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "objectRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id", "revision", "revision_sha256"],
+      "properties": {
+        "kind": {"enum": ["source_record", "capture_decision", "resource_card", "read_later_intent", "record_interpretation", "memory_atom", "relation", "theme", "self_insight"]},
+        "id": {"type": "string", "pattern": "^(rec|cap|res|rli|int|mat|rel|thm|sin)_[0-9a-f]{24}$"},
+        "revision": {"type": "integer", "minimum": 1},
+        "revision_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}

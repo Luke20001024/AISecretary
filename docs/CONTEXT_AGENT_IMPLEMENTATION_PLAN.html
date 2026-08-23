@@ -1,0 +1,1704 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Memento Re:member 长期洞察前端 P1、现有数据基础与每日 Context Review 下一增量 PRD。">
+  <title>Memento Re:member · 长期洞察前端 P1 PRD</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f7f4ed;
+      --paper-soft: #efe9dd;
+      --paper-deep: #e7dfd1;
+      --ink: #191817;
+      --ink-soft: #45413d;
+      --muted: #77716a;
+      --line: rgba(35, 31, 27, 0.14);
+      --line-strong: rgba(35, 31, 27, 0.24);
+      --accent: #b64224;
+      --accent-deep: #7e2c18;
+      --accent-soft: #f1d5c9;
+      --green: #2f6d55;
+      --green-soft: #dcebe3;
+      --amber: #8c611b;
+      --amber-soft: #efe2c7;
+      --blue: #365f79;
+      --blue-soft: #dce8ee;
+      --shadow: 0 24px 80px rgba(60, 48, 36, 0.10);
+      --radius-lg: 26px;
+      --radius-md: 16px;
+      --radius-sm: 10px;
+      --sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      --mono: "SFMono-Regular", "SF Mono", Menlo, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 84% 6%, rgba(182, 66, 36, 0.10), transparent 28rem),
+        linear-gradient(180deg, #fbfaf7 0, var(--paper) 35rem, #f4f0e8 100%);
+      color: var(--ink);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; }
+    button, input, textarea { font: inherit; }
+    button:focus-visible, a:focus-visible {
+      outline: 3px solid rgba(182, 66, 36, 0.35);
+      outline-offset: 3px;
+    }
+
+    .site-nav {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid var(--line);
+      background: rgba(251, 250, 247, 0.88);
+      backdrop-filter: blur(18px);
+    }
+    .nav-inner {
+      width: min(1180px, calc(100% - 40px));
+      min-height: 62px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+    }
+    .brand-mark {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--ink);
+      color: var(--paper);
+      font-family: Georgia, serif;
+      font-size: 16px;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .nav-links a {
+      padding: 8px 11px;
+      border-radius: 99px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+    }
+    .nav-links a:hover {
+      background: var(--paper-soft);
+      color: var(--ink);
+    }
+
+    main {
+      width: min(1180px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 72px 0 96px;
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 18px;
+      color: var(--accent-deep);
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+    .eyebrow::before {
+      content: "";
+      width: 28px;
+      height: 1px;
+      background: currentColor;
+    }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 {
+      max-width: 950px;
+      margin-bottom: 24px;
+      font-size: clamp(45px, 7.5vw, 92px);
+      line-height: 0.98;
+      font-weight: 560;
+      letter-spacing: -0.055em;
+    }
+    h1 em {
+      color: var(--accent);
+      font-family: Georgia, "Songti SC", serif;
+      font-weight: 400;
+    }
+    h2 {
+      margin-bottom: 16px;
+      font-size: clamp(30px, 4vw, 48px);
+      line-height: 1.12;
+      font-weight: 600;
+      letter-spacing: -0.035em;
+    }
+    h3 {
+      margin-bottom: 9px;
+      font-size: 18px;
+      line-height: 1.35;
+    }
+    .hero-copy {
+      max-width: 760px;
+      margin-bottom: 36px;
+      color: var(--ink-soft);
+      font-size: clamp(18px, 2.2vw, 23px);
+      line-height: 1.55;
+    }
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 48px;
+    }
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 18px;
+      border: 1px solid var(--line-strong);
+      border-radius: 99px;
+      background: transparent;
+      color: var(--ink);
+      text-decoration: none;
+      font-weight: 650;
+      cursor: pointer;
+    }
+    .button.primary {
+      border-color: var(--ink);
+      background: var(--ink);
+      color: #fffdf8;
+    }
+    .button:hover { transform: translateY(-1px); }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: rgba(255, 255, 255, 0.48);
+      box-shadow: var(--shadow);
+    }
+    .status-item {
+      min-height: 142px;
+      padding: 24px;
+      border-right: 1px solid var(--line);
+    }
+    .status-item:last-child { border-right: 0; }
+    .status-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 24px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 5px var(--green-soft);
+    }
+    .status-dot.pending {
+      background: var(--amber);
+      box-shadow: 0 0 0 5px var(--amber-soft);
+    }
+    .status-value {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .status-note {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    section {
+      scroll-margin-top: 86px;
+      margin-top: 112px;
+    }
+    .section-head {
+      display: grid;
+      grid-template-columns: 1fr minmax(280px, 0.7fr);
+      gap: 48px;
+      align-items: end;
+      margin-bottom: 36px;
+    }
+    .section-head p {
+      margin-bottom: 4px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .core-loop {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .loop-step {
+      position: relative;
+      min-height: 180px;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.48);
+      text-align: left;
+      cursor: pointer;
+      transition: 160ms ease;
+    }
+    .loop-step::after {
+      content: "→";
+      position: absolute;
+      right: -15px;
+      top: 73px;
+      z-index: 2;
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 17px;
+    }
+    .loop-step:last-child::after { display: none; }
+    .loop-step:hover,
+    .loop-step.active {
+      border-color: var(--accent);
+      background: #fffaf4;
+      transform: translateY(-3px);
+      box-shadow: 0 16px 40px rgba(95, 62, 38, 0.08);
+    }
+    .step-num {
+      display: block;
+      margin-bottom: 26px;
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .loop-step strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 17px;
+    }
+    .loop-step span:last-child {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .loop-detail {
+      display: grid;
+      grid-template-columns: 0.85fr 1.15fr;
+      gap: 20px;
+      min-height: 176px;
+      padding: 28px;
+      border-radius: var(--radius-md);
+      background: var(--ink);
+      color: #fffaf2;
+    }
+    .loop-detail-label {
+      margin-bottom: 9px;
+      color: #d7b9aa;
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+    .loop-detail h3 { font-size: 23px; }
+    .loop-detail p {
+      margin: 0;
+      color: #ddd5cc;
+    }
+    .loop-detail .necessity {
+      padding-left: 22px;
+      border-left: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .front-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(350px, 0.95fr);
+      gap: 28px;
+      align-items: start;
+    }
+    .browser {
+      overflow: hidden;
+      border: 0.5px solid rgba(26, 26, 26, 0.15);
+      border-radius: 12px;
+      background: #fafaf7;
+      box-shadow: 0 18px 52px rgba(40, 30, 20, 0.12);
+    }
+    .browser-bar {
+      min-height: 46px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      border-bottom: 1px solid var(--line);
+      background: #eae5dc;
+    }
+    .browser-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #c8c0b6;
+    }
+    .browser-address {
+      width: 52%;
+      height: 24px;
+      margin-left: 10px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.7);
+    }
+    .browser-body {
+      min-height: 560px;
+      display: grid;
+      grid-template-columns: 1fr 78%;
+    }
+    .browser-blank {
+      position: relative;
+      padding: 28px 14px;
+      border-right: 0.5px solid rgba(26, 26, 26, 0.12);
+      background:
+        linear-gradient(rgba(26, 26, 26, 0.08), rgba(26, 26, 26, 0.08)) 20px 42px / 75% 0.5px no-repeat,
+        linear-gradient(rgba(26, 26, 26, 0.08), rgba(26, 26, 26, 0.08)) 20px 76px / 58% 0.5px no-repeat,
+        #fafaf7;
+    }
+    .edge-pill {
+      position: absolute;
+      top: 44%;
+      right: -1px;
+      z-index: 2;
+      min-height: 78px;
+      padding: 10px 7px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      border: 0.5px solid rgba(26, 26, 26, 0.12);
+      border-right: 0;
+      border-radius: 10px 0 0 10px;
+      background: #fafaf7;
+      color: #7a766f;
+      box-shadow: -2px 0 12px rgba(40, 30, 20, 0.08);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+    }
+    .edge-pill span { writing-mode: vertical-rl; }
+    .edge-pill b {
+      min-width: 16px;
+      padding: 1px 4px;
+      border-radius: 99px;
+      background: #8b2f12;
+      color: #fafaf7;
+      font-size: 10px;
+      line-height: 1.4;
+      letter-spacing: 0;
+      text-align: center;
+    }
+    .drawer {
+      padding: 26px 24px;
+      background:
+        linear-gradient(rgba(240, 237, 229, 0.3), rgba(240, 237, 229, 0.3)),
+        #fafaf7;
+    }
+    .drawer-title {
+      margin-bottom: 4px;
+      color: #7a766f;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.22em;
+    }
+    .drawer-subtitle {
+      margin-bottom: 22px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .mock-insight-head {
+      margin-bottom: 4px;
+      padding: 14px 0 17px;
+      border-block: 1px solid rgba(26, 26, 26, 0.1);
+    }
+    .mock-insight-head h4 {
+      margin: 4px 0 3px;
+      font-size: 22px;
+      font-weight: 560;
+    }
+    .mock-insight-head p { margin: 0; color: var(--muted); font-family: var(--mono); font-size: 9px; }
+    .mock-update {
+      margin: 13px 0 3px;
+      padding: 8px 10px;
+      border-left: 2px solid var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent-deep);
+      font-size: 10px;
+    }
+    .mock-paragraph {
+      position: relative;
+      padding: 17px 0;
+      border-bottom: 1px solid rgba(26, 26, 26, 0.1);
+    }
+    .mock-paragraph.changed::before {
+      content: "";
+      position: absolute;
+      top: 18px;
+      bottom: 18px;
+      left: -10px;
+      width: 2px;
+      background: var(--accent);
+    }
+    .mock-paragraph small { color: var(--muted); font-family: var(--mono); font-size: 9px; }
+    .mock-paragraph p { margin: 6px 0 0; font-size: 13px; line-height: 1.72; }
+    .mock-actions { display: flex; flex-wrap: wrap; gap: 11px; margin-top: 9px; }
+    .mock-action {
+      padding: 0;
+      border: 0;
+      border-bottom: 0.5px solid rgba(26, 26, 26, 0.22);
+      background: transparent;
+      color: var(--muted);
+      font-size: 9px;
+      cursor: pointer;
+    }
+    .mock-action.reject { color: var(--accent-deep); }
+    .mock-evidence {
+      margin-top: 10px;
+      padding: 11px 12px;
+      border-left: 2px solid rgba(26, 26, 26, 0.12);
+      background: #f0ede5;
+      color: var(--ink-soft);
+      font-size: 10px;
+      line-height: 1.6;
+    }
+    .mock-bottom {
+      margin-top: 15px;
+      border-top: 1px solid rgba(26, 26, 26, 0.1);
+      color: var(--muted);
+      font-size: 10px;
+    }
+    .mock-bottom div { padding: 10px 0; border-bottom: 1px solid rgba(26, 26, 26, 0.1); }
+    .mock-result {
+      min-height: 42px;
+      margin-top: 13px;
+      padding: 9px 11px;
+      border-radius: 6px;
+      background: var(--green-soft);
+      color: var(--green);
+      font-size: 10px;
+    }
+    .front-notes {
+      display: grid;
+      gap: 12px;
+    }
+    .note-card {
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.46);
+    }
+    .note-card .tag {
+      display: inline-block;
+      margin-bottom: 18px;
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .note-card p {
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .note-card.warning {
+      border-color: #d9bd83;
+      background: var(--amber-soft);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.5);
+    }
+    .section-table { margin-top: 18px; }
+    table {
+      width: 100%;
+      min-width: 820px;
+      border-collapse: collapse;
+      text-align: left;
+    }
+    th, td {
+      padding: 17px 18px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+    th {
+      background: var(--paper-soft);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.04em;
+    }
+    td { font-size: 14px; }
+    tr:last-child td { border-bottom: 0; }
+    .node-name { font-weight: 750; }
+    .tiny {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    .output-layout {
+      display: grid;
+      grid-template-columns: 0.8fr 1.2fr;
+      gap: 24px;
+    }
+    .file-tree {
+      padding: 26px;
+      border-radius: var(--radius-md);
+      background: var(--ink);
+      color: #f7f1e8;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.85;
+      overflow-x: auto;
+    }
+    .file-tree .dim { color: #928a82; }
+    .file-tree .hot { color: #ef987e; }
+    .output-cards {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .output-card {
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.48);
+    }
+    .output-card code {
+      display: inline-block;
+      margin-bottom: 14px;
+      color: var(--accent-deep);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .output-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .decision-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .decision {
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.48);
+    }
+    .decision strong {
+      display: block;
+      margin-bottom: 13px;
+      font-size: 16px;
+    }
+    .decision p {
+      min-height: 66px;
+      margin-bottom: 18px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .write-chip {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 99px;
+      background: var(--green-soft);
+      color: var(--green);
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 750;
+    }
+    .write-chip.once {
+      background: var(--blue-soft);
+      color: var(--blue);
+    }
+    .write-chip.no {
+      background: var(--paper-deep);
+      color: var(--muted);
+    }
+
+    .architecture {
+      display: grid;
+      grid-template-columns: 1fr 44px 1fr 44px 1fr;
+      align-items: stretch;
+    }
+    .arch-layer {
+      min-height: 250px;
+      padding: 26px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.48);
+    }
+    .arch-layer.highlight {
+      border-color: var(--accent);
+      background: #fff9f3;
+    }
+    .arch-layer small {
+      display: block;
+      margin-bottom: 22px;
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .arch-layer ul {
+      margin: 16px 0 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .arch-arrow {
+      display: grid;
+      place-items: center;
+      color: var(--accent);
+      font-family: var(--mono);
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap: 20px;
+    }
+    .metric-main {
+      padding: 32px;
+      border-radius: var(--radius-lg);
+      background: var(--ink);
+      color: #fffaf2;
+    }
+    .metric-main .big {
+      margin: 26px 0 4px;
+      color: #ef987e;
+      font-size: clamp(54px, 9vw, 92px);
+      line-height: 0.9;
+      font-weight: 650;
+      letter-spacing: -0.06em;
+    }
+    .metric-main .caption {
+      color: #cfc5bb;
+      font-size: 14px;
+    }
+    .metric-main .pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 28px;
+    }
+    .pair div {
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.16);
+    }
+    .pair strong { display: block; font-size: 18px; }
+    .pair span { color: #a9a097; font-size: 11px; }
+    .metric-side {
+      display: grid;
+      gap: 12px;
+    }
+    .metric-small {
+      padding: 23px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.5);
+    }
+    .metric-small strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 23px;
+    }
+    .metric-small span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .fact-note {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-left: 3px solid var(--amber);
+      background: var(--amber-soft);
+      color: #5e471e;
+      font-size: 13px;
+    }
+
+    .roadmap {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .phase {
+      position: relative;
+      min-height: 260px;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.48);
+    }
+    .phase.current {
+      border-color: var(--accent);
+      background: #fff9f3;
+    }
+    .phase-index {
+      display: block;
+      margin-bottom: 34px;
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .phase p {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .phase ul {
+      margin: 16px 0 0;
+      padding-left: 18px;
+      font-size: 13px;
+    }
+
+    .acceptance {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    .checklist {
+      padding: 28px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.5);
+    }
+    .checklist ul {
+      display: grid;
+      gap: 12px;
+      margin: 20px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    .checklist li {
+      display: grid;
+      grid-template-columns: 22px 1fr;
+      gap: 9px;
+      color: var(--ink-soft);
+      font-size: 14px;
+    }
+    .checklist li::before {
+      content: "✓";
+      width: 20px;
+      height: 20px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: var(--green-soft);
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 900;
+    }
+    .checklist li.pending::before {
+      content: "!";
+      background: var(--amber-soft);
+      color: var(--amber);
+    }
+    .footer {
+      margin-top: 100px;
+      padding-top: 28px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      gap: 28px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    @media (max-width: 980px) {
+      .status-grid { grid-template-columns: 1fr 1fr; }
+      .status-item:nth-child(2) { border-right: 0; }
+      .status-item:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+      .core-loop { grid-template-columns: 1fr 1fr; }
+      .loop-step::after { display: none; }
+      .loop-step:last-child { grid-column: 1 / -1; }
+      .front-grid, .output-layout, .metrics { grid-template-columns: 1fr; }
+      .decision-grid { grid-template-columns: repeat(2, 1fr); }
+      .architecture { grid-template-columns: 1fr; gap: 10px; }
+      .arch-arrow { transform: rotate(90deg); min-height: 25px; }
+      .roadmap { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 700px) {
+      .nav-inner, main { width: min(100% - 24px, 1180px); }
+      .nav-links { display: none; }
+      main { padding-top: 46px; }
+      h1 { font-size: clamp(42px, 14vw, 66px); }
+      section { margin-top: 84px; }
+      .section-head { grid-template-columns: 1fr; gap: 8px; }
+      .status-grid, .core-loop, .decision-grid, .roadmap, .acceptance { grid-template-columns: 1fr; }
+      .status-item {
+        min-height: auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .status-item:last-child { border-bottom: 0; }
+      .loop-step:last-child { grid-column: auto; }
+      .loop-detail { grid-template-columns: 1fr; }
+      .loop-detail .necessity {
+        padding: 18px 0 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.18);
+        border-left: 0;
+      }
+      .front-grid { grid-template-columns: minmax(0, 1fr); }
+      .browser-body { grid-template-columns: 55px 1fr; }
+      .drawer { padding: 20px 16px; }
+      .output-cards { grid-template-columns: 1fr; }
+      .metric-main .pair { grid-template-columns: 1fr; }
+      .footer { flex-direction: column; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="site-nav" aria-label="页面导航">
+    <div class="nav-inner">
+      <a class="brand" href="#top"><span class="brand-mark">M</span> CONTEXT AGENT</a>
+      <div class="nav-links">
+        <a href="#loop">工作流</a>
+        <a href="#review">Review</a>
+        <a href="#frontend">前端</a>
+        <a href="#outputs">输出</a>
+        <a href="#architecture">架构</a>
+        <a href="#roadmap">落地</a>
+      </div>
+    </div>
+  </nav>
+
+  <main id="top">
+    <header>
+      <p class="eyebrow">Product requirements · Re:member frontend P1</p>
+      <h1>让长期积累先成为一份<br><em>可以安静阅读的理解</em>。</h1>
+      <p class="hero-copy">Re:member 前端 P1 收敛为右侧“关于我”里的单一长期洞察窗口：没有虚拟形象、聊天、主动提问、标签墙，也没有“现在 / 变化 / 记忆”三栏。当前工作区与本机安装版均已实现：从累计仍有效的 ready responses 重建 active profile，并把每个 projected tagId 一对一排成可阅读段落；依据、改一句和删除继续复用现有 tag-bound feedback。它没有新增跨 tag 文章生成、article snapshot 或 paragraph override 后端。安装、数据保留、离线评测与 Dashboard 自动化已经通过；Chrome 重新加载后的视觉与手工 E2E 仍待用户验收。每日自动 Context Review 也尚未实现。</p>
+      <div class="hero-actions">
+        <a class="button primary" href="#frontend">看长期洞察窗口</a>
+        <a class="button" href="#review">看每天什么时候 Review</a>
+      </div>
+
+      <div class="status-grid" aria-label="当前实现状态">
+        <article class="status-item">
+          <div class="status-label"><span class="status-dot"></span>AGENT CORE</div>
+          <p class="status-value">P1.1 已安装</p>
+          <p class="status-note">本机 runtime 与工作区一致；主动 Reflection、反馈 reducer 与只读 profile 投影已落盘，作为新前端的数据基础</p>
+        </article>
+        <article class="status-item">
+          <div class="status-label"><span class="status-dot"></span>FRONTEND</div>
+          <p class="status-value">已安装 · 自动化通过</p>
+          <p class="status-note">单一阅读窗口、一段一 tagId、依据 / 修改 / 删除、非阻塞核对、首次空态与底部设置已同步到本机；待 Chrome 重新加载后做视觉与手工 E2E</p>
+        </article>
+        <article class="status-item">
+          <div class="status-label"><span class="status-dot pending"></span>REAL CALL</div>
+          <p class="status-value">本轮未发起真实调用</p>
+          <p class="status-note">Keychain 条目存在，但安装后只运行离线评测；不据此声称当前 DeepSeek 凭据已完成新 smoke</p>
+        </article>
+        <article class="status-item">
+          <div class="status-label"><span class="status-dot"></span>LOCAL RUNTIME</div>
+          <p class="status-value">安装与自动化验收通过</p>
+          <p class="status-note">runtime / Dashboard 与工作区一致，按需 Worker 已加载；Chrome 手工 E2E 尚未完成</p>
+        </article>
+      </div>
+      <p class="fact-note"><strong>状态边界：</strong>新长期洞察前端已经同步到 <code>~/AISecretary</code>；工作区与安装版 Dashboard / runtime 一致，安装前完整快照与安装后用户数据核对无差异，本轮 9 / 9 离线评测与 Dashboard 自动化通过。本轮没有调用真实 DeepSeek，也没有直接观察 Chrome 重载后的画面，因此不能写成“真实 API 已验证”或“Chrome E2E 已完成”。每日 14 天变化探测与 08:00 / 21:00 自动调度仍未实现；当前更新只来自底部固定核对按钮。</p>
+    </header>
+
+    <section id="loop">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">The product loop</p>
+          <h2>核心不是聊天，而是一条可核验的“理解流水线”</h2>
+        </div>
+        <p>点击任一节点查看它解决的问题。模型负责语义理解，确定性代码负责证据、安全和画像投影，用户负责随时修改或删除。</p>
+      </div>
+
+      <div class="core-loop" role="tablist" aria-label="Agent 工作流">
+        <button class="loop-step active" type="button" role="tab" aria-selected="true" data-step="sense">
+          <span class="step-num">01 / ACCUMULATE</span>
+          <strong>保留事实与回应</strong>
+          <span>原始记录不改写；累计有效 responses 与用户反馈</span>
+        </button>
+        <button class="loop-step" type="button" role="tab" aria-selected="false" data-step="infer">
+          <span class="step-num">02 / REDUCE</span>
+          <strong>重建理解单元</strong>
+          <span>现有 reducer 合并仍有效的观察、证据、反例与用户校准</span>
+        </button>
+        <button class="loop-step" type="button" role="tab" aria-selected="false" data-step="verify">
+          <span class="step-num">03 / PRESENT</span>
+          <strong>排成阅读段落</strong>
+          <span>工作区已实现：一个 active projected tagId 对应一个段落</span>
+        </button>
+        <button class="loop-step" type="button" role="tab" aria-selected="false" data-step="decide">
+          <span class="step-num">04 / TRACE</span>
+          <strong>绑定依据与变化</strong>
+          <span>每个段落回到原始记录、反例与版本修订原因</span>
+        </button>
+        <button class="loop-step" type="button" role="tab" aria-selected="false" data-step="deliver">
+          <span class="step-num">05 / REVISE</span>
+          <strong>阅读、修改或删除</strong>
+          <span>用户不审核队列；只在不认同时介入</span>
+        </button>
+      </div>
+      <div class="loop-detail" id="loop-detail" role="tabpanel" aria-live="polite">
+        <div>
+          <p class="loop-detail-label">节点职责</p>
+          <h3 id="loop-title">先保住原始事实，再谈长期理解</h3>
+          <p id="loop-copy">原始日级记录始终是事实层；现有有效 responses、精确绑定的反馈和可定位证据构成派生理解层。新前端只改变呈现，不反写原始记录。</p>
+        </div>
+        <div class="necessity">
+          <p class="loop-detail-label">为什么必要</p>
+          <p id="loop-why">如果文章直接覆盖事实，用户删改一句话就会破坏历史；事实与解释分层才能让洞察可重建、可推翻。</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="review">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Next increment · Context Review</p>
+          <h2>下一增量：Agent 每天复核，但不是每天打扰</h2>
+        </div>
+        <p>Daily Review 回看一天发生了什么；Context Review 判断新记录是否改变了值得长期复用的理解。两者复用运行时机，但产物、证据和用户授权彼此独立。</p>
+      </div>
+
+      <p class="fact-note"><strong>未实现边界：</strong>当前已安装前端只会在用户点击底部固定核对按钮时创建一次现有 Reflection request；它不是 Daily Review，也没有 08:00 / 21:00 调度、变化 gate 或历史 backlog。本节以下自动 Review 内容都是下一增量合同。</p>
+      <p class="fact-note"><strong>14 天不是展示范围：</strong>“她眼中的我”读取目前已形成且仍通过校验的累计理解，不能反向宣称覆盖从开始记录以来的全部历史。每次固定核对只把最近 14 个自然日内的可用日记、有效 Confirmed Context 与最近有效校准发送给 Worker；新结果再由确定性 reducer 累积进 profile。</p>
+      <p class="fact-note"><strong>继承当前设计，不另造管理后台：</strong>事实、模型解释和用户反馈继续分层；通过校验的理解直接进入可阅读结果，不要求用户逐条授权。只有旧 Context / Pack 的跨任务分发仍保留独立授权链路，并下沉到页面底部兼容区。自动 Context Review 只有用户明确启用后才接入现有 Daily Review 周期；两者只共享唤醒时机，不共享产物或成功状态。</p>
+
+      <div class="roadmap" aria-label="每日 Context Review 四步">
+        <article class="phase current">
+          <span class="phase-index">01 · GATE</span>
+          <h3>先做本地变化检查</h3>
+          <p>先比较“实质变化水位”与上次成功状态；只有确实需要运行时才生成本轮 review_run_key。单纯日期推进或窗口自然老化不调用模型。</p>
+          <ul><li>run_key 只负责幂等与审计</li><li>晨晚检查不等于每天调用两次</li></ul>
+        </article>
+        <article class="phase">
+          <span class="phase-index">02 · WINDOW</span>
+          <h3>观察滚动 14 个自然日</h3>
+          <p>先确定被核对的 <code>target_date</code> D，窗口严格为 D−13 至 D。历史不足时使用实际可授权的 N 个自然日。</p>
+          <ul><li>自然日跨度与有记录天数分开显示</li><li>没有记录只代表缺少证据</li></ul>
+        </article>
+        <article class="phase">
+          <span class="phase-index">03 · RECONCILE</span>
+          <h3>先核对已经记住什么</h3>
+          <p>输入为 target_date 对应增量、窗口内原始记录、相关已确认 Context 和相关用户决定反馈；候选证据仍必须回到原始文件与行级引文。</p>
+          <ul><li>识别强化、新增、变化与冲突</li><li>不得把 AI 日总结当最终证据</li></ul>
+        </article>
+        <article class="phase">
+          <span class="phase-index">04 · ATTENTION</span>
+          <h3>由变化决定是否打扰</h3>
+          <p>无变化安静结束；有效新 response 进入累计 profile 后，一个 active projected tag 对应一个阅读段落。旧版长期 Context 候选只出现在底部兼容区。</p>
+          <ul><li>核对不阻断当前 profile 阅读</li><li>不形成每日审批队列</li></ul>
+        </article>
+      </div>
+
+      <div class="table-wrap section-table">
+        <table>
+          <thead>
+            <tr>
+              <th>触发时机</th>
+              <th>何时真正调用模型</th>
+              <th>前端表现</th>
+              <th>为什么这样设计</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="node-name">21:00 主检查</span><span class="tiny">目标增量 · 用户启用后</span></td>
+              <td><code>target_date=今天</code>；存在新增/修改来源、需重试失败或已授权的规则 / Context 实质变化。</td>
+              <td>无实质变化只更新检查状态；有变化时，新的 active projected tag 会一对一反映为阅读段落。旧长期 Context 候选只在底部兼容区出现。</td>
+              <td>复用现有 Daily Review 晚间周期，让当天内容先自然沉淀，不增加第三套调度。</td>
+            </tr>
+            <tr>
+              <td><span class="node-name">08:00 补检查</span><span class="tiny">目标增量 · 用户启用后</span></td>
+              <td><code>target_date=昨天</code>；仅当 21:00 后来源又变化、昨晚漏跑或上次失败。</td>
+              <td>没有变化完全静默；补跑也不会制造重复段落或新的审核任务。</td>
+              <td>覆盖深夜新增内容，同时通过实质变化门控避免重复付费。</td>
+            </tr>
+            <tr>
+              <td><span class="node-name">历史 backlog</span><span class="tiny">离线超 14 天 / 旧文件后来修改</span></td>
+              <td>先完成最新窗口的正常门控；更早未成功 Review、后来授权或窗口外哈希变化的来源，只在用户点击“继续补 Review”后，每次处理一个按时间排序的 14 日窗口。</td>
+              <td>底部“更新与边界”显示未 Review 的日期范围与记录数；不自动批量调用，也不生成主页面候选列表。</td>
+              <td>既不静默漏掉旧记录，也避免设备恢复时突然产生大量费用和审核待办。</td>
+            </tr>
+            <tr>
+              <td><span class="node-name">根据近期记录重新核对</span><span class="tiny">前端 P1 · 固定任务</span></td>
+              <td><code>target_date=今天</code>，固定读取最近 14 个自然日内的可用日记、有效 Confirmed Context 与最近有效校准；一次点击最多一次调用，不允许用户改写任务或选择自由问题。</td>
+              <td>按钮只在底部“更新与边界”；运行时正文继续可读，没有实质变化则保持原文。</td>
+              <td>先用可控、非对话的入口验证质量与成本，不把尚未实现的自动 Daily Review 冒充当前能力。</td>
+            </tr>
+            <tr>
+              <td><span class="node-name">调整已确认 Context</span><span class="tiny">同日定向追加</span></td>
+              <td><code>target_date=调整发生日</code>；用户修改、限域、暂停或撤回后，只围绕该 Context 与相关证据复核。</td>
+              <td>用户操作立即生效；仅有新的冲突需要判断时再出现一张卡。</td>
+              <td>用户指令优先于模型，模型不能批准、回滚或静默覆盖用户调整。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-wrap section-table">
+        <table>
+          <thead>
+            <tr>
+              <th>核对结果</th>
+              <th>系统处理</th>
+              <th>是否请用户确认</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><span class="node-name">skip</span></td><td>没有实质变化、无需重试；不调用模型。</td><td>否</td></tr>
+            <tr><td><span class="node-name">no_change</span></td><td>没有新的长期价值变化，只记录本轮成功状态。</td><td>否</td></tr>
+            <tr><td><span class="node-name">reinforce</span></td><td>新证据支持已有 Context；只在 Review 状态中引用新证据，不修改用户确认过的 Context 对象或表述。</td><td>否</td></tr>
+            <tr><td><span class="node-name">new</span></td><td>出现一条新的、证据充分且可复用的理解候选。</td><td>是，显示一张候选</td></tr>
+            <tr><td><span class="node-name">update</span></td><td>新证据可能要求修改已有 Context 的表述或适用范围。</td><td>是，显示一张对照候选</td></tr>
+            <tr><td><span class="node-name">conflict</span></td><td>新证据与已有 Context 冲突；旧内容不会被自动覆盖。</td><td>是，交给用户决定</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="fact-note"><strong>单候选优先级：</strong>同一次 Review 同时发现多项时，按“用户刚调整后产生的冲突 → 其他 conflict → update → new”选择一项；同级再按证据是否跨不同记录日、是否更接近 target_date 和影响范围排序。未选项不进入隐藏队列，只有后续出现新的实质变化、失败补跑或用户明确选择其他日期时才重新判断。</p>
+      <p class="fact-note"><strong>14 天的精确定义：</strong>D 永远表示被核对的 <code>target_date</code>，不是 worker 的运行日期：21:00 的 D 是今天，08:00 补查的 D 是昨天。窗口始终为 [D−13, D]。N 由用户本次授权范围内最早可用的记录日期决定，不由“产品启用了几天”决定；如果启用当天已经授权此前 14 天的记录，首次运行即可观察完整窗口。如果只拥有 9 个已授权自然日，且其中 5 天有记录，前端应显示“已观察 9 个自然日，其中 5 天有记录”，不能写成“观察了 5 天”。没有记录的日期不是反例，也不能据此推断某个行为已经停止。</p>
+      <p class="fact-note"><strong>Gate 与幂等必须分开：</strong><code>material_change_watermark</code> 用来决定 run / skip / backlog，包含当前 [D−13, D] 内新增或修改的来源、直接 Context 调整、需执行的 Prompt / Schema / 模型 / 授权配置变更和失败补跑；单纯 target_date 前进、窗口自然淘汰旧日期、候选被 reject / just_once 均不单独触发新调用。source_date&lt;D−13 的新授权或修改只重开对应来源的 historical backlog，不触发最新窗口 API 调用；若它正被 pending / active Context 引用，本地立即把候选标 stale 或把 Context 标 source_stale 并停止进入 Pack，等待历史补 Review。只有 gate=run 后才计算 <code>review_run_key</code>：target_date + 窗口快照 + 来源哈希 + Context revision/hash + 决定反馈 revision + Prompt / Schema / 模型 / 授权配置版本，用于幂等与审计。</p>
+      <p class="fact-note"><strong>历史补 Review 的唯一分窗：</strong>超过 14 天仍未 Review、后来新授权，或窗口外文件哈希变化，都会以“文件 + 新哈希”进入 historical backlog。令 start=最早 backlog 来源日期，latest=最新授权来源日期，target_date=min(start+13 天, latest)，模型窗口固定为 [target_date−13, target_date]，但本批只覆盖日期位于 [start, target_date] 的 backlog 来源文件。一次模型调用成功即保存 batch ID、覆盖文件及其哈希并推进这些来源的 reviewed 水位；即使产出待回应候选也表示“已完成 Review”，只是后续分窗暂停到候选处理完。调用失败不推进任何水位；下一批从首个未覆盖来源日期重新计算。每次“继续补 Review”最多一批 / 一次调用。</p>
+      <p class="fact-note"><strong>未回应候选的路由优先级：</strong>候选依赖变化先判断证据日期。被改证据仍在当前 [D−13, D] 内，或目标 Context revision/hash、Prompt / Schema、授权范围发生变化时，卡片 stale、按钮立即禁用，并在同一卡位按当前窗口重算；被改证据已经在窗口外时，卡片进入 <code>stale_waiting_backlog</code>，只显示等待历史补 Review，绝不调用不含该证据的最新窗口。新来源、无关 Context 或仅模型版本等不影响当前卡合法性的实质变化则合并进 <code>dirty_watermark</code>，本次 gate=defer、0 次模型调用且不推进成功水位；卡片处理后，在下一次定时或手动 gate 中只按最新窗口运行一次。</p>
+      <p class="fact-note"><strong>source_stale 的恢复条件：</strong>active Context 的来源变化后立即停止进入 Pack。自动 <code>evidence_rebased</code> 只允许一种确定性等价情况：整份来源在仅规范化 CRLF/LF 与行尾空白后内容哈希完全相同，全部逐字 quote 仍可定位，statement / scope / category 未变，且 target revision CAS 成功。任何非空文本的新增、删除、改写都必须保持 source_stale，即使旧 quote 仍存在、历史 Review 返回 no_change / reinforce，也不能自动恢复；若语义未变但证据版本变化，reconcile 必须生成一张 update“重新确认依据”候选，用户确认后才创建新 active revision。quote 消失、出现否定或冲突时走 update / conflict；失败或拒绝均不得恢复。</p>
+      <p class="fact-note"><strong>行为与兴趣边界：</strong>现有数据基础围绕日级文本中的工作方式、判断特征与变化线索，尚未实现广义兴趣画像或自动习惯采集。当前 profile 中的 <code>continuing</code> 只是内部状态：来自有效 confirmed Context、legacy accurate，或聚合后至少 3 个不同证据日；它仍不等于长期确认，也不应在新前端变成人格标签。广义兴趣、传感器输入和情绪、健康等敏感状态均不在当前范围。</p>
+      <p class="fact-note"><strong>明确的产品决定：</strong>处理节奏可以是每日的，打扰节奏必须由“理解是否真的发生变化”决定。如果改成每天都强制用户点一次确认，就会改变当前“不制造 Review 待办、一次只呈现一个局部理解”的产品原则，不属于本 PRD。</p>
+    </section>
+
+    <section id="frontend">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Frontend P1 · Long-term reflection</p>
+          <h2>“关于我”只保留一份长期洞察</h2>
+        </div>
+        <p>继续沿用 Pure Paper 与原 Dashboard 右侧导轨。主抽屉没有头像、对话、主动提问、问题 chips、标签墙或三栏导航；前台先让用户阅读，控制与技术细节在需要时才出现。</p>
+      </div>
+
+      <p class="fact-note"><strong>前端 P1 范围：</strong>本节已经在工作区实现并同步到本机安装版，自动化验证通过；Chrome 重新加载后的视觉与手工 E2E 仍待完成。Dashboard 直接读取现有 profile projection：一个 active projected tagId 对应一个阅读段落，段落使用该 tag 的 statement、scope、状态、证据与反例；修改和删除直接写现有、严格绑定 response hash + insight index 的 feedback。不新增跨 tag composer、文章快照或段落 override。浏览器仍不持有 API Key，也不直连 Provider。</p>
+
+      <div class="front-grid">
+        <div class="browser" aria-label="长期洞察抽屉界面示意">
+          <div class="browser-bar" aria-hidden="true">
+            <span class="browser-dot"></span><span class="browser-dot"></span><span class="browser-dot"></span>
+            <span class="browser-address"></span>
+          </div>
+          <div class="browser-body">
+            <div class="browser-blank"><span class="edge-pill"><span>关于我</span><b>•</b></span></div>
+            <div class="drawer">
+              <h3 class="drawer-title">关于我 · RE:MEMBER</h3>
+              <p class="drawer-subtitle">一份从长期记录中形成、仍可被你修订的理解。</p>
+              <div class="mock-insight-head">
+                <small>LONG-TERM REFLECTION</small>
+                <h4>她眼中的我</h4>
+                <p>累计 4 次有效整理 · 最近整理于 2026-08-11 · 演示数据</p>
+              </div>
+              <div class="mock-paragraph" data-tag-id="ptag_demo_outcome">
+                <small>关于你的判断方式</small>
+                <p>你通常不会马上进入功能方案，而会先问清真正的问题、怎样才算改善，以及最后用什么事实验证。</p>
+                <div class="mock-actions"><button class="mock-action" type="button" data-mock-action="evidence">查看 4 条依据</button><button class="mock-action" type="button" data-mock-action="paragraph-edit">改一句</button><button class="mock-action reject" type="button" data-mock-action="paragraph-delete">删除这段</button></div>
+                <div class="mock-evidence" id="mock-evidence" hidden>“先写清预期结果，再决定 Agent 节点。”<br>2026-08-03.md · 演示定位<br><br>不同信号：一次记录选择先上线，再用反馈修订。</div>
+              </div>
+              <div class="mock-paragraph changed" data-tag-id="ptag_demo_change">
+                <small>最近修订的一处理解</small>
+                <p id="mock-copy">你正在从“处理更多记忆项”转向“先看到长期观察组织成的完整结果”。</p>
+                <div class="mock-actions"><button class="mock-action" type="button" data-mock-action="paragraph-edit">改一句</button><button class="mock-action reject" type="button" data-mock-action="paragraph-delete">删除这段</button></div>
+              </div>
+              <div class="mock-bottom"><div>〉更新与理解边界</div><div>〉旧版 Context 与 Pack</div></div>
+              <div class="mock-result" id="mock-result">界面示意：正文一直可读；依据、变化、重新核对与旧 Context 兼容说明都按需展开。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="front-notes">
+          <article class="note-card">
+            <span class="tag">工作区已实现</span>
+            <h3>默认是一篇文章，不是一组标签</h3>
+            <p>打开“关于我”立即从累计仍有效的 ready responses 重建 profile，零模型调用、无等待。一个 active tag 只呈现为一个阅读段落，用户不需要管理标签结构。</p>
+          </article>
+          <article class="note-card">
+            <span class="tag">工作区已实现</span>
+            <h3>段落级依据、修改与删除</h3>
+            <p>每段正文只绑定一个 projected tagId，并沿用它的证据、反例与 provenance。“改一句”写现有 edit feedback；删除需要二次确认，reject 成功后才移除段落，当前版本不提供撤销。</p>
+          </article>
+          <article class="note-card">
+            <span class="tag">工作区已实现</span>
+            <h3>更新不能阻断阅读</h3>
+            <p>重新核对运行时继续展示当前 profile；标题下只显示轻量状态。新 response 返回后重新投影段落；失败时保留当前内容，不出现整页 loading 或空白。</p>
+          </article>
+          <article class="note-card">
+            <span class="tag">工作区已实现</span>
+            <h3>当前用固定核对任务更新</h3>
+            <p>主洞察区没有输入框或问题 chips。底部“更新与边界”保留轻按钮“根据近期记录重新核对”：固定任务只读取最近 14 个自然日内的可用日记、有效 Confirmed Context 与最近有效校准，一次点击最多一次模型调用。</p>
+          </article>
+          <article class="note-card">
+            <span class="tag">工作区已实现 · 首次空态</span>
+            <h3>先形成第一份基于近期记录的理解</h3>
+            <p>当前 profile 为空时，只说明来源、边界与费用后果，并提供同一个固定任务。资料不足就明确返回不足，不为了填满页面而推断人格。</p>
+          </article>
+          <article class="note-card warning">
+            <span class="tag">尚未实现</span>
+            <h3>自动 Daily Review 不能写成已有能力</h3>
+            <p>当前系统不会为 Re:member 自动创建 request。08:00 / 21:00 调度、变化 gate 与历史 backlog 仍待实现；P1 先通过底部固定按钮生成新 response，再由现有 reducer 重建阅读段落。</p>
+          </article>
+          <article class="note-card warning">
+            <span class="tag">兼容与边界</span>
+            <h3>变化史与旧 Context 退到底部</h3>
+            <p>主抽屉不再有三栏。底部只保留“更新与理解边界”和“旧版 Context 与 Pack”两个 details；前者放固定核对和历次有效整理，后者承接旧兼容工具。</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="nodes">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Node necessity</p>
+          <h2>每个工程节点存在的必要性</h2>
+        </div>
+        <p>这不是为了让架构显得复杂；每个节点都对应一个不能交给模型自由发挥的产品风险。</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>节点</th>
+              <th>输入 → 输出</th>
+              <th>必要性</th>
+              <th>缺失后的直接后果</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="node-name">outbound guard</span><span class="tiny">现有能力复用 · 出站边界</span></td>
+              <td>固定洞察核对任务 + 最近 14 个自然日内的可用日记 + 有效 Confirmed Context + 最近有效校准 → allow / block</td>
+              <td>在文本被发送给模型之前确认授权、输入上限、明显密钥与敏感风险。</td>
+              <td>用户无法知道什么会出站，敏感内容或被篡改的校准也可能进入 Provider。</td>
+            </tr>
+            <tr>
+              <td><span class="node-name">review gate</span><span class="tiny">下一增量 · 调用门控</span></td>
+              <td>material_change_watermark + pending 状态 + 成功/失败水位 → run / skip / defer / backlog；run 后生成 review_run_key</td>
+              <td>把“到了检查时间”与“真的需要调用模型”分开。</td>
+              <td>晨晚固定检查会被错误实现成固定次数的模型付费。</td>
+            </tr>
+            <tr>
+              <td><span class="node-name">reconcile</span><span class="tiny">下一增量 · 记忆核对</span></td>
+              <td>新证据 + active Context + 相关 decision feedback → no_change / reinforce / new / update / conflict</td>
+              <td>提出新记忆之前，先核对用户已经确认的内容。</td>
+              <td>相同理解会反复出现，变化与冲突也无法被发现。</td>
+            </tr>
+            <tr>
+              <td><span class="node-name">reflect</span><span class="tiny">现有响应基础</span></td>
+              <td>一条本地 request + 经出站守门的材料 → ready / insufficient_evidence / error response</td>
+              <td>现有 responses 提供 observation / change / tension、证据与反例，作为长期洞察输入。</td>
+              <td>系统只剩关键词搜索，无法理解跨记录语义。</td>
+            </tr>
+            <tr>
+              <td><span class="node-name">validate</span><span class="tiny">确定性校验</span></td>
+              <td>模型 JSON → valid / rejected</td>
+              <td>逐行核对证据、来源哈希、Schema、类别与敏感边界。</td>
+              <td>模型幻觉、旧来源或非法结构可能被当作事实。</td>
+            </tr>
+            <tr>
+              <td><span class="node-name">profile reducer</span><span class="tiny">现有数据基础 · 只读投影</span></td>
+              <td>全部有效 ready responses + 严格绑定 feedback → 累计 active tags</td>
+              <td>用稳定的 exact statement + scope 身份合并标签，并保证 reject 终态、edit / scope 分维度保留。</td>
+              <td>只看最新回答会丢失累积；latest-only 反馈会让删除复活或把修改相互覆盖。</td>
+            </tr>
+            <tr>
+              <td><span class="node-name">article projector</span><span class="tiny">前端 P1 · 工作区已实现</span></td>
+              <td>active profile tags → 一段对应一个 tagId 的阅读列表</td>
+              <td>只改变信息层级与阅读排版，直接复用每个 tag 已校验的 statement、证据、反例、状态与反馈绑定。</td>
+              <td>如果另起跨 tag 生成器，会新增当前代码没有的证据合并、编辑和删除合同，让文档强于实现。</td>
+            </tr>
+            <tr>
+              <td><span class="node-name">profile output</span><span class="tiny">现有能力 · 安全分发</span></td>
+              <td>active profile → JSON 或单行严格 JSON data block 的 Markdown</td>
+              <td>让 Dashboard 和下游 AI 获得同一份可重建画像，同时把全部字符串限定为不可信数据。</td>
+              <td>直接拼 Markdown 会让标题、code fence、HTML 或类指令文本越过数据边界。</td>
+            </tr>
+            <tr>
+              <td><span class="node-name">eval</span><span class="tiny">质量与成本</span></td>
+              <td>合成用例 → 质量 / Token / 成本报告</td>
+              <td>在同一合同上比较模型，并持续发现回归。</td>
+              <td>只能凭一次“看起来不错”的回答选模型和上线。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="fact-note"><strong>隐私与提示注入边界：</strong>当前已安装前端在底部“更新与边界”说明：点击“根据近期记录重新核对”后，最近 14 个自然日内的可用日记、有效 Confirmed Context 与最近有效校准会由本地 Worker 发送给 DeepSeek，Key 只由本地读取；当前 active profile 不会作为一份全量长期投影被额外送入 Prompt。按钮使用固定问题并复用现有 request / response 合同，不接受自由问题。照片、音频、OCR、Daily Review 派生文本与其他 Vault 文件默认不进入。未来若启用自动 Review，还必须另行授权。</p>
+      <p class="fact-note"><strong>当前可靠性边界：</strong>P1.1 会把 request / response / feedback 同时绑定严格 Schema、安全文件名、response hash 和 insight index；错名文件、来源已变、Confirmed Context 快照已过期、非法或敏感记录不进入画像。profile 是可重建的只读投影，不是跨文件事务；下一增量也不能冒充“全链路原子”。</p>
+    </section>
+
+    <section id="outputs">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Result contract</p>
+          <h2>前台是一篇文章，后台仍然保留结构与证据</h2>
+        </div>
+        <p>长期洞察不是另一份不可追溯的大模型总结。工作区 P1 直接把现有 request / response / feedback 与只读 profile 投影为阅读段落，不新增文章存储层；usage/eval 继续服务成本与质量判断。</p>
+      </div>
+      <div class="output-layout">
+        <div class="file-tree" aria-label="Context Agent 本地目录结构">
+          <span class="dim">~/AISecretary/</span><br>
+          ├── 2026-08-10.md <span class="dim"># 原始记录，不修改</span><br>
+          ├── <span class="hot">.context-agent/</span><br>
+          │&nbsp;&nbsp; ├── self-queries/requests/srq_&lt;id&gt;.json<br>
+          │&nbsp;&nbsp; ├── self-queries/responses/srq_&lt;id&gt;.json<br>
+          │&nbsp;&nbsp; ├── self-queries/feedback/srf_&lt;id&gt;.json<br>
+          │&nbsp;&nbsp; ├── reflections/ <span class="dim"># 内部缓存</span><br>
+          │&nbsp;&nbsp; ├── candidates/<br>
+          │&nbsp;&nbsp; │&nbsp;&nbsp; └── ctx_&lt;id&gt;.json<br>
+          │&nbsp;&nbsp; ├── decisions/<br>
+          │&nbsp;&nbsp; │&nbsp;&nbsp; └── ctx_&lt;id&gt;.json<br>
+          │&nbsp;&nbsp; ├── locks/<br>
+          │&nbsp;&nbsp; └── usage/<br>
+          │&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; └── 2026-08.ndjson<br>
+          └── <span class="hot">Context/Confirmed/</span><br>
+          &nbsp;&nbsp;&nbsp; └── ctx_&lt;id&gt;.json
+        </div>
+        <div class="output-cards">
+          <article class="output-card">
+            <code>1 · REQUEST / RESPONSE</code>
+            <h3>现有累计响应</h3>
+            <p>已保留的有效 responses、来源与反馈是首版长期洞察的数据基础。新前端不再显示主动提问，但可以复用现有单请求锁与 ready / insufficient_evidence / error 状态。</p>
+          </article>
+          <article class="output-card">
+            <code>2 · PROFILE JSON</code>
+            <h3>文章背后的结构化投影</h3>
+            <p><code>profile --format json</code> 输出累计 active units、反馈、证据与 provenance。它仍只读、可重建，不调模型；新前端不直接把这些 units 显示成标签墙。</p>
+          </article>
+          <article class="output-card">
+            <code>3 · ARTICLE PROJECTION</code>
+            <h3>不新增存储的阅读视图</h3>
+            <p>工作区 Dashboard 对 active tags 做稳定排序，一段对应一个 tagId；正文、证据、反例、状态与日期都来自同一 profile 对象，不再生成第二份文章。</p>
+          </article>
+          <article class="output-card">
+            <code>4 · TAG-BOUND FEEDBACK</code>
+            <h3>修改、删除与兼容输出</h3>
+            <p>“改一句”与“删除这段”继续绑定原 response hash、insight index 与 tagId；删除复用现有 exact-key reject tombstone。旧 Pack、profile Markdown 与 usage/eval 继续保留。</p>
+          </article>
+        </div>
+      </div>
+      <p class="fact-note"><strong>下一增量的状态合同分两层：</strong>每次定时或手动检查都写 gate 记录，至少包含 <code>gate_check_id</code>、checked_at、target_date、触发方式、material change 各水位、结果（run / skip / defer / backlog）与原因；defer 还保存 dirty_watermark 且不推进成功水位，skip / defer 均不存在 review_run_key、模型和 usage。只有 gate=run 才写 Review 运行记录：14 日窗口起止、实际授权自然日数、有记录天数、<code>review_run_key</code>、来源哈希、相关 Context revision / 内容哈希、用户调整与 decision feedback revision、Prompt / Schema / 模型与授权配置版本、结果类型、候选 ID（若有）和 usage。历史补跑还记录 batch ID、start / target_date 与本批覆盖来源哈希集合。候选生命周期至少区分 pending / stale / stale_waiting_backlog / decided；Context 生命周期至少区分 active / source_stale / paused / withdrawn / superseded，并带不可变 revision。new / update / conflict 候选必须携带 <code>proposal_kind</code>、<code>related_context_ids</code>；update / conflict 额外绑定唯一的 <code>target_context_id</code>、<code>target_revision</code> 与 <code>target_context_hash</code>。只保存可审计元数据和现有对象引用，不额外复制一份原始日记正文。</p>
+    </section>
+
+    <section id="decisions">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Legacy compatibility · Decision semantics</p>
+          <h2>长期洞察只用修改 / 删除；旧五种决定留在兼容区</h2>
+        </div>
+        <p>下方五个按钮只描述旧 Candidate → Confirmed / One-time Pack 链路，不是长期洞察的必经审批，也不出现在正文。它们仅作为任务复用协议收进底部“更新与边界”。</p>
+      </div>
+      <p class="fact-note"><strong>现有数据 reducer：</strong>任一合法 reject 都是该 exact unit 的终态删除，后续 edit / scope / accurate / changed 不能复活。最新 edit 与 scope 分维度保留；<code>system_observation / continuing / changing / user_edited</code> 继续作为内部状态，不再作为前台人格标签展示。</p>
+      <p class="fact-note"><strong>前端 P1 反馈合同：</strong>一个阅读段落只对应一个 active projected tagId，因此直接复用现有 tag-bound edit / reject。用户编辑仍写原 response hash + insight index 对应的 edit feedback；用户删除先二次确认，reject 写入成功后才从 UI 移除，写入失败则保留 / 恢复原段落并明确报错，成功后当前版本不可撤销。reject 只保证同一 exact semantic key 终态删除；同义改写可能生成新 key 并再次出现，当前没有语义级 suppression 或 restore Schema。</p>
+      <div class="decision-grid">
+        <article class="decision">
+          <strong>是的</strong>
+          <p>原样承认候选，并用于未来匹配范围内的任务。</p>
+          <span class="write-chip">决定 + 长期 Context</span>
+        </article>
+        <article class="decision">
+          <strong>只是这次</strong>
+          <p>形成不进入长期 Context 的 Pack；当前可重复重建与复制，并非使用一次即消费。</p>
+          <span class="write-chip once">决定内嵌单次 Context</span>
+        </article>
+        <article class="decision">
+          <strong>限定范围</strong>
+          <p>保留表述，但由用户重新指定它在哪类任务中生效。</p>
+          <span class="write-chip">决定 + 长期 Context</span>
+        </article>
+        <article class="decision">
+          <strong>改一下</strong>
+          <p>由用户改成认可的表述，再写入长期 Context。</p>
+          <span class="write-chip">决定 + 长期 Context</span>
+        </article>
+        <article class="decision">
+          <strong>不要记住</strong>
+          <p>记录对当前 Candidate ID 的拒绝，不写长期 Context。</p>
+          <span class="write-chip no">只写决定</span>
+        </article>
+      </div>
+      <p class="fact-note"><strong>精确去重边界：</strong>当前 active profile 以 pinned-v1 规则处理 <code>statement + "\n" + scope</code>：只合并固定列表内的空白字符、只把 ASCII A–Z 转为 a–z，其他 Unicode 原样保留，再用固定的 <code>ptag_</code> FNV96 算法生成身份。它可确定性合并 exact statement + scope，但不做模糊语义去重；同义改写仍可能形成两个标签，当前前端和 profile 不承诺完全解决。旧 Candidate ID 和五种 decision 仍遵守原兼容合同。</p>
+
+      <div class="table-wrap section-table">
+        <table>
+          <thead>
+            <tr>
+              <th>proposal_kind</th>
+              <th>“是的”</th>
+              <th>“只是这次”</th>
+              <th>“限定范围 / 改一下”</th>
+              <th>“不要记住”</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="node-name">new</span><span class="tiny">没有 target_context_id</span></td>
+              <td>创建新的逻辑 Context，revision 1 设为 active。</td>
+              <td>只创建 One-time Pack，不创建长期 Context。</td>
+              <td>用用户给定范围或表述创建 revision 1。</td>
+              <td>只记录拒绝，不创建长期 Context。</td>
+            </tr>
+            <tr>
+              <td><span class="node-name">update</span><span class="tiny">必须绑定唯一 target revision</span></td>
+              <td>目标 revision 未变化时创建下一 revision；旧 revision 变为 superseded，不再进入 Pack。</td>
+              <td>候选只进入 One-time Pack；原 active revision 保持不变。</td>
+              <td>以用户范围或表述创建下一 revision，并替换原 active revision。</td>
+              <td>原 active revision 保持不变，记录对本次更新的拒绝。</td>
+            </tr>
+            <tr>
+              <td><span class="node-name">conflict</span><span class="tiny">必须绑定唯一 target revision</span></td>
+              <td>表示用户选择新判断：创建下一 revision 并 supersede 原 revision。</td>
+              <td>新判断仅用于 One-time Pack；原 active revision 保持不变。</td>
+              <td>用用户最终表述 / 范围创建下一 revision，并替换原 active revision。</td>
+              <td>原 active revision 保持不变；系统不得自动暂停或覆盖。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="fact-note"><strong>版本与并发合同：</strong>Context 使用稳定逻辑 ID + 不可变 revision；Pack 只读取每个逻辑 ID 当前的 active revision。update / conflict 决定必须用 target_revision + target_context_hash 做 compare-and-swap；用户或 worker 已经改过目标时，本次按钮操作返回 stale、不写任何新版本，并按最新窗口重新计算。版本替换必须采用共享锁或可恢复事务，不能出现新旧两个 revision 同时 active。</p>
+
+      <div class="table-wrap section-table">
+        <table>
+          <thead>
+            <tr>
+              <th>已确认 Context 的用户操作</th>
+              <th>立即效果</th>
+              <th>当天 Review 如何处理</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><span class="node-name">调整表述</span><span class="tiny">下一增量</span></td><td>通过 CAS 创建下一 revision，并立即设为 active；原始日记不改。</td><td>以调整发生日为 target_date，围绕新 revision、相关证据与近 14 日内容定向复核；模型不能改回旧版本。</td></tr>
+            <tr><td><span class="node-name">限定范围</span><span class="tiny">下一增量</span></td><td>通过 CAS 创建带新范围的下一 revision，立即进入 Pack 过滤。</td><td>调整水位触发定向 Review 并进入 review_run_key；只在发现范围冲突时再提出一张对照候选。</td></tr>
+            <tr><td><span class="node-name">暂停</span><span class="tiny">下一增量</span></td><td>递增状态 revision 并立即停止进入新 Pack，但保留依据与历史。</td><td>记录为用户反馈并触发定向 Review，不自动重新激活。</td></tr>
+            <tr><td><span class="node-name">撤回</span><span class="tiny">下一增量</span></td><td>递增状态 revision 并立即停止进入 Pack；保留最小审计记录。</td><td>模型不得以相同证据静默恢复；若未来出现实质新证据，仍须再次请求授权。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="architecture">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">System boundary</p>
+          <h2>三层分工：模型理解，代码守门，用户授权</h2>
+        </div>
+        <p>浏览器不接触 Provider；DeepSeek 不直接写入长期记忆；任何确认后的内容在使用前还要复查原始来源。</p>
+      </div>
+      <div class="architecture">
+        <article class="arch-layer">
+          <small>LAYER 01</small>
+          <h3>DeepSeek Provider</h3>
+          <p>把选定记录转换成结构化候选，返回 usage。</p>
+          <ul>
+            <li>最多一条候选</li>
+            <li>JSON response format</li>
+            <li>不负责确认事实</li>
+          </ul>
+        </article>
+        <div class="arch-arrow" aria-hidden="true">→</div>
+        <article class="arch-layer highlight">
+          <small>LAYER 02</small>
+          <h3>Local Agent Core</h3>
+          <p>验证结构、证据、哈希与安全边界，并负责本地调用门控与可靠落盘。</p>
+          <ul>
+            <li>单文件原子写入与 CLI 候选锁</li>
+            <li>候选 ID 与输入绑定</li>
+            <li>来源变化立即失效</li>
+          </ul>
+        </article>
+        <div class="arch-arrow" aria-hidden="true">→</div>
+        <article class="arch-layer">
+          <small>LAYER 03</small>
+          <h3>Dashboard + User</h3>
+          <p>展示可核验证据，由用户决定是否进入长期 Context。</p>
+          <ul>
+            <li>不持有 API Key</li>
+            <li>只读写本地 JSON</li>
+            <li>Pack 由用户预览与复制</li>
+          </ul>
+        </article>
+      </div>
+      <p class="fact-note"><strong>下一增量仍保持三层边界：</strong>08:00 / 21:00 只负责唤醒本地 review gate；是否调用模型由实质变化水位与失败状态决定，review_run_key 只负责幂等；模型只提出结构化判断；Dashboard 与用户仍是唯一长期授权入口。</p>
+    </section>
+
+    <section id="evidence">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Evaluation &amp; cost</p>
+          <h2>当前工程证据与 2026-08-10 成本快照</h2>
+        </div>
+        <p>配对数字来自 2026-08-10 的七个合成样例真实 API 回归，价格采用 2026-08-09 快照。它只能证明当时的合同、样例与计算，不代表日常 14 天 Review 的稳定成本或真实用户价值。</p>
+      </div>
+      <div class="metrics">
+        <article class="metric-main">
+          <p class="eyebrow">Paired live evaluation</p>
+          <div class="big">−74.32%</div>
+          <p class="caption">V4 Flash 相对 V4 Pro 的本轮计算成本差异</p>
+          <div class="pair">
+            <div><strong>$0.0008432620</strong><span>V4 PRO · 7/7</span></div>
+            <div><strong>$0.0002165632</strong><span>V4 FLASH · 7/7</span></div>
+          </div>
+        </article>
+        <div class="metric-side">
+          <article class="metric-small"><strong>20 / 20</strong><span>Python 合同测试</span></article>
+          <article class="metric-small"><strong>9 / 9</strong><span>离线合成评测</span></article>
+          <article class="metric-small"><strong>1 / 1</strong><span>2026-08-10 钥匙串真实 API smoke test</span></article>
+        </div>
+      </div>
+      <p class="fact-note"><strong>模型结论边界：</strong>Flash 与 Pro 在这七个合成样例里同为 7/7，Flash 的计算成本低 74.3184%；真实日记中的候选质量、用户确认率和未来任务复用价值仍未评测。当前默认仍是 Pro；Flash 只有进入真实小样本 challenger 盲评的工程依据，不能直接改成默认。</p>
+      <p class="fact-note"><strong>每日 Review 成本门：</strong>晨间和晚间的本地变化门与 run-key 计算都不产生 API 成本；只有来源、相关 Context、Prompt / Schema / 模型、授权配置发生实质变化，失败补跑或用户主动调整时才可能调用模型，单纯日期推进不调用。[猜测] 14 日真实输入会比七个合成样例更长，启用自动 Review 前必须重新测量 Token、缓存命中、候选质量与月度上界，不能拿本页单次数字直接外推账单。</p>
+    </section>
+
+    <section id="roadmap">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Local rollout</p>
+          <h2>数据基础与长期洞察前端均已安装</h2>
+        </div>
+        <p>本轮没有另造文章后端：只把现有 active profile 一对一排成阅读段落，并复用原反馈合同。安装、数据保护核对与自动化已经完成；下一步只剩 Chrome 重载后的视觉与手工交互验收。</p>
+      </div>
+      <p class="fact-note"><strong>PROVIDER GATE：</strong>本 PRD 不保存或回显密钥，也不预先声称当前凭据有效。真实演练前必须核对本地 Keychain 条目并完成一次不回显密钥的 smoke test；如凭据曾暴露在聊天或日志中，应先在 Provider 侧轮换。</p>
+      <div class="roadmap">
+        <article class="phase current">
+          <span class="phase-index">PHASE 01 · DATA BASELINE</span>
+          <h3>现有数据层继续使用</h3>
+          <p>本机已保留 request / response / feedback、profile reducer、证据校验和旧 Context 兼容链路。</p>
+          <ul><li>20 个日级文件、5 份 responses 与 6 条反馈仍在</li><li>原始记录不改写</li><li>浏览器不持有 API Key</li></ul>
+        </article>
+        <article class="phase current">
+          <span class="phase-index">PHASE 02 · IMPLEMENTED</span>
+          <h3>阅读投影已经实现</h3>
+          <p>工作区 Dashboard 用累计 active tags 渲染单一阅读窗口：一段一 tagId，依据、edit / reject 与固定核对请求全部复用现有合同。</p>
+          <ul><li>没有 article snapshot 或 paragraph override</li><li>删除二次确认且成功后不可撤销</li><li>同义改写重复作为已知边界展示</li></ul>
+        </article>
+        <article class="phase current">
+          <span class="phase-index">PHASE 03 · INSTALLED</span>
+          <h3>安装与自动化已经通过</h3>
+          <p>工作区 Dashboard 已同步到本机，用户数据保护与安装资产已经核对；下一步只剩 Chrome 重载后的视觉与手工交互验收。</p>
+          <ul><li>无头像 / 对话 / 提问 / 标签墙 / 三栏</li><li>右侧入口仍叫“关于我”</li><li>打开当前 profile 为 0 次调用</li></ul>
+        </article>
+        <article class="phase">
+          <span class="phase-index">PHASE 04 · MANUAL REVIEW</span>
+          <h3>先验证固定核对任务</h3>
+          <p>通过底部“根据近期记录重新核对”手动运行；一次点击最多一次近 14 日调用，验证 profile 阅读质量、新 response 累积、Token 与成本。</p>
+          <ul><li>主区没有自由问题</li><li>不足就返回不足</li><li>记录保留 / 修改 / 删除段落比例</li></ul>
+        </article>
+      </div>
+      <p class="fact-note"><strong>PHASE 05 · 自动 Context Review 小范围启用：</strong>只有固定核对任务完成真实小样本、阅读投影质量、修改 / 删除约束与成本验证后，才实现 08:00 / 21:00 变化 gate 和历史 backlog。届时也必须由用户单独授权；当前系统不会自动为 Re:member 创建 request，安装或升级不得暗示持续自动更新。</p>
+    </section>
+
+    <section id="acceptance">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Definition of done</p>
+          <h2>“做完”的验收标准</h2>
+        </div>
+        <p>必须区分“数据基础已安装”“长期洞察前端已安装并通过自动化”“Chrome 手工 E2E”“自动 Review 实现”和“真实用户价值验证”。</p>
+      </div>
+      <div class="acceptance">
+        <article class="checklist">
+          <h3>数据基础与历史工程验证已经完成</h3>
+          <ul>
+            <li>主动 request / response / feedback 严格合同与本地 Worker</li>
+            <li>全部有效 ready responses 的累计 profile 投影、四类状态与反馈 reducer</li>
+            <li>原有 profile、证据与 tag-bound feedback 合同继续作为长期洞察前端的数据基础</li>
+            <li>来源哈希、行级证据、文件名绑定、敏感边界和 Confirmed Context 快照过期排除</li>
+            <li><code>profile --format json|markdown</code> 只读输出与不可信 JSON data block</li>
+            <li>上一轮相关 Python / Node / Dashboard / security 自动化校验已经通过</li>
+            <li>当前 runtime / Dashboard 已同步到 <code>~/AISecretary</code> 并逐文件核对一致</li>
+            <li>本轮安装前完整 Vault 快照已保留；安装后日级文件、assets、Reviews、Context、请求 / 回答 / 反馈、usage 与 Review 状态逐项核对无差异</li>
+            <li>当前 20 个日级文件、5 份回答与 6 条反馈均保留；程序差异只落在 Dashboard、runtime、worker 日志与重编译的 OCR 二进制</li>
+            <li>按需 LaunchAgent 已加载且最近退出码为 0；本机 profile 可重建 3 个 <code>continuing</code> 标签，confirmed 数为 0</li>
+          </ul>
+        </article>
+        <article class="checklist">
+          <h3>长期洞察前端 P1：已安装并通过自动化</h3>
+          <ul>
+            <li>累计 valid ready responses → active profile → 一段对应一个 projected tagId；没有跨 tag 文章生成或新存储 Schema</li>
+            <li>固定任务只允许“形成 / 根据近期记录重新核对”，主区无自由问题、问题 chips 或聊天历史</li>
+            <li>打开当前 profile 产生 0 次模型调用；同一时刻最多一个核对 request</li>
+            <li>首次空态使用“形成第一份基于近期记录的理解”；证据不足沿用现有 insufficient_evidence</li>
+            <li>核对运行时当前 profile 持续可读、可编辑、可删除；失败保留当前内容并允许重试</li>
+            <li>正文每段直接展开同一 tag 的原始日期、逐字依据、反例与 provenance</li>
+            <li>段落编辑复用 tag-bound edit；删除二次确认，reject 成功后才移除，成功后不可撤销</li>
+            <li>主抽屉无三栏；底部仅有“更新与理解边界”和“旧版 Context 与 Pack”</li>
+            <li>工作区 Dashboard 已同步到 <code>~/AISecretary</code>，受保护用户数据与安装资产已经重新核对</li>
+            <li class="pending">完成 Chrome reload、固定核对、依据、edit / reject、失败恢复与空态手工 E2E</li>
+          </ul>
+        </article>
+      </div>
+
+      <p class="fact-note"><strong>下一增量 Definition of Done：</strong>以下全部通过，才可以说“每日 14 天 Context Review 已完成”；写进本 PRD 不等于已经实现。</p>
+      <div class="acceptance">
+        <article class="checklist">
+          <h3>Review 引擎</h3>
+          <ul>
+            <li class="pending">自动 Context Review 默认关闭，只能由用户明确开启</li>
+            <li class="pending">授权明确覆盖日级原文、相关 Context、最小决定反馈、Provider / 模型与自动运行时机</li>
+            <li class="pending">没有实质变化且无需重试时，08:00 / 21:00 检查均产生 0 次模型调用</li>
+            <li class="pending">21:00 target_date=今天；08:00 target_date=昨天且只补晚间变化、漏跑或失败</li>
+            <li class="pending">窗口严格为 D−13 至 D；历史不足时使用实际授权的 N 个自然日</li>
+            <li class="pending">只有 target_date 前进或窗口自然老化时产生 0 次调用，也不会让待回应卡片 stale</li>
+            <li class="pending">离线超过 14 天时按 start / target_date 唯一算法分窗；成功才推进本批覆盖来源水位，失败不推进</li>
+            <li class="pending">用户每次补历史 Review 最多一个 14 日批次 / 一次调用；产出候选后暂停下一批</li>
+            <li class="pending">窗口外旧文件新增授权或哈希变化只重开 historical backlog，不触发最新窗口 API 调用</li>
+            <li class="pending">候选依赖在当前窗口变化则原位重算；窗口外变化则 stale_waiting_backlog，禁止走最新窗口</li>
+            <li class="pending">active Context 来源变化立即 source_stale / 停止入 Pack；仅整源规范化内容等价 + quote 全部可定位时可 CAS evidence_rebased</li>
+            <li class="pending">任一非空文本变化都不得自动恢复；语义未变也须 update 重新确认依据，冲突则经 conflict + 用户确认</li>
+            <li class="pending">保留旧 quote 但新增“以上已作废”等否定语句时必须保持 source_stale，测试不得误恢复</li>
+            <li class="pending">分别计算自然日跨度和有记录天数，缺失日期不作为反例</li>
+            <li class="pending">每轮同时核对相关 active Context，并产出规定的六种结果之一</li>
+            <li class="pending">每个 new / update / conflict 均能回查原始文件、行号和逐字证据</li>
+            <li class="pending">review_run_key 包含 target_date、窗口、来源哈希、Context revision/hash、decision feedback 及规则/授权版本</li>
+            <li class="pending">证据或目标 Context 等候选依赖变化才会 stale 并原位重算；模型版本变化本身不失效卡片</li>
+            <li class="pending">pending 卡存在时，无关新来源 / Context 或仅模型版本变化记为 defer + dirty，0 调用且不推进水位</li>
+            <li class="pending">Prompt / Schema / 授权变化影响候选合同时立即 stale；卡片处理后 dirty 只合并运行一次</li>
+            <li class="pending">reject / just_once 形成可供下次 reconcile 使用的反馈 revision，但不会立即制造下一张卡</li>
+            <li class="pending">日记按不可信数据处理且 Provider 无工具权限；超限或出站拦截时明确失败、不静默截断</li>
+            <li class="pending">失败不会修改原始日记、已确认 Context，也不会伪造成功状态</li>
+          </ul>
+        </article>
+        <article class="checklist">
+          <h3>前端与用户控制</h3>
+          <ul>
+            <li class="pending">no_change、重复与证据不足不制造审批待办；有效新 response 仍通过一段一 tagId 投影进入阅读视图</li>
+            <li class="pending">右侧入口仍叫“关于我”，不显示标签数量或待办数量</li>
+            <li class="pending">同一时刻最多一张长期 Context 候选；已有待回应卡片时不追加队列</li>
+            <li class="pending">已确认 Context 和旧五种决定只留在底部“更新与边界”兼容区，不新建 Context Center</li>
+            <li class="pending">proposal_kind × 五种动作严格遵守版本转移表，update/conflict 不产生并存重复项</li>
+            <li class="pending">用户调整、限域、暂停或撤回通过 revision + CAS 立即生效，并进入同日定向 Review</li>
+            <li class="pending">定时 worker 与 Dashboard 使用共享锁或等价 CAS，冲突时不覆盖用户刚做的调整</li>
+            <li class="pending">模型不能回滚用户调整，也不能直接写入长期 Context</li>
+            <li class="pending">14 日真实输入完成独立的质量、Token、缓存命中与月度成本评测</li>
+            <li class="pending">自动核对期间当前 profile 持续可读；Chrome 完成定时、补跑、无变化、新 response 累积与失败保留当前内容的手工 E2E</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span>Memento Re:member · Long-term Insight Frontend P1 PRD · 2026-08-11</span>
+      <span>数据基础与长期洞察前端均已安装并通过自动化；Chrome 手工验收与自动 Review 仍清楚分层，推测项已标注 [猜测]。</span>
+    </footer>
+  </main>
+
+  <script>
+    (function () {
+      var steps = {
+        sense: {
+          title: '先保住原始事实，再谈长期理解',
+          copy: '原始日级记录始终是事实层；现有有效 responses、精确绑定的反馈和可定位证据构成派生理解层。新前端只改变呈现，不反写原始记录。',
+          why: '如果文章直接覆盖事实，用户删改一句话就会破坏历史；事实与解释分层才能让洞察可重建、可推翻。'
+        },
+        infer: {
+          title: '把现有 responses 变成可重建的数据基础',
+          copy: '当前 profile reducer 已能从全部有效 ready responses 与反馈重建理解单元、证据和状态。前端 P1 复用这层能力，但不再把标签直接交给用户管理。',
+          why: '没有稳定的数据基础，阅读视图会变成一次性漂亮文案，无法复用证据，也无法尊重用户之前的删除。'
+        },
+        verify: {
+          title: '用阅读排版呈现 profile，不另造模型文章',
+          copy: '工作区 article projector 按稳定顺序渲染 active profile：一个 projected tagId 对应一个段落，statement、scope、证据、反例与状态都来自同一个对象。',
+          why: '一对一投影能提升阅读感，同时不引入跨 tag 证据合并、文章版本或段落反馈等当前不存在的合同。'
+        },
+        decide: {
+          title: '让每个段落都能回到同一个 profile 对象',
+          copy: '正文默认安静展示；点击后才展开同一 projected tag 的日期、逐字依据、反例与 provenance。每次模型核对仍只读取近 14 天可用日记、有效 Confirmed Context 与最近校准。',
+          why: '没有段落级 provenance，用户无法判断一句洞察来自哪里，也无法区分长期观察、近期变化和模型猜测。'
+        },
+        deliver: {
+          title: '用户只在不认同时介入',
+          copy: '每段只保留查看依据、改一句与删除。编辑继续写该 tag 的现有 edit feedback；删除需二次确认并写入同一 exact semantic key 的终态 reject，成功后不可撤销。重新核对时继续展示当前 profile，不用整页 loading。',
+          why: 'Re:member 的价值是让用户阅读积累后的结果，不是制造新的确认工作；定义权仍通过轻量修改和删除保留给用户。'
+        }
+      };
+
+      document.querySelectorAll('[data-step]').forEach(function (button) {
+        button.addEventListener('click', function () {
+          var selected = steps[button.getAttribute('data-step')];
+          if (!selected) return;
+          document.querySelectorAll('[data-step]').forEach(function (item) {
+            var active = item === button;
+            item.classList.toggle('active', active);
+            item.setAttribute('aria-selected', active ? 'true' : 'false');
+          });
+          document.getElementById('loop-title').textContent = selected.title;
+          document.getElementById('loop-copy').textContent = selected.copy;
+          document.getElementById('loop-why').textContent = selected.why;
+        });
+      });
+
+      document.querySelectorAll('[data-mock-action]').forEach(function (button) {
+        button.addEventListener('click', function () {
+          var action = button.getAttribute('data-mock-action');
+          var result = document.getElementById('mock-result');
+          if (action === 'evidence') {
+            var evidence = document.getElementById('mock-evidence');
+            evidence.hidden = !evidence.hidden;
+            result.textContent = evidence.hidden ? '依据已收起，正文保持连续阅读。' : '依据在原段落下展开，不跳转到管理页面。';
+            return;
+          }
+          if (action === 'paragraph-edit') {
+            result.textContent = '“改一句”采用段落内编辑；保存后用户文本优先，并进入下一版生成约束。';
+            return;
+          }
+          if (action === 'paragraph-delete') {
+            var paragraph = button.closest('.mock-paragraph');
+            if (button.getAttribute('data-confirming') !== 'true') {
+              button.setAttribute('data-confirming', 'true');
+              button.textContent = '确认删除（不可撤销）';
+              result.textContent = '删除需要二次确认；成功后当前版本不可撤销。';
+              return;
+            }
+            if (paragraph) paragraph.style.display = 'none';
+            result.textContent = '删除示意成功：同一 exact semantic key 终态删除；同义改写仍可能形成新理解。';
+          }
+        });
+      });
+    }());
+  </script>
+</body>
+</html>

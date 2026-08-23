@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="Memento 首页概念演示：至上主义回望版">
+  <title>Memento 首页 Demo · 至上主义回望</title>
+  <style>
+    :root{
+      --paper:#f6f6f2;
+      --white:#fff;
+      --ink:#11110f;
+      --red:#d22317;
+      --red-dark:#9f160e;
+      --gray:#85857d;
+      --line:rgba(17,17,15,.2);
+      --soft:#e8e7e0;
+      --sans:-apple-system,BlinkMacSystemFont,"Helvetica Neue","PingFang SC",Arial,sans-serif;
+      --serif:"Songti SC","STSong",serif;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:#dcdcd6;color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+    body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:100;opacity:.09;background-image:repeating-radial-gradient(circle at 30% 20%,rgba(0,0,0,.34) 0 .4px,transparent .5px 4px);mix-blend-mode:multiply}
+    button,input,textarea{font:inherit;color:inherit}
+    button:focus-visible,a:focus-visible,textarea:focus-visible{outline:3px solid var(--red);outline-offset:4px}
+    .page{width:min(1440px,100%);min-height:100vh;margin:auto;background:var(--paper);overflow:hidden;box-shadow:0 28px 90px rgba(0,0,0,.13)}
+    .topbar{height:72px;padding:0 44px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--ink);background:rgba(246,246,242,.96);position:sticky;top:0;z-index:30}
+    .brand{display:flex;align-items:center;gap:13px;font-size:12px;letter-spacing:.15em}.brand-square{width:13px;height:13px;background:var(--ink);transform:rotate(8deg)}
+    .nav{display:flex;align-items:center;gap:6px}.nav a,.nav button{border:0;background:transparent;text-decoration:none;padding:8px 10px;font-size:11px;color:#62625c;cursor:pointer}.nav a[aria-current="page"]{background:var(--ink);color:var(--paper)}
+    .hero{position:relative;min-height:780px;padding:72px 68px 40px;display:grid;grid-template-columns:minmax(0,.92fr) minmax(520px,1.08fr);gap:48px;border-bottom:1px solid var(--ink);isolation:isolate}
+    .hero::before{content:"";position:absolute;left:30px;top:48px;bottom:42px;width:1px;background:var(--ink)}
+    .hero::after{content:"";position:absolute;left:25px;top:48px;width:11px;height:11px;background:var(--ink);box-shadow:0 681px 0 var(--ink)}
+    .hero-copy{position:relative;z-index:5;display:flex;flex-direction:column;justify-content:center;max-width:660px}
+    .folio{display:flex;align-items:center;gap:18px;margin-bottom:30px;font-size:10px;letter-spacing:.16em;text-transform:uppercase}.folio strong{font-size:13px}.folio-line{width:86px;height:1px;background:var(--ink)}.folio em{font-style:normal;color:var(--red)}
+    h1{margin:0;font:800 clamp(62px,8vw,112px)/.9 var(--sans);letter-spacing:-.08em}.en-title{display:block;margin-top:13px;font-size:12px;letter-spacing:.34em;color:var(--gray);text-transform:uppercase}
+    .statement-block{position:relative;margin-top:56px;padding:26px 0 23px;border-top:8px solid var(--ink);border-bottom:1px solid var(--ink)}
+    .statement-label{display:flex;justify-content:space-between;gap:20px;color:var(--gray);font-size:10px;letter-spacing:.12em}.statement-label strong{color:var(--red);font-weight:600}
+    .statement{margin:17px 0 0;font:500 clamp(25px,3.25vw,44px)/1.45 var(--serif);letter-spacing:-.025em}
+    .delta{display:grid;grid-template-columns:118px 1fr;gap:16px;margin-top:18px;font-size:12px;line-height:1.65}.delta strong{color:var(--red-dark)}.delta span{color:#64645e}
+    .hero-meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:24px}.meta-chip{border:1px solid var(--ink);padding:6px 9px;font-size:10px;letter-spacing:.04em}.meta-chip.red{background:var(--red);border-color:var(--red);color:white}
+    .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:25px}.action{min-height:42px;padding:10px 15px;border:1px solid var(--ink);border-radius:0;background:transparent;cursor:pointer;transition:.16s}.action:hover{transform:translate(-2px,-2px);box-shadow:3px 3px 0 var(--ink)}.action.primary{background:var(--ink);color:var(--paper)}
+    .composition{position:relative;min-height:650px;align-self:center;transform-style:preserve-3d}.composition-label{position:absolute;right:3px;top:0;text-align:right;font-size:9px;line-height:1.65;letter-spacing:.12em;color:var(--gray)}
+    .shape{position:absolute;border:0;padding:0;cursor:pointer;transition:transform .7s cubic-bezier(.2,.8,.2,1),opacity .35s,box-shadow .35s;transform-origin:center;box-shadow:0 13px 28px rgba(0,0,0,.12)}.shape span{position:absolute;width:max-content;max-width:160px;color:var(--ink);font-size:10px;line-height:1.35;letter-spacing:.05em;text-align:left}.shape small{display:block;color:var(--gray);font-size:8px;letter-spacing:.12em;margin-bottom:4px}
+    .black-square{width:230px;height:230px;background:var(--ink);left:19%;top:8%;transform:rotate(-13deg)}.black-square span{left:-120px;top:-15px}.black-square span::after{content:"";position:absolute;left:78px;top:34px;width:82px;height:1px;background:var(--ink);transform:rotate(15deg);transform-origin:left}
+    .red-vector{width:122px;height:370px;background:var(--red);left:52%;top:24%;transform:rotate(18deg)}.red-vector span{right:-154px;top:93px}.red-vector span::after{content:"";position:absolute;right:116px;top:31px;width:62px;height:1px;background:var(--ink);transform:rotate(-24deg);transform-origin:right}
+    .counter-circle{width:142px;height:142px;border-radius:50%;background:var(--ink);left:8%;top:53%;transform:rotate(0deg)}.counter-circle span{left:-48px;top:158px}.counter-circle span::after{content:"";position:absolute;left:55px;bottom:28px;width:53px;height:1px;background:var(--ink);transform:rotate(-52deg);transform-origin:left}
+    .fact-plane{width:300px;height:210px;left:24%;top:60%;background:rgba(255,255,255,.54);border:1px solid rgba(17,17,15,.2);transform:rotate(-8deg) skewX(5deg);box-shadow:11px 15px 30px rgba(0,0,0,.08)}.fact-plane::before{content:"";position:absolute;width:126px;height:88px;left:86px;top:55px;background:#d7d7d1;border:1px solid rgba(17,17,15,.18)}.fact-plane span{left:284px;top:145px}.fact-plane span::after{content:"";position:absolute;right:115px;top:2px;width:70px;height:1px;background:var(--ink);transform:rotate(20deg);transform-origin:right}
+    .calibration-cross{width:125px;height:125px;right:1%;bottom:15%;background:transparent;box-shadow:none;cursor:pointer}.calibration-cross::before,.calibration-cross::after{content:"";position:absolute;background:var(--ink);left:50%;top:50%;transform:translate(-50%,-50%);transition:.18s}.calibration-cross::before{width:115px;height:27px}.calibration-cross::after{width:27px;height:115px}.calibration-cross span{right:-8px;top:127px}.calibration-cross:hover::before,.calibration-cross:hover::after{background:var(--red)}
+    .red-axis{position:absolute;width:520px;height:5px;background:var(--red);left:7%;bottom:3%;transform:rotate(16deg);transform-origin:left}.red-axis::after{content:"";position:absolute;width:28px;height:28px;background:var(--ink);right:78px;top:-12px;transform:rotate(14deg)}
+    .composition.phase-first .black-square{transform:rotate(-5deg) scale(1.08);box-shadow:13px 18px 0 rgba(210,35,23,.16)}
+    .composition.phase-reinforce .fact-plane{transform:rotate(-2deg) skewX(2deg) scale(1.08);border-color:var(--red);box-shadow:10px 14px 0 rgba(210,35,23,.1)}
+    .composition.phase-counter .counter-circle{transform:translate(30px,-20px) scale(1.14);box-shadow:0 0 0 13px rgba(210,35,23,.12)}
+    .composition.phase-revision .red-vector{transform:rotate(10deg) translate(-20px,-7px) scale(1.05);box-shadow:15px 18px 0 rgba(17,17,15,.11)}
+    .shape.active{z-index:8}.shape:not(.active){opacity:.66}.shape:hover{opacity:1}
+    .legend{position:absolute;right:0;bottom:2px;display:grid;grid-template-columns:repeat(2,auto);gap:6px 18px;font-size:9px;color:var(--gray)}.legend i{display:inline-block;width:13px;height:13px;margin-right:6px;vertical-align:-2px}.legend .sq{background:var(--ink)}.legend .vec{background:var(--red)}.legend .cir{border-radius:50%;background:var(--ink)}.legend .pln{border:1px solid var(--ink)}
+    .construction{display:grid;grid-template-columns:310px 1fr;border-bottom:1px solid var(--ink)}.section-aside{padding:55px 34px 60px 68px;border-right:1px solid var(--ink)}.section-no{font-size:10px;letter-spacing:.18em;color:var(--red)}.section-aside h2{font:800 39px/1 var(--sans);letter-spacing:-.06em;margin:22px 0}.section-aside p{font-size:12px;line-height:1.75;color:#66665f;margin:0}.play{margin-top:30px;border:0;background:var(--ink);color:white;padding:12px 16px;cursor:pointer;text-align:left}.play.playing{background:#44443f}
+    .phase-workspace{padding:55px 58px 62px}.phase-tabs{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--ink);border-bottom:1px solid var(--ink)}.phase-tab{min-height:90px;border:0;border-right:1px solid var(--ink);background:transparent;text-align:left;padding:15px;cursor:pointer}.phase-tab:last-child{border-right:0}.phase-tab b{display:block;font-size:10px;color:var(--red);margin-bottom:12px}.phase-tab span{font-size:13px}.phase-tab.active{background:var(--ink);color:var(--paper)}.phase-tab.active b{color:#ff725f}
+    .phase-readout{display:grid;grid-template-columns:.82fr 1.1fr 1fr;min-height:275px;border-bottom:1px solid var(--ink)}.readout-cell{padding:27px 22px;border-right:1px solid var(--ink)}.readout-cell:last-child{border:0}.readout-cell small{display:block;font-size:9px;letter-spacing:.12em;color:var(--gray);margin-bottom:17px}.phase-date{font-size:29px;font-weight:800;letter-spacing:-.06em}.phase-kind{display:inline-block;margin-top:12px;padding:5px 8px;background:var(--ink);color:white;font-size:9px}.phase-kind.is-new{background:var(--red)}.phase-quote{margin:0;font:19px/1.65 var(--serif)}.phase-impact{margin:0;font-size:13px;line-height:1.75;color:#5f5f59}.phase-impact strong{display:block;color:var(--ink);font:600 18px/1.45 var(--sans);margin-bottom:9px}
+    .revision-strip{display:grid;grid-template-columns:1fr 76px 1fr;margin-top:26px}.version{padding:22px;border:1px solid var(--ink);min-height:150px}.version.current{background:var(--red);border-color:var(--red);color:white}.version small{display:block;font-size:9px;letter-spacing:.12em;margin-bottom:15px;opacity:.72}.version p{margin:0;font:18px/1.55 var(--serif)}.version-arrow{display:grid;place-items:center;font-size:26px}.revision-note{margin:14px 0 0;color:#66665f;font-size:11px}.revision-note strong{color:var(--red-dark)}
+    .records{display:grid;grid-template-columns:310px 1fr;border-bottom:1px solid var(--ink)}.record-aside{padding:55px 34px 60px 68px;border-right:1px solid var(--ink)}.record-aside strong{display:block;font-size:86px;line-height:.8;letter-spacing:-.08em}.record-aside span{display:block;margin-top:16px;font-size:12px;letter-spacing:.1em}.record-aside p{margin:28px 0 0;color:#6c6c65;font-size:11px;line-height:1.7}.record-list{padding:37px 58px 62px}.record{display:grid;grid-template-columns:42px 68px 1fr auto;gap:18px;padding:22px 0;border-bottom:1px solid var(--line);align-items:start}.record-index{font-size:10px;color:var(--red)}.record time{font-weight:700}.record p{margin:0;font-size:14px;line-height:1.65}.record-tag{font-size:9px;padding:4px 7px;border:1px solid var(--ink)}
+    .philosophy{padding:65px 68px 78px;display:grid;grid-template-columns:1fr 1fr;gap:80px}.philosophy h2{font:800 clamp(36px,5vw,68px)/.95 var(--sans);letter-spacing:-.07em;margin:0}.philosophy p{margin:0;font:20px/1.7 var(--serif)}.philosophy-note{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--ink);margin-top:12px}.philosophy-note div{padding:18px 15px;border-right:1px solid var(--ink)}.philosophy-note div:last-child{border:0}.philosophy-note strong{display:block;font-size:10px;color:var(--red);margin-bottom:7px}.philosophy-note span{font-size:11px;color:#696962;line-height:1.55}
+    .demo-note{position:fixed;left:16px;bottom:16px;z-index:20;background:var(--ink);color:white;padding:8px 10px;font-size:9px;letter-spacing:.08em}
+    dialog{width:min(650px,calc(100% - 28px));border:1px solid var(--ink);border-radius:0;background:var(--paper);padding:0;box-shadow:18px 18px 0 rgba(17,17,15,.16)}dialog::backdrop{background:rgba(17,17,15,.52)}.dialog-head{display:flex;align-items:center;justify-content:space-between;padding:19px 22px;border-bottom:1px solid var(--ink)}.dialog-head h2{margin:0;font-size:18px}.dialog-close{width:34px;height:34px;border:1px solid var(--ink);background:transparent;cursor:pointer}.dialog-body{padding:24px}.evidence-row{display:grid;grid-template-columns:88px 1fr;gap:20px;padding:18px 0;border-bottom:1px solid var(--line)}.evidence-row:last-child{border-bottom:0}.evidence-row time{font-size:10px;color:var(--red-dark)}.evidence-row blockquote{margin:0;font:16px/1.65 var(--serif)}.relation{display:inline-block;margin-top:9px;font-size:9px;padding:4px 7px;background:var(--ink);color:white}.relation.counter{background:var(--paper);color:var(--ink);border:1px dashed var(--ink)}.edit-area{width:100%;min-height:125px;border:1px solid var(--ink);border-radius:0;background:white;padding:14px;line-height:1.7;resize:vertical}.dialog-actions{display:flex;gap:8px;margin-top:15px}.dialog-actions button{border:1px solid var(--ink);background:transparent;padding:10px 13px;cursor:pointer}.dialog-actions .save{background:var(--ink);color:white}.export-preview{white-space:pre-wrap;background:white;border:1px solid var(--ink);padding:16px;font:11px/1.75 ui-monospace,SFMono-Regular,Menlo,monospace}.toast{position:fixed;left:50%;bottom:24px;z-index:120;transform:translate(-50%,18px);background:var(--ink);color:white;padding:10px 14px;font-size:11px;opacity:0;pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:translate(-50%,0)}
+    @media(max-width:1050px){.hero{grid-template-columns:1fr;gap:10px}.composition{min-height:650px;max-width:700px;width:100%;margin:auto}.construction,.records{grid-template-columns:230px 1fr}.section-aside,.record-aside{padding-left:34px}.phase-readout{grid-template-columns:1fr 1fr}.readout-cell:first-child{grid-column:1/-1;border-right:0;border-bottom:1px solid var(--ink)}}
+    @media(max-width:720px){.topbar{padding:0 18px}.nav a:not([aria-current="page"]):not(:first-child){display:none}.hero{padding:48px 24px 28px;min-height:auto}.hero::before,.hero::after{display:none}h1{font-size:65px}.statement-block{margin-top:40px}.statement{font-size:27px}.delta{grid-template-columns:1fr}.composition{min-height:530px;transform:scale(.84);transform-origin:top left;width:119%;margin-bottom:-75px}.legend{display:none}.construction,.records{grid-template-columns:1fr}.section-aside,.record-aside{border-right:0;border-bottom:1px solid var(--ink);padding:38px 24px}.phase-workspace,.record-list{padding:34px 24px 48px}.phase-tabs{grid-template-columns:1fr 1fr}.phase-tab:nth-child(2){border-right:0}.phase-tab:nth-child(-n+2){border-bottom:1px solid var(--ink)}.phase-readout{grid-template-columns:1fr}.readout-cell,.readout-cell:first-child{grid-column:auto;border-right:0;border-bottom:1px solid var(--ink)}.revision-strip{grid-template-columns:1fr}.version-arrow{height:55px;transform:rotate(90deg)}.record{grid-template-columns:34px 58px 1fr}.record-tag{grid-column:3}.philosophy{grid-template-columns:1fr;gap:26px;padding:48px 24px}.philosophy-note{grid-template-columns:1fr 1fr}.philosophy-note div:nth-child(2){border-right:0}.philosophy-note div:nth-child(-n+2){border-bottom:1px solid var(--ink)}.demo-note{display:none}}
+    @media(max-width:520px){.topbar{height:auto;min-height:72px;padding:12px 16px;flex-wrap:wrap;gap:8px}.brand{width:100%}.brand span{display:none}.nav{width:100%;justify-content:space-between}.nav a,.nav button{padding:7px 5px}}
+    @media(max-width:430px){.composition{transform:scale(.68);width:147%;margin-bottom:-180px}.actions{display:grid;grid-template-columns:1fr 1fr}.action{padding:9px}.record{grid-template-columns:30px 1fr}.record time{grid-column:2}.record p{grid-column:2}.record-tag{grid-column:2;justify-self:start}.philosophy-note{grid-template-columns:1fr}.philosophy-note div{border-right:0;border-bottom:1px solid var(--ink)}.philosophy-note div:last-child{border-bottom:0}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="brand"><i class="brand-square"></i><strong>MEMENTO</strong><span>EXPERIMENT 04</span></div>
+      <nav class="nav" aria-label="切换演示版本"><a href="index.html">对照</a><a href="01-quiet-record.html">01</a><a href="02-calibrated-mirror.html">02</a><a href="03-time-stream.html">03</a><a href="04-suprematist-mirror.html" aria-current="page">04 · 至上主义</a><button id="open-evidence">依据</button><button id="open-export">导出</button></nav>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <div class="folio"><strong>04</strong><i class="folio-line"></i><span>SUPREMATIST REFLECTION</span><em>实验版</em></div>
+          <h1 id="page-title">她眼中的我<span class="en-title">The self, reconstructed through time</span></h1>
+          <div class="statement-block">
+            <div class="statement-label"><span id="statement-state">当前候选理解 · 尚未写入</span><strong id="status-text">等待你的判断</strong></div>
+            <p id="statement" class="statement">在产品方案评审中，你通常会先检查反例和失败条件，再评估完整方案。</p>
+            <div class="delta"><strong>这次变化</strong><span id="delta-text">反例让范围从“工作方式”缩小到“产品方案评审”。系统只建议修改这一个侧面。</span></div>
+          </div>
+          <div class="hero-meta"><span class="meta-chip">3 条支持</span><span class="meta-chip">1 条反例</span><span id="scope-chip" class="meta-chip">范围 · 产品方案评审</span><span class="meta-chip red">今天有新证据</span></div>
+          <div class="actions"><button id="agree" class="action primary">这很像我</button><button id="limit" class="action">缩小范围</button><button id="rewrite" class="action">换成我的说法</button><button id="reject" class="action">这不像我</button></div>
+        </div>
+
+        <div id="composition" class="composition phase-revision" aria-label="理解形成的几何构图">
+          <p class="composition-label">本 Demo 的产品语义映射<br>GEOMETRY AS EVIDENCE, NOT PERSONALITY</p>
+          <button class="shape black-square" data-phase="first" aria-label="查看首次出现"><span><small>BLACK SQUARE</small>当前呈现的理解</span></button>
+          <button class="shape red-vector active" data-phase="revision" aria-label="查看今天的修订"><span><small>RED VECTOR</small>新证据 / 变化</span></button>
+          <button class="shape counter-circle" data-phase="counter" aria-label="查看反例"><span><small>BLACK CIRCLE</small>反例 / 张力</span></button>
+          <button class="shape fact-plane" data-phase="reinforce" aria-label="查看跨日支持"><span><small>WHITE PLANE</small>原始记录</span></button>
+          <button id="calibration-cross" class="shape calibration-cross" aria-label="用我的话修正理解"><span><small>USER CONTROL</small>人的校准</span></button>
+          <i class="red-axis" aria-hidden="true"></i>
+          <div class="legend"><span><i class="sq"></i>当前呈现的理解</span><span><i class="vec"></i>变化证据</span><span><i class="cir"></i>反例</span><span><i class="pln"></i>原始事实</span></div>
+        </div>
+      </section>
+
+      <section id="construction" class="construction" aria-labelledby="construction-title">
+        <aside class="section-aside"><span class="section-no">01 / CONSTRUCTION</span><h2 id="construction-title">理解如何<br>被构成</h2><p>点击四个阶段，看到事实、支持、反例与修订怎样改变同一条理解。几何只帮助阅读关系，不代表完整人格。</p><button id="play" class="play">播放形成过程 →</button></aside>
+        <div class="phase-workspace">
+          <div class="phase-tabs" role="tablist" aria-label="理解形成阶段">
+            <button class="phase-tab" role="tab" aria-selected="false" data-phase="first"><b>01</b><span>首次出现</span></button>
+            <button class="phase-tab" role="tab" aria-selected="false" data-phase="reinforce"><b>02</b><span>跨日支持</span></button>
+            <button class="phase-tab" role="tab" aria-selected="false" data-phase="counter"><b>03</b><span>出现反例</span></button>
+            <button class="phase-tab active" role="tab" aria-selected="true" data-phase="revision"><b>04</b><span>建议修订</span></button>
+          </div>
+          <article class="phase-readout" aria-live="polite">
+            <div class="readout-cell"><small>时间 / 关系</small><div id="phase-date" class="phase-date">08.16</div><span id="phase-kind" class="phase-kind is-new">建议修订</span></div>
+            <div class="readout-cell"><small>当天留下的事实</small><blockquote id="phase-quote" class="phase-quote">“这次产品方案评审，我还是想先把反例和失败条件列清，再进入视觉实现。”</blockquote></div>
+            <div class="readout-cell"><small>它怎样改变理解</small><p id="phase-impact" class="phase-impact"><strong>只修改被证据触碰的范围。</strong>它与此前反例一起，把“工作方式”缩小为“产品方案评审”。</p></div>
+          </article>
+          <div class="revision-strip"><div class="version"><small>07.19 · 最初版本</small><p>在工作中，你会先审查风险，再推进方案。</p></div><div class="version-arrow" aria-hidden="true">→</div><div class="version current"><small>08.16 · 建议版本</small><p id="current-version">在产品方案评审中，你通常会先检查反例和失败条件，再评估完整方案。</p></div></div>
+          <p class="revision-note"><strong>局部修订：</strong>原始记录、反例与旧版本都保留；你可以确认、改写、限定或拒绝。</p>
+        </div>
+      </section>
+
+      <section class="records" aria-labelledby="records-title">
+        <aside class="record-aside"><strong>5</strong><span id="records-title">今天留下的记录</span><p>事实先出现。任何理解都不能回头改写这些原始片段。</p></aside>
+        <div class="record-list">
+          <article class="record"><span class="record-index">01</span><time>10:50</time><p>这次产品方案评审，我还是想先把反例和失败条件列清，再进入视觉实现。</p><span class="record-tag">灵感</span></article>
+          <article class="record"><span class="record-index">02</span><time>10:20</time><p>最近总觉得自己少了一些秩序感，想找回一种更安静的节奏。</p><span class="record-tag">再读</span></article>
+          <article class="record"><span class="record-index">03</span><time>09:42</time><p>用同一份内容比较不同首页方案，不要只比较视觉风格。</p><span class="record-tag">TODO</span></article>
+          <article class="record"><span class="record-index">04</span><time>08:55</time><p>在评审方案时，我会先检查反例和失败条件，再评估完整方案。</p><span class="record-tag">灵感</span></article>
+          <article class="record"><span class="record-index">05</span><time>07:30</time><p>把记录保留下来，也让它们慢慢形成一份可以被我修正的理解。</p><span class="record-tag">记录</span></article>
+        </div>
+      </section>
+
+      <section class="philosophy" aria-labelledby="philosophy-title">
+        <h2 id="philosophy-title">抽象提供秩序，<br>事实保留重量。</h2>
+        <p>黑、白、红和几何关系让“理解怎样形成”一眼可见；产品仍然遵守同一条边界：先留下事实，再形成局部理解，最后把校准权归还给你。</p>
+        <div class="philosophy-note"><div><strong>BLACK</strong><span>当前呈现、仍可由你校准的理解</span></div><div><strong>WHITE</strong><span>不会被 AI 改写的原始记录</span></div><div><strong>RED</strong><span>新证据带来的变化与提醒</span></div><div><strong>FORM</strong><span>只表达证据关系，不推断完整人格</span></div></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="demo-note">完全离线 · 虚构数据 · 当前页面模拟</div>
+
+  <dialog id="evidence-dialog" aria-labelledby="evidence-title">
+    <div class="dialog-head"><h2 id="evidence-title">证据构成</h2><button class="dialog-close" data-close aria-label="关闭">×</button></div>
+    <div class="dialog-body"><div class="evidence-row"><time>07.19</time><div><blockquote>“在评审方案时，我会先检查反例和失败条件，再评估完整方案。”</blockquote><span class="relation">首次支持</span></div></div><div class="evidence-row"><time>07.26</time><div><blockquote>“先把失败条件和护栏列出来，再讨论方案是不是完整。”</blockquote><span class="relation">跨日支持</span></div></div><div class="evidence-row"><time>08.05</time><div><blockquote>“这轮先把想法放开，不急着设失败条件。”</blockquote><span class="relation counter">反例 · 缩小范围</span></div></div><div class="evidence-row"><time>08.16</time><div><blockquote>“这次产品方案评审，我还是想先把反例和失败条件列清，再进入视觉实现。”</blockquote><span class="relation">支持修订</span></div></div></div>
+  </dialog>
+
+  <dialog id="edit-dialog" aria-labelledby="edit-title">
+    <div class="dialog-head"><h2 id="edit-title">换成我的说法</h2><button class="dialog-close" data-close aria-label="关闭">×</button></div>
+    <div class="dialog-body"><textarea id="edit-text" class="edit-area" aria-label="修改理解">在产品方案评审中，我通常会先检查反例和失败条件，再评估完整方案。</textarea><div class="dialog-actions"><button id="save-edit" class="save">保留我的版本</button><button data-close>取消</button></div></div>
+  </dialog>
+
+  <dialog id="export-dialog" aria-labelledby="export-title">
+    <div class="dialog-head"><h2 id="export-title">带走这些 Context</h2><button class="dialog-close" data-close aria-label="关闭">×</button></div>
+    <div class="dialog-body"><p>导出保持为独立工具，不进入“她眼中的我”的主叙事。当前页面只做离线预览。</p><pre id="export-preview" class="export-preview"># Context Pack · 2026-08-16
+
+## 今日记录
+- 10:50 产品方案评审前先列清反例和失败条件
+- 08:55 评审方案时先检查反例与失败条件
+
+## 当前理解
+- 在产品方案评审中，你通常会先检查反例和失败条件，再评估完整方案。</pre><div class="dialog-actions"><button id="copy-demo" class="save">模拟复制</button><button data-close>取消</button></div></div>
+  </dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const phases={
+      first:{date:'07.19',kind:'首次出现',quote:'“在评审方案时，我会先检查反例和失败条件，再评估完整方案。”',heading:'先保留为一条事实。',impact:'单日表达还不足以成为长期理解，系统只记录它出现过。'},
+      reinforce:{date:'07.26',kind:'跨日支持',quote:'“先把失败条件和护栏列出来，再讨论方案是不是完整。”',heading:'相似顺序在另一天出现。',impact:'它从单日片段变成跨日线索，但“工作方式”仍然是过宽的范围。'},
+      counter:{date:'08.05',kind:'出现反例',quote:'“这轮先把想法放开，不急着设失败条件。”',heading:'反例阻止了过度概括。',impact:'探索型讨论中，你会延后风险审查；这条理解不能扩展到所有工作。'},
+      revision:{date:'08.16',kind:'建议修订',quote:'“这次产品方案评审，我还是想先把反例和失败条件列清，再进入视觉实现。”',heading:'只修改被证据触碰的范围。',impact:'它与此前反例一起，把“工作方式”缩小为“产品方案评审”。'}
+    };
+    const $=selector=>document.querySelector(selector),$$=selector=>[...document.querySelectorAll(selector)];
+    let currentPhase='revision',playTimer=null,playIndex=0,currentStatement=$('#statement').textContent;
+    const toast=message=>{const node=$('#toast');node.textContent=message;node.classList.add('show');window.clearTimeout(window.toastTimer);window.toastTimer=window.setTimeout(()=>node.classList.remove('show'),1800)};
+    function renderPhase(key){const data=phases[key];currentPhase=key;$('#phase-date').textContent=data.date;$('#phase-kind').textContent=data.kind;$('#phase-kind').classList.toggle('is-new',key==='revision');$('#phase-quote').textContent=data.quote;$('#phase-impact').innerHTML='';const strong=document.createElement('strong');strong.textContent=data.heading;$('#phase-impact').append(strong,document.createTextNode(data.impact));$('#composition').className='composition phase-'+key;$$('[data-phase]').forEach(node=>{const active=node.dataset.phase===key;node.classList.toggle('active',active);if(node.getAttribute('role')==='tab')node.setAttribute('aria-selected',String(active))})}
+    function stopPlay(){window.clearInterval(playTimer);playTimer=null;playIndex=0;$('#play').classList.remove('playing');$('#play').textContent='播放形成过程 →'}
+    function startPlay(){stopPlay();const order=['first','reinforce','counter','revision'];$('#play').classList.add('playing');$('#play').textContent='正在构成…';renderPhase(order[0]);playIndex=1;playTimer=window.setInterval(()=>{if(playIndex>=order.length){stopPlay();return}renderPhase(order[playIndex]);playIndex+=1},1100)}
+    $$('[data-phase]').forEach(node=>node.addEventListener('click',()=>{stopPlay();renderPhase(node.dataset.phase)}));$('#play').addEventListener('click',()=>playTimer?stopPlay():startPlay());
+    function openDialog(dialog){dialog.showModal()}function closeDialog(dialog){dialog.close()}
+    $('#open-evidence').addEventListener('click',()=>openDialog($('#evidence-dialog')));$('#open-export').addEventListener('click',()=>openDialog($('#export-dialog')));const openRewrite=()=>{$('#edit-text').value=currentStatement;openDialog($('#edit-dialog'))};$('#rewrite').addEventListener('click',openRewrite);$('#calibration-cross').addEventListener('click',openRewrite);$$('[data-close]').forEach(button=>button.addEventListener('click',()=>closeDialog(button.closest('dialog'))));$$('dialog').forEach(dialog=>dialog.addEventListener('click',event=>{if(event.target===dialog)closeDialog(dialog)}));
+    $('#agree').addEventListener('click',()=>{$('#statement-state').textContent='当前保留的理解 · 已写入';$('#status-text').textContent='已确认 · 仍可修改';$('#phase-kind').textContent=currentPhase==='revision'?'完成修订':phases[currentPhase].kind;toast('演示：理解已确认')});
+    $('#limit').addEventListener('click',()=>{$('#scope-chip').textContent='范围 · 仅限正式产品评审';$('#delta-text').textContent='你进一步限定了适用范围；探索讨论和生活选择不会使用这条理解。';toast('演示：范围已缩小')});
+    $('#reject').addEventListener('click',()=>{$('#statement-state').textContent='候选已拒绝 · 未写入';$('#status-text').textContent='已拒绝 · 不会写入';$('#delta-text').textContent='候选已经撤回；原始记录、反例与历史版本仍然保留。';toast('演示：候选不会写入')});
+    $('#save-edit').addEventListener('click',()=>{const value=$('#edit-text').value.trim();if(!value){toast('请先写下你的版本');return}currentStatement=value;$('#statement').textContent=value;$('#current-version').textContent=value;$('#statement-state').textContent='我的版本 · 已写入';$('#status-text').textContent='你的版本 · 已保留';$('#delta-text').textContent='当前理解已经换成你的表述；证据和反例没有被改写。';$('#export-preview').textContent='# Context Pack · 2026-08-16\n\n## 今日记录\n- 10:50 重新设计记录与理解的关系\n- 08:55 评审方案时先检查反例与失败条件\n\n## 当前理解\n- '+value;closeDialog($('#edit-dialog'));toast('演示：已同步你的版本')});$('#copy-demo').addEventListener('click',()=>toast('演示：没有写入系统剪贴板'));
+    document.addEventListener('keydown',event=>{if(event.key==='Escape')$$('dialog[open]').forEach(dialog=>dialog.close())});
+    renderPhase('revision');
+  </script>
+</body>
+</html>

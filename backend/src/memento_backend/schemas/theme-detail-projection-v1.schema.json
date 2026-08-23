@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://memento.local/schemas/theme-detail-projection-v1.schema.json",
+  "title": "ThemeDetailProjection V1", "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "kind", "projection_version", "projection_id", "bundle_id", "generated_at", "as_of", "input_sha256", "theme_ref", "title", "statement", "scope", "lifecycle", "confidence", "evidence_days", "memory_atoms", "counterevidence_refs", "relations", "record_refs", "change_reason"],
+  "properties": {
+    "schema_version": {"const": "1.0"}, "kind": {"const": "memento_theme_detail_projection"}, "projection_version": {"const": "memento-theme-detail-v1"},
+    "projection_id": {"type": "string", "pattern": "^tdt_[0-9a-f]{24}$"}, "bundle_id": {"type": "string", "pattern": "^prjb_[0-9a-f]{24}$"},
+    "generated_at": {"type": "string", "format": "date-time"}, "as_of": {"type": "string", "format": "date"}, "input_sha256": {"$ref": "#/$defs/sha256"},
+    "theme_ref": {"$ref": "#/$defs/themeRef"}, "title": {"type": "string", "minLength": 1, "maxLength": 80}, "statement": {"type": "string", "minLength": 1, "maxLength": 800},
+    "scope": {"type": "string", "minLength": 1, "maxLength": 600}, "lifecycle": {"enum": ["forming", "active", "tension", "dormant"]}, "confidence": {"enum": ["forming", "observed", "stable"]},
+    "evidence_days": {"type": "array", "minItems": 2, "maxItems": 128, "uniqueItems": true, "items": {"type": "string", "format": "date"}},
+    "memory_atoms": {"type": "array", "minItems": 2, "maxItems": 128, "items": {"$ref": "#/$defs/memoryAtom"}},
+    "counterevidence_refs": {"type": "array", "maxItems": 64, "uniqueItems": true, "items": {"$ref": "#/$defs/memoryAtomRef"}},
+    "relations": {"type": "array", "maxItems": 128, "items": {"$ref": "#/$defs/relation"}}, "record_refs": {"type": "array", "maxItems": 512, "uniqueItems": true, "items": {"$ref": "#/$defs/sourceRecordRef"}},
+    "change_reason": {"type": "string", "minLength": 1, "maxLength": 600}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "ref": {"type": "object", "additionalProperties": false, "required": ["kind", "id", "revision", "revision_sha256"], "properties": {"kind": {"enum": ["theme", "memory_atom", "relation", "source_record", "self_insight"]}, "id": {"type": "string", "pattern": "^(thm|mat|rel|rec|sin)_[0-9a-f]{24}$"}, "revision": {"type": "integer", "minimum": 1}, "revision_sha256": {"$ref": "#/$defs/sha256"}}},
+    "themeRef": {"allOf": [{"$ref": "#/$defs/ref"}, {"properties": {"kind": {"const": "theme"}, "id": {"pattern": "^thm_"}}}]},
+    "memoryAtomRef": {"allOf": [{"$ref": "#/$defs/ref"}, {"properties": {"kind": {"const": "memory_atom"}, "id": {"pattern": "^mat_"}}}]},
+    "relationRef": {"allOf": [{"$ref": "#/$defs/ref"}, {"properties": {"kind": {"const": "relation"}, "id": {"pattern": "^rel_"}}}]},
+    "sourceRecordRef": {"allOf": [{"$ref": "#/$defs/ref"}, {"properties": {"kind": {"const": "source_record"}, "id": {"pattern": "^rec_"}}}]},
+    "domainRef": {"allOf": [{"$ref": "#/$defs/ref"}, {"properties": {"kind": {"enum": ["theme", "memory_atom", "self_insight"]}}}]},
+    "sourceSpan": {"type": "object", "additionalProperties": false, "required": ["record_id", "record_revision", "record_revision_sha256", "source_file", "line_start", "line_end", "quote", "quote_sha256"], "properties": {"record_id": {"type": "string", "pattern": "^rec_[0-9a-f]{24}$"}, "record_revision": {"type": "integer", "minimum": 1}, "record_revision_sha256": {"$ref": "#/$defs/sha256"}, "source_file": {"type": "string", "minLength": 1, "maxLength": 500}, "line_start": {"type": "integer", "minimum": 1}, "line_end": {"type": "integer", "minimum": 1}, "quote": {"type": "string", "minLength": 1, "maxLength": 2000}, "quote_sha256": {"$ref": "#/$defs/sha256"}}},
+    "memoryAtom": {"type": "object", "additionalProperties": false, "required": ["memory_atom_ref", "statement", "memory_kind", "first_seen_on", "last_seen_on", "source_spans"], "properties": {"memory_atom_ref": {"$ref": "#/$defs/memoryAtomRef"}, "statement": {"type": "string", "minLength": 1, "maxLength": 1000}, "memory_kind": {"type": "string", "minLength": 1, "maxLength": 80}, "first_seen_on": {"type": "string", "format": "date"}, "last_seen_on": {"type": "string", "format": "date"}, "source_spans": {"type": "array", "minItems": 1, "maxItems": 64, "items": {"$ref": "#/$defs/sourceSpan"}}}},
+    "relation": {"type": "object", "additionalProperties": false, "required": ["relation_ref", "type", "statement", "from_ref", "to_ref"], "properties": {"relation_ref": {"$ref": "#/$defs/relationRef"}, "type": {"type": "string", "minLength": 1, "maxLength": 80}, "statement": {"type": "string", "minLength": 1, "maxLength": 1000}, "from_ref": {"$ref": "#/$defs/domainRef"}, "to_ref": {"$ref": "#/$defs/domainRef"}}}
+  }
+}

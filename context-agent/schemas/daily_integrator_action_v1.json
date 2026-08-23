@@ -1,0 +1,409 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/daily_integrator_action_v1.json",
+  "title": "Memento Daily Integrator Action v1",
+  "oneOf": [
+    { "$ref": "#/$defs/inspect_memory" },
+    { "$ref": "#/$defs/search_need_support" },
+    { "$ref": "#/$defs/search_need_counterexample" },
+    { "$ref": "#/$defs/search_need_revision_history" },
+    { "$ref": "#/$defs/propose_daily_bundle" },
+    { "$ref": "#/$defs/finish_no_change" },
+    { "$ref": "#/$defs/finish_insufficient_evidence" }
+  ],
+  "$defs": {
+    "text80": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80,
+      "pattern": "^(?!\\s)(?!.*\\s$)[^\\u0000]+$"
+    },
+    "text300": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 300,
+      "pattern": "^(?!\\s)(?!.*\\s$)[^\\u0000]+$"
+    },
+    "evidence_ref": {
+      "type": "string",
+      "pattern": "^eref_[0-9a-f]{16}$"
+    },
+    "object_ref": {
+      "type": "string",
+      "pattern": "^oref_[0-9a-f]{16}$"
+    },
+    "date_or_null": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" }
+      ]
+    },
+    "content_type": {
+      "enum": [
+        "quote",
+        "own_idea",
+        "observation",
+        "question",
+        "decision",
+        "action",
+        "experience",
+        "fact",
+        "learning"
+      ]
+    },
+    "purpose": {
+      "enum": [
+        "find_later",
+        "continue_thinking",
+        "create",
+        "future_decision",
+        "action_clue",
+        "preserve_only"
+      ]
+    },
+    "string_list_80": {
+      "type": "array",
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/text80" }
+    },
+    "source_refs": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/evidence_ref" }
+    },
+    "memory_new": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation",
+        "target_memory_ref_id",
+        "statement",
+        "memory_kind",
+        "topics",
+        "purposes",
+        "uncertainty",
+        "source_ref_ids"
+      ],
+      "properties": {
+        "operation": { "const": "new" },
+        "target_memory_ref_id": { "type": "null" },
+        "statement": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 600,
+          "pattern": "^(?!\\s)(?!.*\\s$)[^\\u0000]+$"
+        },
+        "memory_kind": { "$ref": "#/$defs/content_type" },
+        "topics": { "$ref": "#/$defs/string_list_80" },
+        "purposes": {
+          "type": "array",
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/purpose" }
+        },
+        "uncertainty": { "enum": ["low", "medium", "high"] },
+        "source_ref_ids": { "$ref": "#/$defs/source_refs" }
+      }
+    },
+    "memory_existing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation",
+        "target_memory_ref_id",
+        "statement",
+        "memory_kind",
+        "topics",
+        "purposes",
+        "uncertainty",
+        "source_ref_ids"
+      ],
+      "properties": {
+        "operation": { "enum": ["revise", "reuse"] },
+        "target_memory_ref_id": { "$ref": "#/$defs/object_ref" },
+        "statement": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 600,
+          "pattern": "^(?!\\s)(?!.*\\s$)[^\\u0000]+$"
+        },
+        "memory_kind": { "$ref": "#/$defs/content_type" },
+        "topics": { "$ref": "#/$defs/string_list_80" },
+        "purposes": {
+          "type": "array",
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/purpose" }
+        },
+        "uncertainty": { "enum": ["low", "medium", "high"] },
+        "source_ref_ids": { "$ref": "#/$defs/source_refs" }
+      }
+    },
+    "memory_operation": {
+      "oneOf": [
+        { "$ref": "#/$defs/memory_new" },
+        { "$ref": "#/$defs/memory_existing" }
+      ]
+    },
+    "memory_operation_endpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "memory_operation_index", "object_ref_id"],
+      "properties": {
+        "kind": { "const": "memory_operation" },
+        "memory_operation_index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 11
+        },
+        "object_ref_id": { "type": "null" }
+      }
+    },
+    "object_endpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "memory_operation_index", "object_ref_id"],
+      "properties": {
+        "kind": { "const": "object" },
+        "memory_operation_index": { "type": "null" },
+        "object_ref_id": { "$ref": "#/$defs/object_ref" }
+      }
+    },
+    "endpoint": {
+      "oneOf": [
+        { "$ref": "#/$defs/memory_operation_endpoint" },
+        { "$ref": "#/$defs/object_endpoint" }
+      ]
+    },
+    "relation_new": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation",
+        "target_relation_ref_id",
+        "type",
+        "from_endpoint",
+        "to_endpoint",
+        "direction",
+        "statement",
+        "uncertainty",
+        "source_ref_ids"
+      ],
+      "properties": {
+        "operation": { "const": "new" },
+        "target_relation_ref_id": { "type": "null" },
+        "type": {
+          "enum": ["supports", "counterexample", "revises", "scope_boundary", "same_topic"]
+        },
+        "from_endpoint": { "$ref": "#/$defs/endpoint" },
+        "to_endpoint": { "$ref": "#/$defs/endpoint" },
+        "direction": { "enum": ["directed", "undirected"] },
+        "statement": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 600,
+          "pattern": "^(?!\\s)(?!.*\\s$)[^\\u0000]+$"
+        },
+        "uncertainty": { "enum": ["low", "medium", "high"] },
+        "source_ref_ids": { "$ref": "#/$defs/source_refs" }
+      }
+    },
+    "relation_revise": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation",
+        "target_relation_ref_id",
+        "type",
+        "from_endpoint",
+        "to_endpoint",
+        "direction",
+        "statement",
+        "uncertainty",
+        "source_ref_ids"
+      ],
+      "properties": {
+        "operation": { "const": "revise" },
+        "target_relation_ref_id": { "$ref": "#/$defs/object_ref" },
+        "type": {
+          "enum": ["supports", "counterexample", "revises", "scope_boundary", "same_topic"]
+        },
+        "from_endpoint": { "$ref": "#/$defs/endpoint" },
+        "to_endpoint": { "$ref": "#/$defs/endpoint" },
+        "direction": { "enum": ["directed", "undirected"] },
+        "statement": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 600,
+          "pattern": "^(?!\\s)(?!.*\\s$)[^\\u0000]+$"
+        },
+        "uncertainty": { "enum": ["low", "medium", "high"] },
+        "source_ref_ids": { "$ref": "#/$defs/source_refs" }
+      }
+    },
+    "relation_operation": {
+      "oneOf": [
+        { "$ref": "#/$defs/relation_new" },
+        { "$ref": "#/$defs/relation_revise" }
+      ]
+    },
+    "search_arguments": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["query", "date_from", "date_to", "limit"],
+      "properties": {
+        "query": { "$ref": "#/$defs/text80" },
+        "date_from": { "$ref": "#/$defs/date_or_null" },
+        "date_to": { "$ref": "#/$defs/date_or_null" },
+        "limit": { "type": "integer", "minimum": 1, "maximum": 5 }
+      }
+    },
+    "inspect_memory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "action", "reason_code", "arguments"],
+      "properties": {
+        "schema_version": { "const": "1.0" },
+        "action": { "const": "inspect_memory" },
+        "reason_code": { "const": "need_target_context" },
+        "arguments": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["memory_ref_id"],
+          "properties": { "memory_ref_id": { "$ref": "#/$defs/object_ref" } }
+        }
+      }
+    },
+    "search_need_support": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "action", "reason_code", "arguments"],
+      "properties": {
+        "schema_version": { "const": "1.0" },
+        "action": { "const": "search_history" },
+        "reason_code": { "const": "need_support" },
+        "arguments": { "$ref": "#/$defs/search_arguments" }
+      }
+    },
+    "search_need_counterexample": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "action", "reason_code", "arguments"],
+      "properties": {
+        "schema_version": { "const": "1.0" },
+        "action": { "const": "search_history" },
+        "reason_code": { "const": "need_counterexample" },
+        "arguments": { "$ref": "#/$defs/search_arguments" }
+      }
+    },
+    "search_need_revision_history": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "action", "reason_code", "arguments"],
+      "properties": {
+        "schema_version": { "const": "1.0" },
+        "action": { "const": "search_history" },
+        "reason_code": { "const": "need_revision_history" },
+        "arguments": { "$ref": "#/$defs/search_arguments" }
+      }
+    },
+    "bundle_arguments": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "overview",
+        "themes",
+        "changes",
+        "unresolved_questions",
+        "action_clues",
+        "memory_operations",
+        "relation_operations",
+        "material_change"
+      ],
+      "properties": {
+        "overview": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 400,
+          "pattern": "^(?!\\s)(?!.*\\s$)[^\\u0000]+$"
+        },
+        "themes": { "$ref": "#/$defs/string_list_80" },
+        "changes": {
+          "type": "array",
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/text300" }
+        },
+        "unresolved_questions": {
+          "type": "array",
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/text300" }
+        },
+        "action_clues": {
+          "type": "array",
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/text300" }
+        },
+        "memory_operations": {
+          "type": "array",
+          "maxItems": 12,
+          "items": { "$ref": "#/$defs/memory_operation" }
+        },
+        "relation_operations": {
+          "type": "array",
+          "maxItems": 16,
+          "items": { "$ref": "#/$defs/relation_operation" }
+        },
+        "material_change": { "const": true }
+      }
+    },
+    "propose_daily_bundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "action", "reason_code", "arguments"],
+      "properties": {
+        "schema_version": { "const": "1.0" },
+        "action": { "const": "propose_daily_bundle" },
+        "reason_code": { "const": "bundle_ready" },
+        "arguments": { "$ref": "#/$defs/bundle_arguments" }
+      }
+    },
+    "finish_no_change": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "action", "reason_code", "arguments"],
+      "properties": {
+        "schema_version": { "const": "1.0" },
+        "action": { "const": "finish" },
+        "reason_code": { "const": "no_change" },
+        "arguments": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["reason"],
+          "properties": { "reason": { "const": "no_change" } }
+        }
+      }
+    },
+    "finish_insufficient_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "action", "reason_code", "arguments"],
+      "properties": {
+        "schema_version": { "const": "1.0" },
+        "action": { "const": "finish" },
+        "reason_code": { "const": "insufficient_evidence" },
+        "arguments": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["reason"],
+          "properties": { "reason": { "const": "insufficient_evidence" } }
+        }
+      }
+    }
+  }
+}

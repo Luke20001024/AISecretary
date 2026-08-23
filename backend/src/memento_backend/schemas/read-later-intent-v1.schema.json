@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/read-later-intent-v1.schema.json",
+  "title": "ReadLaterIntentRevision V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "intent_id",
+    "revision",
+    "previous_revision_sha256",
+    "status",
+    "operation",
+    "resource_ref",
+    "intent_type",
+    "user_note",
+    "created_at",
+    "committed_by"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "kind": { "const": "memento_read_later_intent_revision" },
+    "intent_id": { "type": "string", "pattern": "^rli_[0-9a-f]{24}$" },
+    "revision": { "type": "integer", "minimum": 1 },
+    "previous_revision_sha256": {
+      "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/sha256" }]
+    },
+    "status": { "enum": ["open", "in_progress", "completed", "archived", "tombstone"] },
+    "operation": { "enum": ["create", "open", "complete", "archive", "reopen", "user_edit", "user_delete"] },
+    "resource_ref": { "$ref": "#/$defs/resourceRef" },
+    "intent_type": { "const": "read_later" },
+    "user_note": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "minLength": 1, "maxLength": 2000 }
+      ]
+    },
+    "created_at": { "type": "string", "format": "date-time" },
+    "committed_by": { "enum": ["workflow", "user", "migration"] }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "revision": { "const": 1 } } },
+      "then": {
+        "properties": {
+          "previous_revision_sha256": { "type": "null" },
+          "operation": { "const": "create" },
+          "status": { "const": "open" }
+        }
+      },
+      "else": { "properties": { "previous_revision_sha256": { "$ref": "#/$defs/sha256" } } }
+    },
+    {
+      "if": { "properties": { "status": { "const": "tombstone" } } },
+      "then": { "properties": { "operation": { "const": "user_delete" } } }
+    },
+    {
+      "if": { "properties": { "operation": { "const": "user_delete" } } },
+      "then": { "properties": { "status": { "const": "tombstone" } } }
+    }
+  ],
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "resourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id", "revision", "revision_sha256"],
+      "properties": {
+        "kind": { "const": "resource_card" },
+        "id": { "type": "string", "pattern": "^res_[0-9a-f]{24}$" },
+        "revision": { "type": "integer", "minimum": 1 },
+        "revision_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  }
+}

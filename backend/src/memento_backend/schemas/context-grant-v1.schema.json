@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/context-grant-v1.schema.json",
+  "title": "ContextGrantRevision V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "kind", "grant_id", "revision", "previous_revision_sha256",
+    "status", "operation", "client_id", "allowed_kinds", "topic_scope", "time_scope",
+    "max_sensitivity", "allow_source_quotes", "allowed_writeback", "expires_at",
+    "revoked_at", "created_at", "committed_by"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "kind": {"const": "memento_context_grant_revision"},
+    "grant_id": {"type": "string", "pattern": "^grt_[0-9a-f]{24}$"},
+    "revision": {"type": "integer", "minimum": 1},
+    "previous_revision_sha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]},
+    "status": {"enum": ["active", "revoked"]},
+    "operation": {"enum": ["grant", "revoke"]},
+    "client_id": {"type": "string", "minLength": 1, "maxLength": 240},
+    "allowed_kinds": {
+      "type": "array", "minItems": 1, "maxItems": 4, "uniqueItems": true,
+      "items": {"enum": ["self_insight", "theme", "memory_atom", "source_record"]}
+    },
+    "topic_scope": {"type": "array", "minItems": 1, "maxItems": 64, "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 120}},
+    "time_scope": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/timeScope"}]},
+    "max_sensitivity": {"enum": ["normal", "sensitive", "restricted"]},
+    "allow_source_quotes": {"type": "boolean"},
+    "allowed_writeback": {
+      "type": "array", "maxItems": 4, "uniqueItems": true,
+      "items": {"enum": ["decision", "correction", "outcome", "new_question"]}
+    },
+    "expires_at": {"oneOf": [{"type": "null"}, {"type": "string", "format": "date-time"}]},
+    "revoked_at": {"oneOf": [{"type": "null"}, {"type": "string", "format": "date-time"}]},
+    "created_at": {"type": "string", "format": "date-time"},
+    "committed_by": {"const": "user"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"revision": {"const": 1}}},
+      "then": {"properties": {"previous_revision_sha256": {"type": "null"}, "operation": {"const": "grant"}}},
+      "else": {"properties": {"previous_revision_sha256": {"$ref": "#/$defs/sha256"}}}
+    },
+    {
+      "if": {"properties": {"status": {"const": "active"}}},
+      "then": {"properties": {"operation": {"const": "grant"}, "revoked_at": {"type": "null"}}},
+      "else": {"properties": {"operation": {"const": "revoke"}, "revoked_at": {"type": "string", "format": "date-time"}}}
+    }
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "timeScope": {
+      "type": "object", "additionalProperties": false, "required": ["from", "to"],
+      "properties": {"from": {"type": "string", "format": "date"}, "to": {"type": "string", "format": "date"}}
+    }
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/context-agent/stored-candidate.schema.json",
+  "title": "Memento stored Context candidate",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "candidate_id",
+    "status",
+    "created_at",
+    "provider",
+    "model",
+    "generation_key",
+    "source_hashes",
+    "statement",
+    "scope",
+    "why_now",
+    "category",
+    "evidence",
+    "sensitive",
+    "uncertainty"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "id": {"type": "string", "pattern": "^ctx_[0-9a-f]{24}$"},
+    "candidate_id": {"type": "string", "pattern": "^ctx_[0-9a-f]{24}$"},
+    "status": {"const": "candidate"},
+    "created_at": {"type": "string", "minLength": 1},
+    "provider": {"type": "string", "minLength": 1},
+    "model": {"type": "string", "minLength": 1},
+    "generation_key": {"type": "string", "pattern": "^gen_[0-9a-f]{24}$"},
+    "source_hashes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["file", "sha256"],
+        "properties": {
+          "file": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}\\.md$"},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    },
+    "statement": {"type": "string", "minLength": 1, "maxLength": 400},
+    "scope": {"type": "string", "minLength": 1, "maxLength": 160},
+    "why_now": {"type": "string", "minLength": 1, "maxLength": 400},
+    "category": {"enum": ["project_decision", "constraint", "work_preference"]},
+    "sensitive": {"const": false},
+    "uncertainty": {"enum": ["low", "medium"]},
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["file", "line", "quote"],
+        "properties": {
+          "file": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}\\.md$"},
+          "line": {"type": "integer", "minimum": 1},
+          "quote": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}

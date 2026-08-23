@@ -1,13 +1,14 @@
 #!/bin/bash
 # ============================================================
-# Memento 安装脚本 (每日第一帧)
+# Memento 安装脚本
 # 文件名沿用旧产品名 AISecretary,内部路径同
 # ============================================================
 # 安装内容:
 #   - Obsidian Vault ~/AISecretary/ 及其子结构
 #   - 核心脚本到 ~/AISecretary/.scripts/ (含统一存储边界、编码兜底、TAG/NOTE 支持)
-#   - Daily Review 执行协议到 ~/AISecretary/.review/ (AI 由 Codex 定时任务调用)
-#   - 每天第一次成功记录后拍摄一张本地开场照,并仅为这张照片查询一次天气
+#   - Context Agent 运行时到 ~/AISecretary/.context-agent/runtime/ (保留未来开发的可导入模块)
+#   - 当前版不安装、不唤醒 Context/Re:member/Cognitive Worker 或定时 job
+#   - 旧版的每日拍照、天气与独立 Daily Review 在升级时停用；既有数据保留
 #   - 5 个 macOS 服务 (Quick Actions / Services):
 #       1. 存入 AI 秘书           (选中文字 → 直接存入)
 #       2. 存入 AI 秘书 (选标签)   (选中文字 → 选标签 → 存入)
@@ -30,37 +31,47 @@ NC='\033[0m'
 echo ""
 echo -e "${BLUE}╔════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║       Memento 安装程序                 ║${NC}"
-echo -e "${BLUE}║       收集 · 每日第一帧 · Daily Review  ║${NC}"
+echo -e "${BLUE}║       记录 · 回看 · 长期理解       ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════╝${NC}"
 echo ""
 
 SECRETARY_DIR="$HOME/AISecretary"
 SCRIPT_DIR="$SECRETARY_DIR/.scripts"
+CONTEXT_ROOT="$SECRETARY_DIR/.context-agent"
+CONTEXT_RUNTIME_DEST="$CONTEXT_ROOT/runtime"
 SERVICES_DIR="$HOME/Library/Services"
 INSTALLER_DIR=$(cd "$(dirname "$0")" && pwd)
 INSTALL_LOCK="$HOME/.memento-install.lock"
 INSTALL_LOCK_TOKEN="$$-${RANDOM}-$(date +%s)"
+INSTALL_BACKGROUND_AUTOMATION=0
 SCRIPT_STAGE=""
-SNAPSHOT_BUILD_ROOT=""
+SELECTION_COPY_BUILD_ROOT=""
 VOICE_BUILD_ROOT=""
 NEWTAB_STAGE=""
-REVIEW_STAGE=""
+CONTEXT_STAGE=""
+CONTEXT_WORKER_PLIST_STAGE=""
+REMEMBER_AGENT_PLIST_STAGE=""
 OCR_STAGE=""
-SNAPSHOT_HELPER_STAGE=""
 
 cleanup_install_staging() {
   local path
   for path in \
     "${SCRIPT_STAGE:-}" \
-    "${SNAPSHOT_BUILD_ROOT:-}" \
+    "${SELECTION_COPY_BUILD_ROOT:-}" \
     "${VOICE_BUILD_ROOT:-}" \
     "${NEWTAB_STAGE:-}" \
-    "${REVIEW_STAGE:-}"; do
+    "${CONTEXT_STAGE:-}"; do
     [ -z "$path" ] || rm -rf "$path" 2>/dev/null || true
   done
-  for path in "${OCR_STAGE:-}" "${SNAPSHOT_HELPER_STAGE:-}"; do
+  for path in "${OCR_STAGE:-}"; do
     [ -z "$path" ] || rm -f "$path" 2>/dev/null || true
   done
+  [ -z "${CONTEXT_WORKER_PLIST_STAGE:-}" ] \
+    || rm -f "$CONTEXT_WORKER_PLIST_STAGE" 2>/dev/null \
+    || true
+  [ -z "${REMEMBER_AGENT_PLIST_STAGE:-}" ] \
+    || rm -f "$REMEMBER_AGENT_PLIST_STAGE" 2>/dev/null \
+    || true
 }
 
 release_install_lock() {
@@ -182,6 +193,246 @@ memento_legacy_launchagent_owned() {
     | grep -Eq '<string>[^<]*/AISecretary/'
 }
 
+memento_context_worker_owned() {
+  local plist="$1"
+  local label
+  local marker
+  [ ! -L "$plist" ] || return 1
+  [ -f "$plist" ] || return 1
+  [ "$(stat -f %u "$plist" 2>/dev/null || echo -1)" = "$(id -u)" ] || return 1
+  label=$(plutil -extract Label raw -o - "$plist" 2>/dev/null || true)
+  marker=$(plutil -extract MementoManaged raw -o - "$plist" 2>/dev/null || true)
+  [ "$label" = 'com.memento.context-agent' ] || return 1
+  [ "$marker" = 'com.memento.context-agent.v1' ] || return 1
+  plutil -convert xml1 -o - "$plist" 2>/dev/null \
+    | grep -Eq 'self-reflection-worker|run_(context_workers|self_reflection)_once\.sh'
+}
+
+memento_remember_agent_worker_owned() {
+  local plist="$1"
+  local label
+  local marker
+  [ ! -L "$plist" ] || return 1
+  [ -f "$plist" ] || return 1
+  [ "$(stat -f %u "$plist" 2>/dev/null || echo -1)" = "$(id -u)" ] || return 1
+  label=$(plutil -extract Label raw -o - "$plist" 2>/dev/null || true)
+  marker=$(plutil -extract MementoManaged raw -o - "$plist" 2>/dev/null || true)
+  [ "$label" = 'com.memento.remember-agent-v1' ] || return 1
+  [ "$marker" = 'com.memento.remember-agent-v1.v1' ] || return 1
+  plutil -convert xml1 -o - "$plist" 2>/dev/null \
+    | grep -Eq 'run_remember_agent_v1_once\.sh'
+}
+
+memento_remember_agent_schedule_owned() {
+  local plist="$1"
+  local label
+  local marker
+  [ ! -L "$plist" ] || return 1
+  [ -f "$plist" ] || return 1
+  [ "$(stat -f %u "$plist" 2>/dev/null || echo -1)" = "$(id -u)" ] || return 1
+  label=$(plutil -extract Label raw -o - "$plist" 2>/dev/null || true)
+  marker=$(plutil -extract MementoManaged raw -o - "$plist" 2>/dev/null || true)
+  [ "$label" = 'com.memento.remember-agent-v1-schedule' ] || return 1
+  [ "$marker" = 'com.memento.remember-agent-v1-schedule.v1' ] || return 1
+  plutil -convert xml1 -o - "$plist" 2>/dev/null \
+    | grep -Eq 'run_remember_agent_schedule_once\.sh'
+}
+
+memento_plain_owned_directory() {
+  local path="$1"
+  [ ! -L "$path" ] || return 1
+  [ -d "$path" ] || return 1
+  [ "$(stat -f %u "$path" 2>/dev/null || echo -1)" = "$(id -u)" ]
+}
+
+memento_context_ensure_directory() {
+  local path="$1"
+  if [ -L "$path" ] || { [ -e "$path" ] && [ ! -d "$path" ]; }; then
+    echo -e "${YELLOW}  ⚠ Context Agent 路径不是安全的普通目录：$path${NC}" >&2
+    return 1
+  fi
+  if [ ! -e "$path" ]; then
+    mkdir "$path" || return 1
+  fi
+  if ! memento_plain_owned_directory "$path"; then
+    echo -e "${YELLOW}  ⚠ Context Agent 路径不属于当前用户：$path${NC}" >&2
+    return 1
+  fi
+}
+
+memento_context_optional_directory_safe() {
+  local path="$1"
+  if [ -L "$path" ] || { [ -e "$path" ] && [ ! -d "$path" ]; }; then
+    echo -e "${YELLOW}  ⚠ Context Agent 路径不是安全的普通目录：$path${NC}" >&2
+    return 1
+  fi
+  [ ! -e "$path" ] || memento_plain_owned_directory "$path"
+}
+
+memento_prepare_context_tree() {
+  local path
+  memento_plain_owned_directory "$HOME" || return 1
+  memento_plain_owned_directory "$SECRETARY_DIR" || return 1
+  for path in \
+    "$CONTEXT_ROOT" \
+    "$CONTEXT_ROOT/candidates" \
+    "$CONTEXT_ROOT/decisions" \
+    "$CONTEXT_ROOT/usage" \
+    "$CONTEXT_ROOT/reflections" \
+    "$CONTEXT_ROOT/self-queries" \
+    "$CONTEXT_ROOT/self-queries/requests" \
+    "$CONTEXT_ROOT/self-queries/responses" \
+    "$CONTEXT_ROOT/self-queries/feedback" \
+    "$CONTEXT_ROOT/agent-v1" \
+    "$CONTEXT_ROOT/agent-v1/requests" \
+    "$CONTEXT_ROOT/agent-v1/responses" \
+    "$CONTEXT_ROOT/agent-v1/runs" \
+    "$CONTEXT_ROOT/agent-v1/memories" \
+    "$CONTEXT_ROOT/agent-v1/user-actions" \
+    "$CONTEXT_ROOT/agent-v1/locks" \
+    "$CONTEXT_ROOT/cognitive-secretary-v1" \
+    "$CONTEXT_ROOT/cognitive-secretary-v1/user-actions" \
+    "$CONTEXT_ROOT/cognitive-secretary-v1/manual-day-requests" \
+    "$CONTEXT_ROOT/cognitive-secretary-v1/manual-day-results" \
+    "$CONTEXT_ROOT/cognitive-secretary-v1/locks" \
+    "$CONTEXT_ROOT/logs"; do
+    memento_context_ensure_directory "$path" || return 1
+  done
+  memento_context_optional_directory_safe "$CONTEXT_RUNTIME_DEST"
+}
+
+memento_validate_context_tree() {
+  local path
+  memento_plain_owned_directory "$HOME" || return 1
+  memento_plain_owned_directory "$SECRETARY_DIR" || return 1
+  for path in \
+    "$CONTEXT_ROOT" \
+    "$CONTEXT_ROOT/candidates" \
+    "$CONTEXT_ROOT/decisions" \
+    "$CONTEXT_ROOT/usage" \
+    "$CONTEXT_ROOT/reflections" \
+    "$CONTEXT_ROOT/self-queries" \
+    "$CONTEXT_ROOT/self-queries/requests" \
+    "$CONTEXT_ROOT/self-queries/responses" \
+    "$CONTEXT_ROOT/self-queries/feedback" \
+    "$CONTEXT_ROOT/agent-v1" \
+    "$CONTEXT_ROOT/agent-v1/requests" \
+    "$CONTEXT_ROOT/agent-v1/responses" \
+    "$CONTEXT_ROOT/agent-v1/runs" \
+    "$CONTEXT_ROOT/agent-v1/memories" \
+    "$CONTEXT_ROOT/agent-v1/user-actions" \
+    "$CONTEXT_ROOT/agent-v1/locks" \
+    "$CONTEXT_ROOT/cognitive-secretary-v1" \
+    "$CONTEXT_ROOT/cognitive-secretary-v1/user-actions" \
+    "$CONTEXT_ROOT/cognitive-secretary-v1/manual-day-requests" \
+    "$CONTEXT_ROOT/cognitive-secretary-v1/manual-day-results" \
+    "$CONTEXT_ROOT/cognitive-secretary-v1/locks" \
+    "$CONTEXT_ROOT/logs"; do
+    memento_plain_owned_directory "$path" || return 1
+  done
+  memento_context_optional_directory_safe "$CONTEXT_RUNTIME_DEST"
+}
+
+memento_context_regular_file_safe() {
+  local path="$1"
+  if [ -L "$path" ] || { [ -e "$path" ] && [ ! -f "$path" ]; }; then
+    return 1
+  fi
+  [ ! -e "$path" ] \
+    || [ "$(stat -f %u "$path" 2>/dev/null || echo -1)" = "$(id -u)" ]
+}
+
+memento_context_safe_log_file() {
+  local path="$1"
+  "$PYTHON3_RUNTIME" - "$path" "$(id -u)" <<'PY'
+import os
+import stat
+import sys
+
+path = sys.argv[1]
+uid = int(sys.argv[2])
+try:
+    current = os.lstat(path)
+except FileNotFoundError:
+    current = None
+if current is not None:
+    if not stat.S_ISREG(current.st_mode) or current.st_uid != uid:
+        raise SystemExit(1)
+flags = os.O_WRONLY | os.O_CREAT | os.O_APPEND
+flags |= getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+try:
+    descriptor = os.open(path, flags, 0o600)
+except OSError:
+    raise SystemExit(1)
+try:
+    opened = os.fstat(descriptor)
+    if not stat.S_ISREG(opened.st_mode) or opened.st_uid != uid:
+        raise SystemExit(1)
+    os.fchmod(descriptor, 0o600)
+finally:
+    os.close(descriptor)
+PY
+}
+
+memento_context_runner_uses_python() {
+  local runner="$1"
+  "$PYTHON3_RUNTIME" - "$runner" "$PYTHON3_RUNTIME" <<'PY'
+import shlex
+import sys
+from pathlib import Path
+
+runner = Path(sys.argv[1])
+expected = "MEMENTO_PYTHON=" + shlex.quote(sys.argv[2])
+try:
+    lines = runner.read_text(encoding="utf-8").splitlines()
+except (OSError, UnicodeError):
+    raise SystemExit(1)
+if lines.count(expected) != 1:
+    raise SystemExit(1)
+PY
+}
+
+memento_disable_owned_context_workers() {
+  local plist="$HOME/Library/LaunchAgents/com.memento.context-agent.plist"
+  local remember_plist="$HOME/Library/LaunchAgents/com.memento.remember-agent-v1.plist"
+  local schedule_plist="$HOME/Library/LaunchAgents/com.memento.remember-agent-v1-schedule.plist"
+  if memento_context_worker_owned "$plist"; then
+    if [ "${MEMENTO_SKIP_CONTEXT_WORKER_LOAD:-0}" != "1" ]; then
+      launchctl bootout "gui/$(id -u)" "$plist" 2>/dev/null \
+        || launchctl unload "$plist" 2>/dev/null \
+        || true
+    fi
+    rm -f "$plist"
+    echo -e "${YELLOW}  ⚠ Context Agent 本轮初始化或校验失败；旧 Memento Worker 已停止并禁用${NC}"
+  elif [ -e "$plist" ] || [ -L "$plist" ]; then
+    echo -e "${YELLOW}  ⚠ 保留无法确认归属的同名 Context Worker: $plist${NC}"
+  fi
+  if memento_remember_agent_worker_owned "$remember_plist"; then
+    if [ "${MEMENTO_SKIP_CONTEXT_WORKER_LOAD:-0}" != "1" ] \
+      && [ "${MEMENTO_SKIP_REMEMBER_AGENT_LOAD:-0}" != "1" ]; then
+      launchctl bootout "gui/$(id -u)" "$remember_plist" 2>/dev/null \
+        || launchctl unload "$remember_plist" 2>/dev/null \
+        || true
+    fi
+    rm -f "$remember_plist"
+    echo -e "${YELLOW}  ⚠ Re:member Agent V1 本轮初始化或校验失败；已停止并禁用事件 Worker${NC}"
+  elif [ -e "$remember_plist" ] || [ -L "$remember_plist" ]; then
+    echo -e "${YELLOW}  ⚠ 保留无法确认归属的同名 Re:member Agent Worker: $remember_plist${NC}"
+  fi
+  if memento_remember_agent_schedule_owned "$schedule_plist"; then
+    if [ "${MEMENTO_SKIP_CONTEXT_WORKER_LOAD:-0}" != "1" ] \
+      && [ "${MEMENTO_SKIP_REMEMBER_AGENT_SCHEDULE_LOAD:-0}" != "1" ]; then
+      launchctl bootout "gui/$(id -u)" "$schedule_plist" 2>/dev/null \
+        || launchctl unload "$schedule_plist" 2>/dev/null \
+        || true
+    fi
+    rm -f "$schedule_plist"
+    echo -e "${YELLOW}  ⚠ Re:member 每日调度本轮初始化或校验失败；已停止并禁用${NC}"
+  elif [ -e "$schedule_plist" ] || [ -L "$schedule_plist" ]; then
+    echo -e "${YELLOW}  ⚠ 保留无法确认归属的同名 Re:member 每日调度: $schedule_plist${NC}"
+  fi
+}
+
 remove_owned_legacy_launchagent() {
   local plist="$HOME/Library/LaunchAgents/com.aisecretary.screenshot.plist"
   [ -f "$plist" ] || return 0
@@ -200,10 +451,390 @@ remove_owned_legacy_launchagent() {
   echo -e "${GREEN}  ✓ 旧截图后台监听器已移除${NC}"
 }
 
+memento_owned_regular_file() {
+  local path="$1"
+  [ ! -L "$path" ] \
+    && [ -f "$path" ] \
+    && [ "$(stat -f %u "$path" 2>/dev/null || echo -1)" = "$(id -u)" ] \
+    && [ "$(stat -f %l "$path" 2>/dev/null || echo 0)" = "1" ]
+}
+
+memento_vault_root_safe() {
+  "$PYTHON3_RUNTIME" - "$HOME" "$SECRETARY_DIR" "$(id -u)" <<'PY'
+import os
+import stat
+import sys
+
+home = os.path.abspath(sys.argv[1])
+vault = os.path.abspath(sys.argv[2])
+uid = int(sys.argv[3])
+if os.path.dirname(vault) != home:
+    raise SystemExit(1)
+
+# Reject every symlink in the HOME parent chain. Ancestors may be owned by
+# root or the current user; HOME and an existing Vault must belong to the user.
+current = os.path.sep
+for component in [part for part in home.split(os.path.sep) if part]:
+    current = os.path.join(current, component)
+    try:
+        metadata = os.lstat(current)
+    except OSError:
+        raise SystemExit(1)
+    if not stat.S_ISDIR(metadata.st_mode) or metadata.st_uid not in (0, uid):
+        raise SystemExit(1)
+try:
+    home_metadata = os.lstat(home)
+except OSError:
+    raise SystemExit(1)
+if not stat.S_ISDIR(home_metadata.st_mode) or home_metadata.st_uid != uid:
+    raise SystemExit(1)
+
+if os.path.lexists(vault):
+    try:
+        vault_metadata = os.lstat(vault)
+    except OSError:
+        raise SystemExit(1)
+    if not stat.S_ISDIR(vault_metadata.st_mode) or vault_metadata.st_uid != uid:
+        raise SystemExit(1)
+PY
+}
+
+memento_snapshot_app_owned() {
+  local app="$1"
+  local info="$app/Contents/Info.plist"
+  local executable="$app/Contents/MacOS/MementoDailySnapshot"
+
+  memento_plain_owned_directory "$SECRETARY_DIR/.apps" \
+    && memento_plain_owned_directory "$app" \
+    && memento_owned_regular_file "$info" \
+    && memento_owned_regular_file "$executable" \
+    && [ "$(plutil -extract CFBundleIdentifier raw -o - "$info" 2>/dev/null || true)" \
+      = "com.memento.daily-snapshot" ] \
+    && [ "$(plutil -extract CFBundleExecutable raw -o - "$info" 2>/dev/null || true)" \
+      = "MementoDailySnapshot" ]
+}
+
+memento_review_protocol_file_owned() {
+  local path="$1"
+  local name=${path##*/}
+  local expected_sha=""
+  local actual_sha
+  memento_plain_owned_directory "$SECRETARY_DIR/.review" \
+    && memento_owned_regular_file "$path" \
+    || return 1
+  case "$name" in
+    DAILY_REVIEW.md)
+      expected_sha='6d6f103a03c0aff3f6fb671206648ef89e61cbc01934f372bc5dfcbe9f4aeca0'
+      ;;
+    README.md)
+      expected_sha='7e813eae5d03c64a0758fb58201f0ab6f4678266a77991a1329e8e7f0f126f85'
+      ;;
+    commit_review.sh)
+      expected_sha='bdfd4c43900a1513ccc4f7d9e80652de0ddeb8e74d34081af5a9f35f0b1700e8'
+      ;;
+    commit_review_atomic.py)
+      expected_sha='d6bfaaa74f0cb462a4963cd652ae857cb077ea31d05fc285a44d621c82027202'
+      ;;
+    review_cycle.sh)
+      expected_sha='4b9334e3264bc036f7c44c2a1893c20785177bbc6ed57306a5624b380930b877'
+      ;;
+    review_state.sh)
+      expected_sha='4342549ca7d6d6b4bb7c689fbe5c5124e48467df7e6d2a91f9e6e57cd984a3ff'
+      ;;
+    review_status.sh)
+      expected_sha='5b7ccf0f4e52a85e8931a8e6d2a23062f82c12c014ebe89ed4f92cdf61ed0e2f'
+      ;;
+    verify_review.sh)
+      expected_sha='b587fd6f67edffe51da49ae9e2dee29d78ab03c08869e94aaf4c0b4cd588463e'
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+  actual_sha=$(shasum -a 256 "$path" 2>/dev/null | awk '{print $1}')
+  [ "$actual_sha" = "$expected_sha" ]
+}
+
+remove_deprecated_daily_capture_and_review() {
+  local app="$SECRETARY_DIR/.apps/Memento Daily Snapshot.app"
+  local quarantine="$SECRETARY_DIR/.apps/.memento-retired-snapshot.$$.$RANDOM"
+  local path
+
+  if ! memento_vault_root_safe; then
+    echo -e "${YELLOW}  ⚠ Vault 根路径不安全；已保留照片与 Review 文件${NC}"
+    return 0
+  fi
+
+  if [ -e "$app" ] || [ -L "$app" ]; then
+    if memento_snapshot_app_owned "$app" \
+      && mv "$app" "$quarantine" 2>/dev/null; then
+      rm -rf "$quarantine"
+      echo -e "${GREEN}  ✓ 已移除 Memento 管理的每日拍照 App${NC}"
+    else
+      echo -e "${YELLOW}  ⚠ 保留无法确认归属的同名拍照 App: $app${NC}"
+    fi
+  fi
+
+  for path in \
+    "$SECRETARY_DIR/.review/DAILY_REVIEW.md" \
+    "$SECRETARY_DIR/.review/README.md" \
+    "$SECRETARY_DIR/.review/commit_review.sh" \
+    "$SECRETARY_DIR/.review/commit_review_atomic.py" \
+    "$SECRETARY_DIR/.review/review_cycle.sh" \
+    "$SECRETARY_DIR/.review/review_state.sh" \
+    "$SECRETARY_DIR/.review/review_status.sh" \
+    "$SECRETARY_DIR/.review/verify_review.sh"; do
+    [ -e "$path" ] || [ -L "$path" ] || continue
+    if memento_review_protocol_file_owned "$path"; then
+      rm -f "$path"
+    else
+      echo -e "${YELLOW}  ⚠ 保留无法确认归属的 Review 协议文件: $path${NC}"
+    fi
+  done
+}
+
+remove_owned_daily_schedule() {
+  local plist="$HOME/Library/LaunchAgents/com.memento.remember-agent-v1-schedule.plist"
+  if memento_remember_agent_schedule_owned "$plist"; then
+    if [ "${MEMENTO_SKIP_CONTEXT_WORKER_LOAD:-0}" != "1" ] \
+      && [ "${MEMENTO_SKIP_REMEMBER_AGENT_SCHEDULE_LOAD:-0}" != "1" ]; then
+      launchctl bootout "gui/$(id -u)" "$plist" 2>/dev/null \
+        || launchctl unload "$plist" 2>/dev/null \
+        || true
+    fi
+    rm -f "$plist"
+    echo -e "${GREEN}  ✓ 已停止并移除旧每日调度${NC}"
+  elif [ -e "$plist" ] || [ -L "$plist" ]; then
+    echo -e "${YELLOW}  ⚠ 保留无法确认归属的同名每日调度: $plist${NC}"
+  fi
+}
+
+remove_owned_context_automation_jobs() {
+  local context_plist="$HOME/Library/LaunchAgents/com.memento.context-agent.plist"
+  local remember_plist="$HOME/Library/LaunchAgents/com.memento.remember-agent-v1.plist"
+
+  if memento_context_worker_owned "$context_plist"; then
+    if [ "${MEMENTO_SKIP_CONTEXT_WORKER_LOAD:-0}" != "1" ]; then
+      launchctl bootout "gui/$(id -u)" "$context_plist" 2>/dev/null \
+        || launchctl unload "$context_plist" 2>/dev/null \
+        || true
+    fi
+    rm -f "$context_plist"
+    echo -e "${GREEN}  ✓ 已停止并移除旧 Context Worker${NC}"
+  elif [ -e "$context_plist" ] || [ -L "$context_plist" ]; then
+    echo -e "${YELLOW}  ⚠ 保留无法确认归属的同名 Context Worker: $context_plist${NC}"
+  fi
+
+  if memento_remember_agent_worker_owned "$remember_plist"; then
+    if [ "${MEMENTO_SKIP_CONTEXT_WORKER_LOAD:-0}" != "1" ] \
+      && [ "${MEMENTO_SKIP_REMEMBER_AGENT_LOAD:-0}" != "1" ]; then
+      launchctl bootout "gui/$(id -u)" "$remember_plist" 2>/dev/null \
+        || launchctl unload "$remember_plist" 2>/dev/null \
+        || true
+    fi
+    rm -f "$remember_plist"
+    echo -e "${GREEN}  ✓ 已停止并移除旧 Re:member Worker${NC}"
+  elif [ -e "$remember_plist" ] || [ -L "$remember_plist" ]; then
+    echo -e "${YELLOW}  ⚠ 保留无法确认归属的同名 Re:member Worker: $remember_plist${NC}"
+  fi
+}
+
+disable_owned_agent_automation_controls() {
+  local gate="$CONTEXT_ROOT/agent-v1/enabled"
+  local schedule="$CONTEXT_ROOT/agent-v1/schedule.json"
+
+  if ! memento_vault_root_safe; then
+    echo -e "${YELLOW}  ⚠ Vault 根路径不安全；已保留 Agent gate 与 schedule.json${NC}"
+    return 0
+  fi
+
+  if [ -e "$gate" ] || [ -L "$gate" ]; then
+    if memento_validate_context_tree \
+      && memento_owned_regular_file "$gate" \
+      && [ "$(cat "$gate" 2>/dev/null || true)" = "enabled-v1" ]; then
+      rm -f "$gate"
+      echo -e "${GREEN}  ✓ 已关闭旧 Agent 启用 gate${NC}"
+    else
+      echo -e "${YELLOW}  ⚠ 保留无法确认归属的 Agent gate；后台 Worker 仍不会安装${NC}"
+    fi
+  fi
+
+  if [ -e "$schedule" ] || [ -L "$schedule" ]; then
+    if memento_validate_context_tree \
+      && memento_owned_regular_file "$schedule" \
+      && "$PYTHON3_RUNTIME" - "$schedule" <<'PY'
+import json
+import pathlib
+import sys
+
+try:
+    value = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+except (OSError, UnicodeError, json.JSONDecodeError):
+    raise SystemExit(1)
+raise SystemExit(0 if value.get("kind") == "remember_agent_schedule" else 1)
+PY
+    then
+      rm -f "$schedule"
+      echo -e "${GREEN}  ✓ 已关闭旧每日调度配置${NC}"
+    else
+      echo -e "${YELLOW}  ⚠ 保留无法确认归属的 schedule.json；日级 job 仍不会安装${NC}"
+    fi
+  fi
+}
+
+memento_migrate_homepage_remove_review() {
+  local path="$SECRETARY_DIR/Memento.md"
+
+  [ -e "$path" ] || [ -L "$path" ] || return 0
+  if ! memento_vault_root_safe || ! memento_owned_regular_file "$path"; then
+    echo -e "${YELLOW}  ⚠ Memento.md 不是安全的当前用户单链接普通文件；已保留且未跟随${NC}"
+    return 0
+  fi
+
+  if ! "$PYTHON3_RUNTIME" - "$SECRETARY_DIR" "$(id -u)" <<'PY'
+import os
+import secrets
+import stat
+import sys
+
+parent = sys.argv[1]
+uid = int(sys.argv[2])
+name = "Memento.md"
+directory_flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
+directory_flags |= getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+directory = os.open(parent, directory_flags)
+source = None
+temporary = None
+temporary_name = None
+try:
+    read_flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+    source = os.open(name, read_flags, dir_fd=directory)
+    metadata = os.fstat(source)
+    if (
+        not stat.S_ISREG(metadata.st_mode)
+        or metadata.st_uid != uid
+        or metadata.st_nlink != 1
+    ):
+        raise OSError("unsafe Memento.md")
+    chunks = []
+    while True:
+        chunk = os.read(source, 65536)
+        if not chunk:
+            break
+        chunks.append(chunk)
+    original = b"".join(chunks)
+    text = original.decode("utf-8")
+    migrated = text.replace(
+        "搜索 `tag:#TODO` 查看待办碎片",
+        "搜索 `tag:#TODO` 查看行动类记录(仅作标签,没有完成态)",
+    )
+    migrated = migrated.replace("\n## AI Daily Review\n\n![[Reviews.base]]\n", "")
+    migrated = migrated.replace("- [[Reviews.base|AI Daily Review 索引]]\n", "")
+    if migrated == text:
+        raise SystemExit(0)
+
+    temporary_name = f".Memento.md.migrate.{os.getpid()}.{secrets.token_hex(8)}"
+    write_flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+    write_flags |= getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+    temporary = os.open(
+        temporary_name,
+        write_flags,
+        stat.S_IMODE(metadata.st_mode),
+        dir_fd=directory,
+    )
+    os.fchmod(temporary, stat.S_IMODE(metadata.st_mode))
+    payload = migrated.encode("utf-8")
+    offset = 0
+    while offset < len(payload):
+        offset += os.write(temporary, payload[offset:])
+    os.fsync(temporary)
+
+    current = os.stat(name, dir_fd=directory, follow_symlinks=False)
+    if (
+        not stat.S_ISREG(current.st_mode)
+        or current.st_uid != uid
+        or current.st_nlink != 1
+        or (current.st_dev, current.st_ino) != (metadata.st_dev, metadata.st_ino)
+    ):
+        raise OSError("Memento.md changed during migration")
+    os.close(temporary)
+    temporary = None
+    os.replace(
+        temporary_name,
+        name,
+        src_dir_fd=directory,
+        dst_dir_fd=directory,
+    )
+    temporary_name = None
+    os.fsync(directory)
+finally:
+    if source is not None:
+        os.close(source)
+    if temporary is not None:
+        os.close(temporary)
+    if temporary_name is not None:
+        try:
+            os.unlink(temporary_name, dir_fd=directory)
+        except FileNotFoundError:
+            pass
+    os.close(directory)
+PY
+  then
+    echo -e "${YELLOW}  ⚠ Memento.md 旧 Review 入口迁移失败；原文件已保留${NC}"
+  fi
+}
+
 if ! command -v python3 >/dev/null 2>&1; then
   echo -e "${RED}缺少 python3，无法安全生成 macOS Workflow。请先安装 Xcode Command Line Tools。${NC}" >&2
   exit 1
 fi
+PYTHON3_COMMAND=$(command -v python3)
+case "$PYTHON3_COMMAND" in
+  /*) ;;
+  *)
+    echo -e "${RED}python3 必须解析为绝对路径，当前为: $PYTHON3_COMMAND${NC}" >&2
+    exit 1
+    ;;
+esac
+PYTHON3_RUNTIME=$(
+  "$PYTHON3_COMMAND" - "$PYTHON3_COMMAND" "$(id -u)" <<'PY'
+import os
+import stat
+import sys
+
+candidate = sys.argv[1]
+uid = int(sys.argv[2])
+resolved = os.path.realpath(candidate)
+if not os.path.isabs(resolved) or "\n" in resolved or "\r" in resolved:
+    raise SystemExit(1)
+try:
+    executable = os.stat(resolved)
+except OSError:
+    raise SystemExit(1)
+if (not stat.S_ISREG(executable.st_mode)
+        or executable.st_uid not in (0, uid)
+        or executable.st_mode & 0o022
+        or not os.access(resolved, os.X_OK)):
+    raise SystemExit(1)
+parent = os.path.dirname(resolved)
+while True:
+    try:
+        current = os.lstat(parent)
+    except OSError:
+        raise SystemExit(1)
+    if (not stat.S_ISDIR(current.st_mode)
+            or current.st_uid not in (0, uid)
+            or current.st_mode & 0o022):
+        raise SystemExit(1)
+    if parent == os.path.dirname(parent):
+        break
+    parent = os.path.dirname(parent)
+print(resolved)
+PY
+) || {
+  echo -e "${RED}python3 不是当前用户可信的绝对可执行普通文件，已停止安装。${NC}" >&2
+  exit 1
+}
 if ! command -v plutil >/dev/null 2>&1; then
   echo -e "${RED}缺少 plutil，无法校验安装产物。${NC}" >&2
   exit 1
@@ -230,18 +861,32 @@ fi
 
 # v1 曾安装常驻截图监听器；升级必须主动清理，否则仍会在后台弹出旧通知。
 remove_owned_legacy_launchagent
+remove_owned_daily_schedule
+remove_owned_context_automation_jobs
+
+if ! memento_vault_root_safe; then
+  echo -e "${RED}~/AISecretary 或其 HOME 父链不是当前用户拥有的安全普通目录；已停止安装且未访问该 Vault。${NC}" >&2
+  exit 1
+fi
 
 # ============================================================
 # Step 1: 文件夹
 # ============================================================
 echo -e "${BLUE}[1/6] 创建文件夹...${NC}"
 mkdir -p "$SECRETARY_DIR/assets"
-mkdir -p "$SECRETARY_DIR/Reviews/Daily"
+mkdir -p "$SECRETARY_DIR/Context/Confirmed"
 mkdir -p "$SECRETARY_DIR/.obsidian"
 mkdir -p "$SCRIPT_DIR"
 mkdir -p "$SECRETARY_DIR/.apps"
-mkdir -p "$SECRETARY_DIR/.state/daily-snapshot"
 mkdir -p "$SERVICES_DIR"
+remove_deprecated_daily_capture_and_review
+CONTEXT_PATHS_SAFE=0
+if memento_prepare_context_tree; then
+  CONTEXT_PATHS_SAFE=1
+  disable_owned_agent_automation_controls
+else
+  echo -e "${YELLOW}  ⚠ Context Agent 已 fail-closed：本轮不会创建运行时、日志或 Worker${NC}"
+fi
 tighten_vault_permissions
 
 # ============================================================
@@ -257,16 +902,17 @@ if [ -d "$OBSIDIAN_SRC" ]; then
     fi
   done
 
-  for VAULT_FILE in Memento.md Memento.base Reviews.base; do
-    if [ ! -f "$SECRETARY_DIR/$VAULT_FILE" ]; then
+  for VAULT_FILE in Memento.md Memento.base; do
+    if [ ! -e "$SECRETARY_DIR/$VAULT_FILE" ] \
+      && [ ! -L "$SECRETARY_DIR/$VAULT_FILE" ]; then
       cp "$OBSIDIAN_SRC/$VAULT_FILE" "$SECRETARY_DIR/$VAULT_FILE"
+    elif [ -L "$SECRETARY_DIR/$VAULT_FILE" ]; then
+      echo -e "${YELLOW}  ⚠ 保留且未跟随同名 symlink: $SECRETARY_DIR/$VAULT_FILE${NC}"
     fi
   done
 
-  # 只迁移旧模板中的精确文案,不覆盖用户对 Memento.md 的其他编辑。
-  if [ -f "$SECRETARY_DIR/Memento.md" ] && grep -qF '搜索 `tag:#TODO` 查看待办碎片' "$SECRETARY_DIR/Memento.md"; then
-    sed -i '' 's/搜索 `tag:#TODO` 查看待办碎片/搜索 `tag:#TODO` 查看行动类记录(仅作标签,没有完成态)/' "$SECRETARY_DIR/Memento.md"
-  fi
+  # 只迁移旧模板中的精确文案，使用安全单链接文件和同目录原子替换。
+  memento_migrate_homepage_remove_review
   echo -e "${GREEN}  ✓ Obsidian Vault 配置已就绪${NC}"
 else
   echo -e "${YELLOW}  ⚠ 安装包内未找到 obsidian-vault/,仅保留 Markdown 写入${NC}"
@@ -285,16 +931,12 @@ cat > "$SECRETARY_DIR/README.md" << 'README_EOF'
 - 每条记录用 `---` 分隔
 - 图片/截图统一放在 `assets/`,文件名: `YYYY-MM-DD-HHMMSS.png`
 - 原始录音放在 `assets/`,文件名包含 `-voice.m4a`
-- 每日第一次成功记录会触发一次「每日第一帧」;照片放在 `assets/`,天气只与这张照片绑定
-- 照片成功后才向 Open-Meteo 发送一次约 11 km 粒度坐标;经纬度不落档,当天后续记录不再定位或联网
-- AI 每日总结放在 `Reviews/Daily/YYYY-MM-DD.md`,原始记录保持不变
 - `Memento.md` 是 Vault 首页,`Memento.base` 是每日记录索引
 
 ## 数据边界
 
-- 原始 Markdown、照片、录音、Apple 转写和 Chrome Dashboard 都保存在本机
-- Chrome 扩展本身不联网;天气查询只发生在当天第一帧照片成功之后
-- 启用 Codex Daily Review 时,当天文本会作为模型上下文交给已配置的 Codex 模型处理;“本地存储”不等于“模型本地推理”
+- 原始 Markdown、截图、录音、Apple 转写和 Chrome Dashboard 都保存在本机
+- 基础记录不会调用每日拍照、位置、天气或独立 Daily Review
 
 ## 条目格式
 
@@ -310,7 +952,6 @@ cat > "$SECRETARY_DIR/README.md" << 'README_EOF'
 - `## 11:30 · 周三 · 截图·OCR` — 截图条目,OCR 文字作为正文
 - `## 11:30 · 周三 · 截图` — 纯截图,正文是图片引用
 - `## 11:30 · 周三 · 语音` — Apple 本地转写 + 原始录音
-- `## 11:30 · 周三 · 每日第一帧` — 当天一次性的前置摄像头照片、时间和天气
 
 heading 下方是正文。可选的备注用 blockquote:
 
@@ -338,9 +979,7 @@ heading 下方是正文。可选的备注用 blockquote:
 4. **标签筛选**: 标签只用于检索语境,不代表完成状态或优先级
 5. **截图条目**: heading 含 `截图·OCR` 的,正文就是图中文字
 6. **语音条目**: 转写用于快速理解,原始录音是事实源;语音模块不会主动截屏
-7. **每日第一帧**: 照片、拍摄时间和天气属于事实层;不要仅凭人像推断情绪或动机
-8. **总结请求**: "今天" → 最新日期的文件;"本周" → 过去 7 天
-9. **Daily Review**: `Reviews/Daily/` 是 AI 派生结果;事实冲突时以根目录原始每日文件为准
+7. **总结请求**: "今天" → 最新日期的文件;"本周" → 过去 7 天
 
 ## 我的常见诉求
 
@@ -493,7 +1132,7 @@ memento_ensure_daily_note() {
 }
 
 # 把预先生成好的完整条目安全追加到每日文件。
-# 每日第一帧会异步完成,因此它和下一条普通记录必须共用同一把按日写锁。
+# 文本、图片、截图与语音入口共用同一把按日写锁。
 memento_append_daily_block() {
   local file="$1"
   local date="$2"
@@ -676,48 +1315,6 @@ memento_upgrade_daily_note() {
   return "$status"
 }
 
-# 在当天第一次成功落档后异步启动「每日第一帧」。
-# claim 用 mkdir 原子创建；一旦认领,当天无论拍摄、跳过或失败都不再重试。
-memento_trigger_daily_snapshot() {
-  local capture_date="$1"
-  local capture_time="$2"
-  local weekday="$3"
-  local source_app="$4"
-  local app="$MEMENTO_VAULT/.apps/Memento Daily Snapshot.app"
-  local executable="$app/Contents/MacOS/MementoDailySnapshot"
-  local state_root="$MEMENTO_VAULT/.state/daily-snapshot"
-  local claim="$state_root/${capture_date}.claim"
-
-  memento_validate_date "$capture_date" || return 2
-  [ "${MEMENTO_DAILY_SNAPSHOT_DISABLED:-0}" = "1" ] && return 0
-  [ -x "$executable" ] || return 0
-  mkdir -p "$state_root"
-  mkdir "$claim" 2>/dev/null || return 0
-
-  {
-    printf 'claimed_at=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-    printf 'capture_date=%s\n' "$capture_date"
-    printf 'source_app=%s\n' "$source_app"
-  } > "$claim/status"
-
-  if [ -n "${MEMENTO_DAILY_SNAPSHOT_LAUNCHER:-}" ]; then
-    "$MEMENTO_DAILY_SNAPSHOT_LAUNCHER" "$app" \
-      --vault "$MEMENTO_VAULT" \
-      --capture-date "$capture_date" \
-      --capture-time "$capture_time" \
-      --weekday "$weekday" \
-      --source-app "$source_app" \
-      >/dev/null 2>&1 &
-  else
-    /usr/bin/open -n "$app" --args \
-      --vault "$MEMENTO_VAULT" \
-      --capture-date "$capture_date" \
-      --capture-time "$capture_time" \
-      --weekday "$weekday" \
-      --source-app "$source_app" \
-      >/dev/null 2>&1 &
-  fi
-}
 BASH_EOF
 chmod +x "$SCRIPT_DIR/memento_env.sh"
 
@@ -860,7 +1457,6 @@ osascript \
   -e 'display notification (item 1 of argv) with title "Memento"' \
   -e 'end run' \
   "$NOTIFY_MSG" >/dev/null 2>&1 &
-memento_trigger_daily_snapshot "$TODAY" "$TIME" "$WD" "${SOURCE_APP:-}"
 BASH_EOF
 chmod +x "$SCRIPT_DIR/append_text.sh"
 
@@ -935,7 +1531,6 @@ PENDING_ASSET=""
 MEMENTO_COPIED_ASSET_PATH=""
 
 osascript -e 'display notification "图片已存入" with title "Memento"' >/dev/null 2>&1 &
-memento_trigger_daily_snapshot "$TODAY" "$TIME" "$WD" "${SOURCE_APP:-}"
 BASH_EOF
 chmod +x "$SCRIPT_DIR/append_image.sh"
 
@@ -1036,7 +1631,6 @@ osascript \
   -e 'display notification (item 1 of argv) with title "Memento"' \
   -e 'end run' \
   "$NOTIFY_MSG" >/dev/null 2>&1 &
-memento_trigger_daily_snapshot "$TODAY" "$TIME" "$WD" "$SOURCE_APP"
 BASH_EOF
 chmod +x "$SCRIPT_DIR/append_voice.sh"
 
@@ -1128,34 +1722,8 @@ osascript \
   -e 'display notification (item 1 of argv) with title "Memento"' \
   -e 'end run' \
   "$NOTIFY_MSG" >/dev/null 2>&1 &
-memento_trigger_daily_snapshot "$TODAY" "$TIME" "$WD" "${SOURCE_APP:-}"
 BASH_EOF
 chmod +x "$SCRIPT_DIR/capture_screenshot.sh"
-
-SNAPSHOT_SRC="$INSTALLER_DIR/snapshot-capture"
-SNAPSHOT_HELPER_READY=0
-if [ -f "$SNAPSHOT_SRC/append_daily_snapshot.sh" ]; then
-  SNAPSHOT_HELPER_STAGE=$(mktemp "$SCRIPT_DIR/.append-daily-snapshot.XXXXXX")
-  if cp "$SNAPSHOT_SRC/append_daily_snapshot.sh" "$SNAPSHOT_HELPER_STAGE" \
-    && chmod 700 "$SNAPSHOT_HELPER_STAGE" \
-    && bash -n "$SNAPSHOT_HELPER_STAGE" \
-    && mv "$SNAPSHOT_HELPER_STAGE" "$SCRIPT_DIR/append_daily_snapshot.sh"; then
-    SNAPSHOT_HELPER_READY=1
-  else
-    rm -f "$SNAPSHOT_HELPER_STAGE"
-    echo -e "${YELLOW}  ⚠ 每日第一帧落档脚本校验失败，保留已有版本${NC}"
-    if [ -x "$SCRIPT_DEST/append_daily_snapshot.sh" ] \
-      && cp -p "$SCRIPT_DEST/append_daily_snapshot.sh" "$SCRIPT_DIR/append_daily_snapshot.sh"; then
-      SNAPSHOT_HELPER_READY=1
-    fi
-  fi
-else
-  echo -e "${YELLOW}  ⚠ 安装包内未找到每日第一帧落档脚本${NC}"
-  if [ -x "$SCRIPT_DEST/append_daily_snapshot.sh" ] \
-    && cp -p "$SCRIPT_DEST/append_daily_snapshot.sh" "$SCRIPT_DIR/append_daily_snapshot.sh"; then
-    SNAPSHOT_HELPER_READY=1
-  fi
-fi
 
 cat > "$SCRIPT_DIR/copy_today.sh" << 'BASH_EOF'
 #!/bin/bash
@@ -1318,74 +1886,54 @@ if [ "$SCRIPT_VALID" != "1" ] \
 fi
 SCRIPT_STAGE=""
 SCRIPT_DIR="$SCRIPT_DEST"
-[ -x "$SCRIPT_DIR/append_daily_snapshot.sh" ] || SNAPSHOT_HELPER_READY=0
 
-# 编译每日第一帧应用。源码未变化时保留现有 App,避免重复改变 TCC 权限身份。
-SNAPSHOT_APP_DEST="$SECRETARY_DIR/.apps/Memento Daily Snapshot.app"
-SNAPSHOT_APP_EXEC="$SNAPSHOT_APP_DEST/Contents/MacOS/MementoDailySnapshot"
-SNAPSHOT_APP_READY=0
+# 编译通用直接记录入口使用的最小复制助手。它只发送一次 Command-C，
+# 不读取用户数据，也不负责写入 Vault；剪贴板读取仍由受管 Workflow 完成。
+SELECTION_COPY_SRC="$INSTALLER_DIR/selection-copy-helper"
+SELECTION_COPY_DEST="$SECRETARY_DIR/.apps/Memento Selection Copy.app"
+SELECTION_COPY_READY=0
 
-if [ "$SNAPSHOT_HELPER_READY" = "1" ] \
-  && [ "$HAS_CODESIGN" = "1" ] \
+if [ "$HAS_CODESIGN" = "1" ] \
   && command -v swiftc >/dev/null 2>&1 \
-  && [ -f "$SNAPSHOT_SRC/MementoDailySnapshot.swift" ] \
-  && [ -f "$SNAPSHOT_SRC/Info.plist" ]; then
-  SNAPSHOT_SOURCE_HASH=$(memento_content_set_hash \
-    "$SNAPSHOT_SRC/MementoDailySnapshot.swift" \
-    "$SNAPSHOT_SRC/Info.plist")
-  INSTALLED_HASH=$(cat "$SNAPSHOT_APP_DEST/Contents/Resources/source.sha256" 2>/dev/null || true)
-
-  if [ -x "$SNAPSHOT_APP_EXEC" ] && [ "$INSTALLED_HASH" = "$SNAPSHOT_SOURCE_HASH" ]; then
-    SNAPSHOT_APP_READY=1
-    echo -e "${GREEN}  ✓ 每日第一帧应用未变化,保留现有权限${NC}"
+  && [ -f "$SELECTION_COPY_SRC/MementoSelectionCopy.swift" ] \
+  && [ -f "$SELECTION_COPY_SRC/Info.plist" ]; then
+  SELECTION_COPY_SOURCE_HASH=$(memento_content_set_hash \
+    "$SELECTION_COPY_SRC/MementoSelectionCopy.swift" \
+    "$SELECTION_COPY_SRC/Info.plist")
+  SELECTION_COPY_INSTALLED_HASH=$(cat "$SELECTION_COPY_DEST/Contents/Resources/source.sha256" 2>/dev/null || true)
+  if [ -x "$SELECTION_COPY_DEST/Contents/MacOS/MementoSelectionCopy" ] \
+    && [ "$SELECTION_COPY_INSTALLED_HASH" = "$SELECTION_COPY_SOURCE_HASH" ]; then
+    SELECTION_COPY_READY=1
+    echo -e "${GREEN}  ✓ 通用选区助手未变化，保留现有权限${NC}"
   else
-    SNAPSHOT_BUILD_ROOT=$(mktemp -d "$SECRETARY_DIR/.apps/.memento-snapshot-build.XXXXXX")
-    SNAPSHOT_BUILD_APP="$SNAPSHOT_BUILD_ROOT/Memento Daily Snapshot.app"
-    mkdir -p "$SNAPSHOT_BUILD_APP/Contents/MacOS" "$SNAPSHOT_BUILD_APP/Contents/Resources"
-    cp "$SNAPSHOT_SRC/Info.plist" "$SNAPSHOT_BUILD_APP/Contents/Info.plist"
-
-    if swiftc -O -swift-version 6 -parse-as-library \
-      "$SNAPSHOT_SRC/MementoDailySnapshot.swift" \
-      -o "$SNAPSHOT_BUILD_APP/Contents/MacOS/MementoDailySnapshot" \
-      -framework AppKit -framework AVFoundation -framework CoreLocation 2>/dev/null; then
-      chmod +x "$SNAPSHOT_BUILD_APP/Contents/MacOS/MementoDailySnapshot"
-      printf '%s\n' "$SNAPSHOT_SOURCE_HASH" > "$SNAPSHOT_BUILD_APP/Contents/Resources/source.sha256"
-      if codesign --force --sign - "$SNAPSHOT_BUILD_APP" >/dev/null 2>&1 \
-        && codesign --verify --strict "$SNAPSHOT_BUILD_APP" >/dev/null 2>&1 \
-        && plutil -lint "$SNAPSHOT_BUILD_APP/Contents/Info.plist" >/dev/null \
-        && atomic_replace_directory "$SNAPSHOT_BUILD_APP" "$SNAPSHOT_APP_DEST"; then
-        SNAPSHOT_APP_READY=1
-        echo -e "${GREEN}  ✓ 每日第一帧应用已编译${NC}"
-      else
-        echo -e "${YELLOW}  ⚠ 每日第一帧签名或安装失败，保留已有版本${NC}"
-        [ -x "$SNAPSHOT_APP_EXEC" ] && SNAPSHOT_APP_READY=1
-      fi
+    SELECTION_COPY_BUILD_ROOT=$(mktemp -d "$SECRETARY_DIR/.apps/.memento-selection-copy-build.XXXXXX")
+    SELECTION_COPY_BUILD_APP="$SELECTION_COPY_BUILD_ROOT/Memento Selection Copy.app"
+    mkdir -p "$SELECTION_COPY_BUILD_APP/Contents/MacOS" "$SELECTION_COPY_BUILD_APP/Contents/Resources"
+    cp "$SELECTION_COPY_SRC/Info.plist" "$SELECTION_COPY_BUILD_APP/Contents/Info.plist"
+    if swiftc -O -parse-as-library \
+      "$SELECTION_COPY_SRC/MementoSelectionCopy.swift" \
+      -o "$SELECTION_COPY_BUILD_APP/Contents/MacOS/MementoSelectionCopy" \
+      -framework AppKit -framework ApplicationServices 2>/dev/null \
+      && chmod 700 "$SELECTION_COPY_BUILD_APP/Contents/MacOS/MementoSelectionCopy" \
+      && printf '%s\n' "$SELECTION_COPY_SOURCE_HASH" > "$SELECTION_COPY_BUILD_APP/Contents/Resources/source.sha256" \
+      && codesign --force --sign - "$SELECTION_COPY_BUILD_APP" >/dev/null 2>&1 \
+      && codesign --verify --strict "$SELECTION_COPY_BUILD_APP" >/dev/null 2>&1 \
+      && plutil -lint "$SELECTION_COPY_BUILD_APP/Contents/Info.plist" >/dev/null \
+      && atomic_replace_directory "$SELECTION_COPY_BUILD_APP" "$SELECTION_COPY_DEST"; then
+      SELECTION_COPY_READY=1
+      echo -e "${GREEN}  ✓ 通用选区助手已编译${NC}"
     else
-      echo -e "${YELLOW}  ⚠ 每日第一帧应用编译失败,原始记录仍可正常使用${NC}"
-      [ -x "$SNAPSHOT_APP_EXEC" ] && SNAPSHOT_APP_READY=1
+      echo -e "${YELLOW}  ⚠ 通用选区助手构建失败，直接记录退回标准文字 Service${NC}"
+      [ -x "$SELECTION_COPY_DEST/Contents/MacOS/MementoSelectionCopy" ] \
+        && SELECTION_COPY_READY=1
     fi
-    rm -rf "$SNAPSHOT_BUILD_ROOT"
+    rm -rf "$SELECTION_COPY_BUILD_ROOT"
+    SELECTION_COPY_BUILD_ROOT=""
   fi
 else
-  echo -e "${YELLOW}  ⚠ 缺少 helper、swiftc、codesign 或 snapshot-capture 源码，跳过每日第一帧更新${NC}"
-  [ -x "$SNAPSHOT_APP_EXEC" ] && SNAPSHOT_APP_READY=1
-fi
-
-# 升级安装当天如果已经有记录,严格按“当天第一次”语义从明天开始。
-# 如需当天手工验收,README 提供显式 reset 命令。
-TODAY=$(date +%Y-%m-%d)
-TODAY_CLAIM="$SECRETARY_DIR/.state/daily-snapshot/${TODAY}.claim"
-if [ "$SNAPSHOT_APP_READY" = "1" ] \
-  && [ -f "$SECRETARY_DIR/$TODAY.md" ] \
-  && grep -q '^## ' "$SECRETARY_DIR/$TODAY.md" \
-  && [ ! -e "$TODAY_CLAIM" ]; then
-  mkdir -p "$TODAY_CLAIM"
-  {
-    echo "claimed_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-    echo "capture_date=$TODAY"
-    echo "reason=installed_after_first_record"
-  } > "$TODAY_CLAIM/status"
-  echo -e "${BLUE}  → 今天已有记录,每日第一帧将从明天自然启用${NC}"
+  echo -e "${YELLOW}  ⚠ 缺少 swiftc、codesign 或选区助手源码，直接记录退回标准文字 Service${NC}"
+  [ -x "$SELECTION_COPY_DEST/Contents/MacOS/MementoSelectionCopy" ] \
+    && SELECTION_COPY_READY=1
 fi
 
 # 编译短生命周期的本地语音捕获应用。它只在第 5 个 Service 被调用时运行。
@@ -1752,6 +2300,198 @@ WFLOW_EOF
 }
 
 # 把 COMMAND_STRING 用单引号 HEREDOC 读进变量(避免转义噩梦)
+if [ "$SELECTION_COPY_READY" = "1" ]; then
+CMD_DIRECT=$(cat << 'CMD_EOF'
+export SOURCE_APP=$(osascript -e 'tell application "System Events" to get name of first application process whose frontmost is true' 2>/dev/null)
+SOURCE_PID=$(osascript -e 'tell application "System Events" to get unix id of first application process whose frontmost is true' 2>/dev/null)
+HELPER="$HOME/AISecretary/.apps/Memento Selection Copy.app/Contents/MacOS/MementoSelectionCopy"
+LOG_DIR="$HOME/AISecretary/.logs"
+LOG_FILE="$LOG_DIR/selection-shortcut.log"
+mkdir -p "$LOG_DIR"
+chmod 700 "$LOG_DIR" 2>/dev/null || true
+printf '%s shortcut=1 phase=start source_app=%s source_pid=%s\n' \
+  "$(date '+%Y-%m-%dT%H:%M:%S%z')" "$SOURCE_APP" "$SOURCE_PID" >> "$LOG_FILE"
+
+"$HELPER" --check
+HELPER_STATUS=$?
+if [ "$HELPER_STATUS" -eq 77 ]; then
+  open 'x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility'
+  osascript -e 'display notification "请允许 Memento 选区助手，然后回到原应用重试" with title "Memento"' 2>/dev/null || true
+  exit 0
+fi
+[ "$HELPER_STATUS" -eq 0 ] || exit 0
+
+printf '' | pbcopy
+COPY_RESULT=$("$HELPER" --pid "$SOURCE_PID" 2>&1)
+HELPER_STATUS=$?
+printf '%s shortcut=1 phase=copy helper_status=%s result=%s\n' \
+  "$(date '+%Y-%m-%dT%H:%M:%S%z')" "$HELPER_STATUS" "$COPY_RESULT" >> "$LOG_FILE"
+if [ "$HELPER_STATUS" -ne 0 ]; then
+  osascript -e 'display notification "复制助手未能发送 Command-C，请检查辅助功能授权" with title "Memento"' 2>/dev/null || true
+  exit 0
+fi
+
+CAPTURE_FILE=$(mktemp "${TMPDIR:-/tmp}/memento-selection-text.XXXXXX") || exit 0
+trap 'rm -f "$CAPTURE_FILE"' EXIT
+CAPTURE_READY=0
+ATTEMPT=0
+while [ "$ATTEMPT" -lt 30 ]; do
+  pbpaste -Prefer txt > "$CAPTURE_FILE" 2>/dev/null || true
+  if [ -s "$CAPTURE_FILE" ] \
+    && iconv -f utf-8 -t utf-8 "$CAPTURE_FILE" >/dev/null 2>&1; then
+    CAPTURE_READY=1
+    break
+  fi
+  sleep 0.05
+  ATTEMPT=$((ATTEMPT + 1))
+done
+
+if [ "$CAPTURE_READY" != "1" ]; then
+  printf '%s shortcut=1 phase=capture ready=0 bytes=0\n' \
+    "$(date '+%Y-%m-%dT%H:%M:%S%z')" >> "$LOG_FILE"
+  osascript -e 'display notification "没有取得有效文字，请保持文字处于选中状态后重试" with title "Memento"' 2>/dev/null || true
+  exit 0
+fi
+
+CAPTURE_BYTES=$(wc -c < "$CAPTURE_FILE" | tr -d ' ')
+printf '%s shortcut=1 phase=capture ready=1 bytes=%s\n' \
+  "$(date '+%Y-%m-%dT%H:%M:%S%z')" "$CAPTURE_BYTES" >> "$LOG_FILE"
+"$HOME/AISecretary/.scripts/append_text.sh" < "$CAPTURE_FILE"
+CMD_EOF
+)
+
+CMD_TAG=$(cat << 'CMD_EOF'
+export SOURCE_APP=$(osascript -e 'tell application "System Events" to get name of first application process whose frontmost is true' 2>/dev/null)
+SOURCE_PID=$(osascript -e 'tell application "System Events" to get unix id of first application process whose frontmost is true' 2>/dev/null)
+HELPER="$HOME/AISecretary/.apps/Memento Selection Copy.app/Contents/MacOS/MementoSelectionCopy"
+LOG_DIR="$HOME/AISecretary/.logs"
+LOG_FILE="$LOG_DIR/selection-shortcut.log"
+mkdir -p "$LOG_DIR"
+chmod 700 "$LOG_DIR" 2>/dev/null || true
+printf '%s shortcut=3 phase=start source_app=%s source_pid=%s\n' \
+  "$(date '+%Y-%m-%dT%H:%M:%S%z')" "$SOURCE_APP" "$SOURCE_PID" >> "$LOG_FILE"
+
+"$HELPER" --check
+HELPER_STATUS=$?
+if [ "$HELPER_STATUS" -eq 77 ]; then
+  open 'x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility'
+  osascript -e 'display notification "请允许 Memento 选区助手，然后回到原应用重试" with title "Memento"' 2>/dev/null || true
+  exit 0
+fi
+[ "$HELPER_STATUS" -eq 0 ] || exit 0
+
+printf '' | pbcopy
+COPY_RESULT=$("$HELPER" --pid "$SOURCE_PID" 2>&1)
+HELPER_STATUS=$?
+printf '%s shortcut=3 phase=copy helper_status=%s result=%s\n' \
+  "$(date '+%Y-%m-%dT%H:%M:%S%z')" "$HELPER_STATUS" "$COPY_RESULT" >> "$LOG_FILE"
+if [ "$HELPER_STATUS" -ne 0 ]; then
+  osascript -e 'display notification "复制助手未能发送 Command-C，请检查辅助功能授权" with title "Memento"' 2>/dev/null || true
+  exit 0
+fi
+
+CAPTURE_FILE=$(mktemp "${TMPDIR:-/tmp}/memento-selection-text.XXXXXX") || exit 0
+trap 'rm -f "$CAPTURE_FILE"' EXIT
+CAPTURE_READY=0
+ATTEMPT=0
+while [ "$ATTEMPT" -lt 30 ]; do
+  pbpaste -Prefer txt > "$CAPTURE_FILE" 2>/dev/null || true
+  if [ -s "$CAPTURE_FILE" ] \
+    && iconv -f utf-8 -t utf-8 "$CAPTURE_FILE" >/dev/null 2>&1; then
+    CAPTURE_READY=1
+    break
+  fi
+  sleep 0.05
+  ATTEMPT=$((ATTEMPT + 1))
+done
+
+if [ "$CAPTURE_READY" != "1" ]; then
+  printf '%s shortcut=3 phase=capture ready=0 bytes=0\n' \
+    "$(date '+%Y-%m-%dT%H:%M:%S%z')" >> "$LOG_FILE"
+  osascript -e 'display notification "没有取得有效文字，请保持文字处于选中状态后重试" with title "Memento"' 2>/dev/null || true
+  exit 0
+fi
+
+CAPTURE_BYTES=$(wc -c < "$CAPTURE_FILE" | tr -d ' ')
+printf '%s shortcut=3 phase=capture ready=1 bytes=%s\n' \
+  "$(date '+%Y-%m-%dT%H:%M:%S%z')" "$CAPTURE_BYTES" >> "$LOG_FILE"
+TAG=$(osascript \
+  -e 'set labels to {"灵感", "行动线索", "下次再读"}' \
+  -e 'set c to choose from list labels with prompt "选择记录标签（只用于回看，不表示待办或优先级）"' \
+  -e 'if c is false then return ""' \
+  -e 'set chosenLabel to item 1 of c' \
+  -e 'if chosenLabel is "行动线索" then return "TODO"' \
+  -e 'return chosenLabel' 2>/dev/null)
+[ -z "$TAG" ] && exit 0
+export TAG
+"$HOME/AISecretary/.scripts/append_text.sh" < "$CAPTURE_FILE"
+CMD_EOF
+)
+
+CMD_NOTE=$(cat << 'CMD_EOF'
+export SOURCE_APP=$(osascript -e 'tell application "System Events" to get name of first application process whose frontmost is true' 2>/dev/null)
+SOURCE_PID=$(osascript -e 'tell application "System Events" to get unix id of first application process whose frontmost is true' 2>/dev/null)
+HELPER="$HOME/AISecretary/.apps/Memento Selection Copy.app/Contents/MacOS/MementoSelectionCopy"
+LOG_DIR="$HOME/AISecretary/.logs"
+LOG_FILE="$LOG_DIR/selection-shortcut.log"
+mkdir -p "$LOG_DIR"
+chmod 700 "$LOG_DIR" 2>/dev/null || true
+printf '%s shortcut=2 phase=start source_app=%s source_pid=%s\n' \
+  "$(date '+%Y-%m-%dT%H:%M:%S%z')" "$SOURCE_APP" "$SOURCE_PID" >> "$LOG_FILE"
+
+"$HELPER" --check
+HELPER_STATUS=$?
+if [ "$HELPER_STATUS" -eq 77 ]; then
+  open 'x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility'
+  osascript -e 'display notification "请允许 Memento 选区助手，然后回到原应用重试" with title "Memento"' 2>/dev/null || true
+  exit 0
+fi
+[ "$HELPER_STATUS" -eq 0 ] || exit 0
+
+printf '' | pbcopy
+COPY_RESULT=$("$HELPER" --pid "$SOURCE_PID" 2>&1)
+HELPER_STATUS=$?
+printf '%s shortcut=2 phase=copy helper_status=%s result=%s\n' \
+  "$(date '+%Y-%m-%dT%H:%M:%S%z')" "$HELPER_STATUS" "$COPY_RESULT" >> "$LOG_FILE"
+if [ "$HELPER_STATUS" -ne 0 ]; then
+  osascript -e 'display notification "复制助手未能发送 Command-C，请检查辅助功能授权" with title "Memento"' 2>/dev/null || true
+  exit 0
+fi
+
+CAPTURE_FILE=$(mktemp "${TMPDIR:-/tmp}/memento-selection-text.XXXXXX") || exit 0
+trap 'rm -f "$CAPTURE_FILE"' EXIT
+CAPTURE_READY=0
+ATTEMPT=0
+while [ "$ATTEMPT" -lt 30 ]; do
+  pbpaste -Prefer txt > "$CAPTURE_FILE" 2>/dev/null || true
+  if [ -s "$CAPTURE_FILE" ] \
+    && iconv -f utf-8 -t utf-8 "$CAPTURE_FILE" >/dev/null 2>&1; then
+    CAPTURE_READY=1
+    break
+  fi
+  sleep 0.05
+  ATTEMPT=$((ATTEMPT + 1))
+done
+
+if [ "$CAPTURE_READY" != "1" ]; then
+  printf '%s shortcut=2 phase=capture ready=0 bytes=0\n' \
+    "$(date '+%Y-%m-%dT%H:%M:%S%z')" >> "$LOG_FILE"
+  osascript -e 'display notification "没有取得有效文字，请保持文字处于选中状态后重试" with title "Memento"' 2>/dev/null || true
+  exit 0
+fi
+
+CAPTURE_BYTES=$(wc -c < "$CAPTURE_FILE" | tr -d ' ')
+printf '%s shortcut=2 phase=capture ready=1 bytes=%s\n' \
+  "$(date '+%Y-%m-%dT%H:%M:%S%z')" "$CAPTURE_BYTES" >> "$LOG_FILE"
+NOTE=$(osascript -e 'set d to display dialog "备注 (可留空):" default answer "" buttons {"取消","存入"} default button "存入"' -e 'if button returned of d is "取消" then return "__CANCEL__"' -e 'return text returned of d' 2>/dev/null) || exit 0
+[ "$NOTE" = "__CANCEL__" ] && exit 0
+export NOTE
+"$HOME/AISecretary/.scripts/append_text.sh" < "$CAPTURE_FILE"
+CMD_EOF
+)
+
+TEXT_WORKFLOW_INPUT="nothing"
+else
 CMD_DIRECT=$(cat << 'CMD_EOF'
 export SOURCE_APP=$(osascript -e 'tell application "System Events" to get name of first application process whose frontmost is true' 2>/dev/null)
 "$HOME/AISecretary/.scripts/append_text.sh"
@@ -1782,6 +2522,9 @@ export NOTE
 CMD_EOF
 )
 
+TEXT_WORKFLOW_INPUT="text"
+fi
+
 CMD_SHOT=$(cat << 'CMD_EOF'
 export SOURCE_APP=$(osascript -e 'tell application "System Events" to get name of first application process whose frontmost is true' 2>/dev/null)
 "$HOME/AISecretary/.scripts/capture_screenshot.sh"
@@ -1807,10 +2550,11 @@ done
 shopt -u nullglob
 remove_owned_workflow "$SERVICES_DIR/存入 AI 秘书 (语音+截图).workflow" || true
 
-write_workflow "存入 AI 秘书"           "text"    "$CMD_DIRECT"
-write_workflow "存入 AI 秘书 (选标签)"  "text"    "$CMD_TAG"
-write_workflow "存入 AI 秘书 (加备注)"  "text"    "$CMD_NOTE"
+write_workflow "存入 AI 秘书"           "$TEXT_WORKFLOW_INPUT" "$CMD_DIRECT"
+write_workflow "存入 AI 秘书 (选标签)"  "$TEXT_WORKFLOW_INPUT" "$CMD_TAG"
+write_workflow "存入 AI 秘书 (加备注)"  "$TEXT_WORKFLOW_INPUT" "$CMD_NOTE"
 write_workflow "存入 AI 秘书 (截图)"    "nothing" "$CMD_SHOT"
+remove_owned_workflow "$SERVICES_DIR/存入 AI 秘书 (微信测试).workflow" || true
 if [ "$VOICE_APP_READY" = "1" ]; then
   write_workflow "存入 AI 秘书 (语音)" "nothing" "$CMD_VOICE"
 else
@@ -1826,29 +2570,53 @@ if [ "${MEMENTO_SKIP_SERVICE_REFRESH:-0}" != "1" ]; then
 fi
 
 # ============================================================
-# Step 6: 安装 Dashboard 和 Daily Review 协议
+# Step 6: 安装 Dashboard 和 Context Agent 运行时
 # ============================================================
-echo -e "${BLUE}[6/6] 安装 Dashboard 和 Daily Review 协议...${NC}"
+echo -e "${BLUE}[6/6] 安装 Dashboard 和 Context Agent 运行时...${NC}"
 NEWTAB_SRC="$INSTALLER_DIR/chrome-newtab"
 NEWTAB_DEST="$SECRETARY_DIR/.chrome-newtab"
 HAS_NEWTAB=0
 
+memento_dashboard_runtime_valid() {
+  local directory="$1"
+  [ -f "$directory/manifest.json" ] \
+    && [ -f "$directory/dashboard.html" ] \
+    && [ -f "$directory/dashboard.js" ] \
+    && [ -f "$directory/cognitive-demo-fixture.js" ] \
+    && [ -f "$directory/cognitive-home-library.js" ] \
+    && [ -f "$directory/context-agent-library.js" ] \
+    && [ -f "$directory/remember-agent-v1-library.js" ] \
+    && [ -f "$directory/dashboard-cache-library.js" ] \
+    && [ -f "$directory/dashboard-operations-library.js" ] \
+    && python3 -m json.tool "$directory/manifest.json" >/dev/null \
+    || return 1
+  # Node 是开发 / 发布校验依赖，不是用户基础安装的前置。
+  # 安装机已有 Node 时同步做语法校验；发布合同则强制执行。
+  if command -v node >/dev/null 2>&1; then
+    node --check "$directory/dashboard.js" >/dev/null \
+      && node --check "$directory/cognitive-demo-fixture.js" >/dev/null \
+      && node --check "$directory/cognitive-home-library.js" >/dev/null \
+      && node --check "$directory/context-agent-library.js" >/dev/null \
+      && node --check "$directory/dashboard-cache-library.js" >/dev/null \
+      && node --check "$directory/dashboard-operations-library.js" >/dev/null \
+      && node --check "$directory/photo-cache-library.js" >/dev/null \
+      && node --check "$directory/remember-agent-v1-library.js" >/dev/null
+  fi
+}
+
 if [ -d "$NEWTAB_SRC" ]; then
   NEWTAB_STAGE=$(mktemp -d "$SECRETARY_DIR/.chrome-newtab-stage.XXXXXX")
   if cp -R "$NEWTAB_SRC/." "$NEWTAB_STAGE/" \
-    && [ -f "$NEWTAB_STAGE/manifest.json" ] \
-    && [ -f "$NEWTAB_STAGE/dashboard.html" ] \
-    && [ -f "$NEWTAB_STAGE/dashboard.js" ] \
-    && [ -f "$NEWTAB_STAGE/dashboard-cache-library.js" ] \
-    && [ -f "$NEWTAB_STAGE/dashboard-operations-library.js" ] \
-    && python3 -m json.tool "$NEWTAB_STAGE/manifest.json" >/dev/null \
+    && memento_dashboard_runtime_valid "$NEWTAB_STAGE" \
     && atomic_replace_directory "$NEWTAB_STAGE" "$NEWTAB_DEST"; then
     echo -e "${GREEN}  ✓ 已复制到 $NEWTAB_DEST${NC}"
     HAS_NEWTAB=1
   else
     rm -rf "$NEWTAB_STAGE"
     echo -e "${YELLOW}  ⚠ Dashboard 校验或安装失败，已保留原版本${NC}"
-    [ -d "$NEWTAB_DEST" ] && HAS_NEWTAB=1
+    if memento_dashboard_runtime_valid "$NEWTAB_DEST"; then
+      HAS_NEWTAB=1
+    fi
   fi
 else
   echo -e "${YELLOW}  ⚠ 安装包内未找到 chrome-newtab/,跳过 dashboard 安装${NC}"
@@ -1856,43 +2624,519 @@ fi
 
 tighten_vault_permissions
 
-REVIEW_SRC="$INSTALLER_DIR/daily-review"
-REVIEW_DEST="$SECRETARY_DIR/.review"
-HAS_REVIEW=0
+CONTEXT_SRC="$INSTALLER_DIR/context-agent"
+HAS_CONTEXT_AGENT=0
 
-if [ -d "$REVIEW_SRC" ]; then
-  REVIEW_STAGE=$(mktemp -d "$SECRETARY_DIR/.review-stage.XXXXXX")
-  mkdir -p "$REVIEW_STAGE/status"
-  if [ -d "$REVIEW_DEST/status" ]; then
-    cp -R "$REVIEW_DEST/status/." "$REVIEW_STAGE/status/"
-  fi
-  if cp -R "$REVIEW_SRC/." "$REVIEW_STAGE/" \
-    && chmod 700 \
-      "$REVIEW_STAGE/commit_review.sh" \
-      "$REVIEW_STAGE/commit_review_atomic.py" \
-      "$REVIEW_STAGE/review_cycle.sh" \
-      "$REVIEW_STAGE/review_state.sh" \
-      "$REVIEW_STAGE/review_status.sh" \
-      "$REVIEW_STAGE/verify_review.sh" \
-    && bash -n "$REVIEW_STAGE/commit_review.sh" \
-    && bash -n "$REVIEW_STAGE/review_cycle.sh" \
-    && bash -n "$REVIEW_STAGE/review_state.sh" \
-    && bash -n "$REVIEW_STAGE/review_status.sh" \
-    && bash -n "$REVIEW_STAGE/verify_review.sh" \
-    && python3 -c 'import ast, pathlib, sys; ast.parse(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))' \
-      "$REVIEW_STAGE/commit_review_atomic.py" \
-    && atomic_replace_directory "$REVIEW_STAGE" "$REVIEW_DEST"; then
-    mkdir -p "$SECRETARY_DIR/Reviews/Daily"
-    echo -e "${GREEN}  ✓ Daily Review 协议已复制到 $REVIEW_DEST${NC}"
-    HAS_REVIEW=1
-  else
-    rm -rf "$REVIEW_STAGE"
-    echo -e "${YELLOW}  ⚠ Daily Review 校验或安装失败，已保留原版本${NC}"
-    [ -d "$REVIEW_DEST" ] && HAS_REVIEW=1
-  fi
-else
-  echo -e "${YELLOW}  ⚠ 安装包内未找到 daily-review/,跳过 Daily Review${NC}"
+if [ "$CONTEXT_PATHS_SAFE" = "1" ] \
+  && memento_validate_context_tree \
+  && [ -d "$CONTEXT_SRC" ]; then
+  CONTEXT_STAGE=$(mktemp -d "$SECRETARY_DIR/.context-agent-runtime-stage.XXXXXX")
+  CONTEXT_STAGE_READY=0
+  if cp -R "$CONTEXT_SRC/." "$CONTEXT_STAGE/"; then
+    cat > "$CONTEXT_STAGE/run_self_reflection_once.sh" <<'SELF_REFLECTION_RUNNER'
+#!/bin/bash
+set -u
+
+if [ "$#" -ne 1 ]; then
+  echo "usage: run_self_reflection_once.sh VAULT" >&2
+  exit 2
 fi
+
+RUNTIME_DIR=$(cd "$(dirname "$0")" && pwd)
+VAULT=$1
+MEMENTO_PYTHON=__MEMENTO_PYTHON_PATH__
+"$MEMENTO_PYTHON" "$RUNTIME_DIR/context_agent.py" \
+  self-reflection-worker --vault "$VAULT" --once
+SELF_REFLECTION_RUNNER
+
+    cat > "$CONTEXT_STAGE/run_remember_agent_v1_once.sh" <<'REMEMBER_AGENT_RUNNER'
+#!/bin/bash
+set -u
+
+if [ "$#" -ne 1 ]; then
+  echo "usage: run_remember_agent_v1_once.sh VAULT" >&2
+  exit 2
+fi
+
+RUNTIME_DIR=$(cd "$(dirname "$0")" && pwd)
+VAULT=$1
+MEMENTO_PYTHON=__MEMENTO_PYTHON_PATH__
+AGENT_V1_GATE="$VAULT/.context-agent/agent-v1/enabled"
+
+# Re:member Agent V1 ships as a disabled RC.  Only one exact, private,
+# current-user-owned regular file may opt this event runner in.  The
+# check and read share one O_NOFOLLOW descriptor so symlinks, hard links,
+# permission drift and content drift all fail closed.
+if ! PYTHONDONTWRITEBYTECODE=1 "$MEMENTO_PYTHON" - "$AGENT_V1_GATE" <<'PY'
+import os
+import stat
+import sys
+
+path = sys.argv[1]
+flags = os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) | getattr(os, "O_NOFOLLOW", 0)
+try:
+    descriptor = os.open(path, flags)
+except OSError:
+    raise SystemExit(1)
+try:
+    metadata = os.fstat(descriptor)
+    valid = (
+        stat.S_ISREG(metadata.st_mode)
+        and metadata.st_uid == os.getuid()
+        and stat.S_IMODE(metadata.st_mode) == 0o600
+        and metadata.st_nlink == 1
+        and os.read(descriptor, 12) == b"enabled-v1\n"
+    )
+finally:
+    os.close(descriptor)
+raise SystemExit(0 if valid else 1)
+PY
+then
+  # 未启用、损坏或不安全的 gate 都是正常的 fail-closed 结果。
+  exit 0
+fi
+
+# 先物化用户反馈并重投影，再处理旧 Agent inbox。
+# 当前版本不消费手动日级请求，避免生成独立日评价。
+"$MEMENTO_PYTHON" "$RUNTIME_DIR/context_agent.py" \
+  cognitive-action-worker --vault "$VAULT" --once || exit $?
+"$MEMENTO_PYTHON" "$RUNTIME_DIR/context_agent.py" \
+  agent-worker --vault "$VAULT" --once
+REMEMBER_AGENT_RUNNER
+
+    cat > "$CONTEXT_STAGE/run_cognitive_record_once.sh" <<'COGNITIVE_RECORD_RUNNER'
+#!/bin/bash
+set -u
+
+if [ "$#" -ne 2 ]; then
+  echo "usage: run_cognitive_record_once.sh VAULT YYYY-MM-DD" >&2
+  exit 2
+fi
+
+RUNTIME_DIR=$(cd "$(dirname "$0")" && pwd)
+VAULT=$1
+LOCAL_DATE=$2
+MEMENTO_PYTHON=__MEMENTO_PYTHON_PATH__
+
+case "$LOCAL_DATE" in
+  ????-??-??) ;;
+  *) exit 2 ;;
+esac
+
+# Ingest 只建立本地索引与幂等请求；worker 会再校验用户 gate，
+# 新安装未启用时不构造 Provider。
+"$MEMENTO_PYTHON" "$RUNTIME_DIR/context_agent.py" \
+  record-ingest --vault "$VAULT" --source "$LOCAL_DATE.md" >/dev/null || exit $?
+"$MEMENTO_PYTHON" "$RUNTIME_DIR/context_agent.py" \
+  record-worker --once --vault "$VAULT" --date "$LOCAL_DATE" --limit 16
+COGNITIVE_RECORD_RUNNER
+
+    "$PYTHON3_RUNTIME" - \
+      "$CONTEXT_STAGE/run_self_reflection_once.sh" \
+      "$CONTEXT_STAGE/run_remember_agent_v1_once.sh" \
+      "$CONTEXT_STAGE/run_cognitive_record_once.sh" \
+      "$PYTHON3_RUNTIME" <<'PY'
+import shlex
+import sys
+from pathlib import Path
+
+paths = [Path(value) for value in sys.argv[1:-1]]
+python_path = sys.argv[-1]
+placeholder = "__MEMENTO_PYTHON_PATH__"
+for path in paths:
+    text = path.read_text(encoding="utf-8")
+    if text.count(placeholder) != 1:
+        raise SystemExit(1)
+    path.write_text(text.replace(placeholder, shlex.quote(python_path)), encoding="utf-8")
+PY
+    chmod 700 \
+      "$CONTEXT_STAGE/run_self_reflection_once.sh" \
+      "$CONTEXT_STAGE/run_remember_agent_v1_once.sh" \
+      "$CONTEXT_STAGE/run_cognitive_record_once.sh"
+  fi
+  COGNITIVE_RUNTIME_FILES=(
+    cognitive_actions_v1.py
+    cognitive_agent_adapter_v1.py
+    cognitive_bundle_store_v1.py
+    cognitive_daily_review_v1.py
+    cognitive_day_orchestrator_v1.py
+    cognitive_migration_v1.py
+    cognitive_manual_request_v1.py
+    cognitive_pipeline_v1.py
+    cognitive_projection_v1.py
+    cognitive_prompts_v1.py
+    cognitive_record_worker_v1.py
+    cognitive_runtime_v1.py
+    cognitive_schedule_v1.py
+    cognitive_store_v1.py
+    cognitive_v1.py
+  )
+  COGNITIVE_RUNTIME_READY=1
+  for COGNITIVE_RUNTIME_FILE in "${COGNITIVE_RUNTIME_FILES[@]}"; do
+    if [ ! -f "$CONTEXT_STAGE/$COGNITIVE_RUNTIME_FILE" ] \
+      || [ -L "$CONTEXT_STAGE/$COGNITIVE_RUNTIME_FILE" ] \
+      || ! PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" -c \
+        'import ast,pathlib,sys; ast.parse(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))' \
+        "$CONTEXT_STAGE/$COGNITIVE_RUNTIME_FILE"; then
+      COGNITIVE_RUNTIME_READY=0
+    fi
+  done
+  if [ "$COGNITIVE_RUNTIME_READY" = "1" ] \
+    && [ -f "$CONTEXT_STAGE/context_agent.py" ] \
+    && [ -f "$CONTEXT_STAGE/core.py" ] \
+    && [ -f "$CONTEXT_STAGE/deepseek_provider.py" ] \
+    && [ -f "$CONTEXT_STAGE/reflection.py" ] \
+    && [ -f "$CONTEXT_STAGE/agent_v1.py" ] \
+    && [ -f "$CONTEXT_STAGE/schemas/record_interpreter_action_v1.json" ] \
+    && [ ! -L "$CONTEXT_STAGE/schemas/record_interpreter_action_v1.json" ] \
+    && [ -f "$CONTEXT_STAGE/schemas/daily_integrator_action_v1.json" ] \
+    && [ ! -L "$CONTEXT_STAGE/schemas/daily_integrator_action_v1.json" ] \
+    && "$PYTHON3_RUNTIME" -m json.tool \
+      "$CONTEXT_STAGE/schemas/record_interpreter_action_v1.json" >/dev/null \
+    && "$PYTHON3_RUNTIME" -m json.tool \
+      "$CONTEXT_STAGE/schemas/daily_integrator_action_v1.json" >/dev/null \
+    && [ -x "$CONTEXT_STAGE/run_self_reflection_once.sh" ] \
+    && [ -x "$CONTEXT_STAGE/run_remember_agent_v1_once.sh" ] \
+    && [ -x "$CONTEXT_STAGE/run_cognitive_record_once.sh" ] \
+    && bash -n "$CONTEXT_STAGE/run_self_reflection_once.sh" \
+    && bash -n "$CONTEXT_STAGE/run_remember_agent_v1_once.sh" \
+    && bash -n "$CONTEXT_STAGE/run_cognitive_record_once.sh" \
+    && memento_context_runner_uses_python "$CONTEXT_STAGE/run_self_reflection_once.sh" \
+    && memento_context_runner_uses_python "$CONTEXT_STAGE/run_remember_agent_v1_once.sh" \
+    && memento_context_runner_uses_python "$CONTEXT_STAGE/run_cognitive_record_once.sh" \
+    && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="$CONTEXT_STAGE" "$PYTHON3_RUNTIME" -c \
+      'import agent_v1, context_agent, cognitive_actions_v1, cognitive_agent_adapter_v1, cognitive_bundle_store_v1, cognitive_daily_review_v1, cognitive_day_orchestrator_v1, cognitive_migration_v1, cognitive_manual_request_v1, cognitive_pipeline_v1, cognitive_projection_v1, cognitive_prompts_v1, cognitive_record_worker_v1, cognitive_runtime_v1, cognitive_schedule_v1, cognitive_store_v1, cognitive_v1' \
+    && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_STAGE/context_agent.py" --help >/dev/null \
+    && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_STAGE/context_agent.py" \
+      self-reflection-worker --help >/dev/null \
+    && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_STAGE/context_agent.py" \
+      agent-status --help >/dev/null \
+    && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_STAGE/context_agent.py" \
+      agent-enable --help >/dev/null \
+    && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_STAGE/context_agent.py" \
+      agent-disable --help >/dev/null \
+    && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_STAGE/context_agent.py" \
+      agent-request --help >/dev/null \
+    && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_STAGE/context_agent.py" \
+      agent-run --help >/dev/null \
+    && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_STAGE/context_agent.py" \
+      agent-worker --help >/dev/null \
+    && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_STAGE/context_agent.py" \
+      cognitive-action-worker --help >/dev/null \
+    && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_STAGE/context_agent.py" \
+      daily-manual-worker --help >/dev/null \
+    && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_STAGE/context_agent.py" \
+      daily-schedule-tick --help >/dev/null \
+    && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_STAGE/context_agent.py" \
+      daily-schedule-status --help >/dev/null \
+    && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_STAGE/context_agent.py" \
+      daily-schedule-enable --help >/dev/null \
+    && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_STAGE/context_agent.py" \
+      daily-schedule-disable --help >/dev/null \
+    && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_STAGE/context_agent.py" \
+      record-ingest --help >/dev/null \
+    && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_STAGE/context_agent.py" \
+      record-worker --help >/dev/null \
+    && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_STAGE/context_agent.py" \
+      daily-run --help >/dev/null \
+    && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_STAGE/context_agent.py" \
+      projection-rebuild --help >/dev/null \
+    && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_STAGE/context_agent.py" \
+      agent-profile --help >/dev/null; then
+    CONTEXT_STAGE_READY=1
+  fi
+  if [ "$CONTEXT_STAGE_READY" = "1" ] \
+    && memento_validate_context_tree \
+    && atomic_replace_directory "$CONTEXT_STAGE" "$CONTEXT_RUNTIME_DEST"; then
+    if ! memento_plain_owned_directory "$CONTEXT_RUNTIME_DEST"; then
+      echo -e "${YELLOW}  ⚠ Context Agent 运行时替换后安全校验失败${NC}"
+      HAS_CONTEXT_AGENT=0
+    else
+    chmod 700 \
+      "$CONTEXT_RUNTIME_DEST/context_agent.py" \
+      "$CONTEXT_RUNTIME_DEST/run_self_reflection_once.sh" \
+      "$CONTEXT_RUNTIME_DEST/run_remember_agent_v1_once.sh" \
+      "$CONTEXT_RUNTIME_DEST/run_cognitive_record_once.sh"
+    echo -e "${GREEN}  ✓ Context Agent 运行时已复制到 $CONTEXT_RUNTIME_DEST${NC}"
+    HAS_CONTEXT_AGENT=1
+    fi
+  else
+    rm -rf "$CONTEXT_STAGE"
+    echo -e "${YELLOW}  ⚠ Context Agent 校验或安装失败，已保留原版本与用户状态${NC}"
+    COGNITIVE_RUNTIME_DEST_READY=1
+    for COGNITIVE_RUNTIME_FILE in "${COGNITIVE_RUNTIME_FILES[@]}"; do
+      if [ ! -f "$CONTEXT_RUNTIME_DEST/$COGNITIVE_RUNTIME_FILE" ] \
+        || [ -L "$CONTEXT_RUNTIME_DEST/$COGNITIVE_RUNTIME_FILE" ] \
+        || ! PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" -c \
+          'import ast,pathlib,sys; ast.parse(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))' \
+          "$CONTEXT_RUNTIME_DEST/$COGNITIVE_RUNTIME_FILE"; then
+        COGNITIVE_RUNTIME_DEST_READY=0
+      fi
+    done
+    if [ "$COGNITIVE_RUNTIME_DEST_READY" = "1" ] \
+      && memento_validate_context_tree \
+      && memento_plain_owned_directory "$CONTEXT_RUNTIME_DEST" \
+      && [ -f "$CONTEXT_RUNTIME_DEST/context_agent.py" ] \
+      && [ -f "$CONTEXT_RUNTIME_DEST/agent_v1.py" ] \
+      && [ -f "$CONTEXT_RUNTIME_DEST/schemas/record_interpreter_action_v1.json" ] \
+      && [ ! -L "$CONTEXT_RUNTIME_DEST/schemas/record_interpreter_action_v1.json" ] \
+      && [ -f "$CONTEXT_RUNTIME_DEST/schemas/daily_integrator_action_v1.json" ] \
+      && [ ! -L "$CONTEXT_RUNTIME_DEST/schemas/daily_integrator_action_v1.json" ] \
+      && "$PYTHON3_RUNTIME" -m json.tool \
+        "$CONTEXT_RUNTIME_DEST/schemas/record_interpreter_action_v1.json" >/dev/null 2>&1 \
+      && "$PYTHON3_RUNTIME" -m json.tool \
+        "$CONTEXT_RUNTIME_DEST/schemas/daily_integrator_action_v1.json" >/dev/null 2>&1 \
+      && [ -x "$CONTEXT_RUNTIME_DEST/run_self_reflection_once.sh" ] \
+      && [ -x "$CONTEXT_RUNTIME_DEST/run_remember_agent_v1_once.sh" ] \
+      && [ -x "$CONTEXT_RUNTIME_DEST/run_cognitive_record_once.sh" ] \
+      && memento_context_runner_uses_python "$CONTEXT_RUNTIME_DEST/run_self_reflection_once.sh" \
+      && memento_context_runner_uses_python "$CONTEXT_RUNTIME_DEST/run_remember_agent_v1_once.sh" \
+      && memento_context_runner_uses_python "$CONTEXT_RUNTIME_DEST/run_cognitive_record_once.sh" \
+      && PYTHONDONTWRITEBYTECODE=1 PYTHONPATH="$CONTEXT_RUNTIME_DEST" "$PYTHON3_RUNTIME" -c \
+        'import agent_v1, context_agent, cognitive_actions_v1, cognitive_agent_adapter_v1, cognitive_bundle_store_v1, cognitive_daily_review_v1, cognitive_day_orchestrator_v1, cognitive_migration_v1, cognitive_manual_request_v1, cognitive_pipeline_v1, cognitive_projection_v1, cognitive_prompts_v1, cognitive_record_worker_v1, cognitive_runtime_v1, cognitive_schedule_v1, cognitive_store_v1, cognitive_v1' \
+      && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_RUNTIME_DEST/context_agent.py" \
+        agent-worker --help >/dev/null 2>&1 \
+      && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_RUNTIME_DEST/context_agent.py" \
+        cognitive-action-worker --help >/dev/null 2>&1 \
+      && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_RUNTIME_DEST/context_agent.py" \
+        daily-manual-worker --help >/dev/null 2>&1 \
+      && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_RUNTIME_DEST/context_agent.py" \
+        daily-schedule-tick --help >/dev/null 2>&1 \
+      && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_RUNTIME_DEST/context_agent.py" \
+        daily-schedule-status --help >/dev/null 2>&1 \
+      && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_RUNTIME_DEST/context_agent.py" \
+        daily-schedule-enable --help >/dev/null 2>&1 \
+      && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_RUNTIME_DEST/context_agent.py" \
+        daily-schedule-disable --help >/dev/null 2>&1 \
+      && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_RUNTIME_DEST/context_agent.py" \
+        record-ingest --help >/dev/null 2>&1 \
+      && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_RUNTIME_DEST/context_agent.py" \
+        record-worker --help >/dev/null 2>&1 \
+      && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_RUNTIME_DEST/context_agent.py" \
+        daily-run --help >/dev/null 2>&1 \
+      && PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_RUNTIME_DEST/context_agent.py" \
+        projection-rebuild --help >/dev/null 2>&1; then
+      HAS_CONTEXT_AGENT=1
+    fi
+  fi
+elif [ ! -d "$CONTEXT_SRC" ]; then
+  echo -e "${YELLOW}  ⚠ 安装包内未找到 context-agent/,跳过 Context Agent${NC}"
+else
+  echo -e "${YELLOW}  ⚠ Context Agent 路径安全校验失败，已跳过运行时安装${NC}"
+fi
+
+AGENT_V1_PROFILE="$CONTEXT_ROOT/agent-v1/profile.json"
+if [ "$HAS_CONTEXT_AGENT" = "1" ] \
+  && [ "$INSTALL_BACKGROUND_AUTOMATION" = "1" ]; then
+  if ! memento_validate_context_tree \
+    || ! memento_context_regular_file_safe "$AGENT_V1_PROFILE"; then
+    echo -e "${YELLOW}  ⚠ Agent V1 profile.json 不是当前用户拥有的安全普通文件，已保留且不会启动 Worker${NC}"
+    HAS_CONTEXT_AGENT=0
+  elif [ ! -e "$AGENT_V1_PROFILE" ]; then
+    if ! PYTHONDONTWRITEBYTECODE=1 "$PYTHON3_RUNTIME" "$CONTEXT_RUNTIME_DEST/context_agent.py" \
+      agent-profile --vault "$SECRETARY_DIR" >/dev/null; then
+      echo -e "${YELLOW}  ⚠ Agent V1 初始 profile 创建失败，运行时已安装但不会启动 Worker${NC}"
+      HAS_CONTEXT_AGENT=0
+    fi
+  fi
+  if [ "$HAS_CONTEXT_AGENT" = "1" ] \
+    && { ! memento_context_regular_file_safe "$AGENT_V1_PROFILE" \
+      || ! python3 -m json.tool "$AGENT_V1_PROFILE" >/dev/null; }; then
+    echo -e "${YELLOW}  ⚠ Agent V1 profile.json 无法校验，已保留且不会启动 Worker${NC}"
+    HAS_CONTEXT_AGENT=0
+  fi
+fi
+
+CONTEXT_WORKER_PLIST="$HOME/Library/LaunchAgents/com.memento.context-agent.plist"
+REMEMBER_AGENT_PLIST="$HOME/Library/LaunchAgents/com.memento.remember-agent-v1.plist"
+CONTEXT_STDOUT_LOG="$CONTEXT_ROOT/logs/context-workers.stdout.log"
+CONTEXT_STDERR_LOG="$CONTEXT_ROOT/logs/context-workers.stderr.log"
+REMEMBER_AGENT_STDOUT_LOG="$CONTEXT_ROOT/logs/remember-agent-v1.stdout.log"
+REMEMBER_AGENT_STDERR_LOG="$CONTEXT_ROOT/logs/remember-agent-v1.stderr.log"
+HAS_CONTEXT_WORKER=0
+HAS_REMEMBER_AGENT_WORKER=0
+if [ "$HAS_CONTEXT_AGENT" = "1" ] \
+  && [ "$INSTALL_BACKGROUND_AUTOMATION" = "1" ]; then
+  if ! memento_validate_context_tree \
+    || ! memento_context_safe_log_file "$CONTEXT_STDOUT_LOG" \
+    || ! memento_context_safe_log_file "$CONTEXT_STDERR_LOG" \
+    || ! memento_context_safe_log_file "$REMEMBER_AGENT_STDOUT_LOG" \
+    || ! memento_context_safe_log_file "$REMEMBER_AGENT_STDERR_LOG"; then
+    echo -e "${YELLOW}  ⚠ Context Agent 日志路径不安全，已拒绝启动 Worker${NC}"
+    HAS_CONTEXT_AGENT=0
+  fi
+fi
+
+if [ "$HAS_CONTEXT_AGENT" != "1" ]; then
+  memento_disable_owned_context_workers
+fi
+
+if [ "$HAS_CONTEXT_AGENT" = "1" ] \
+  && [ "$INSTALL_BACKGROUND_AUTOMATION" = "1" ]; then
+  mkdir -p "$HOME/Library/LaunchAgents"
+  if { [ -e "$CONTEXT_WORKER_PLIST" ] || [ -L "$CONTEXT_WORKER_PLIST" ]; } \
+    && ! memento_context_worker_owned "$CONTEXT_WORKER_PLIST"; then
+    echo -e "${YELLOW}  ⚠ 保留无法确认归属的同名 Context Worker: $CONTEXT_WORKER_PLIST${NC}"
+  else
+    CONTEXT_WORKER_PLIST_STAGE=$(mktemp \
+      "$HOME/Library/LaunchAgents/.com.memento.context-agent.plist.XXXXXX")
+    if "$PYTHON3_RUNTIME" - \
+      "$CONTEXT_WORKER_PLIST_STAGE" \
+      "$CONTEXT_RUNTIME_DEST/run_self_reflection_once.sh" \
+      "$SECRETARY_DIR" \
+      "$CONTEXT_ROOT/self-queries/requests" \
+      "$CONTEXT_STDOUT_LOG" \
+      "$CONTEXT_STDERR_LOG" <<'PY' &&
+import plistlib
+import sys
+from pathlib import Path
+
+output, runner, vault, self_watch, stdout_path, stderr_path = sys.argv[1:]
+payload = {
+    "Label": "com.memento.context-agent",
+    "MementoManaged": "com.memento.context-agent.v1",
+    "ProgramArguments": [
+        "/bin/bash",
+        runner,
+        vault,
+    ],
+    "WatchPaths": [self_watch],
+    "RunAtLoad": True,
+    "KeepAlive": {"SuccessfulExit": False},
+    "ProcessType": "Background",
+    "ThrottleInterval": 1,
+    "StandardOutPath": stdout_path,
+    "StandardErrorPath": stderr_path,
+}
+with Path(output).open("wb") as handle:
+    plistlib.dump(payload, handle, fmt=plistlib.FMT_XML, sort_keys=True)
+PY
+      plutil -lint "$CONTEXT_WORKER_PLIST_STAGE" >/dev/null \
+      && chmod 600 "$CONTEXT_WORKER_PLIST_STAGE" \
+      && memento_validate_context_tree \
+      && memento_context_safe_log_file "$CONTEXT_STDOUT_LOG" \
+      && memento_context_safe_log_file "$CONTEXT_STDERR_LOG"; then
+      if [ -f "$CONTEXT_WORKER_PLIST" ] \
+        && [ "${MEMENTO_SKIP_CONTEXT_WORKER_LOAD:-0}" != "1" ]; then
+        launchctl bootout "gui/$(id -u)" "$CONTEXT_WORKER_PLIST" 2>/dev/null \
+          || launchctl unload "$CONTEXT_WORKER_PLIST" 2>/dev/null \
+          || true
+      fi
+      mv "$CONTEXT_WORKER_PLIST_STAGE" "$CONTEXT_WORKER_PLIST"
+      CONTEXT_WORKER_PLIST_STAGE=""
+      if find \
+        "$CONTEXT_ROOT/self-queries/requests" \
+        -maxdepth 1 -type f -name '*.json' -print -quit 2>/dev/null | grep -q .; then
+        echo -e "${YELLOW}  ⚠ 检测到已有旧 Self Reflection 请求；Worker 载入后会扫描并只继续尚未完成项${NC}"
+      fi
+      if [ "${MEMENTO_SKIP_CONTEXT_WORKER_LOAD:-0}" = "1" ]; then
+        HAS_CONTEXT_WORKER=1
+      elif launchctl bootstrap "gui/$(id -u)" "$CONTEXT_WORKER_PLIST" 2>/dev/null \
+        || launchctl load "$CONTEXT_WORKER_PLIST" 2>/dev/null; then
+        HAS_CONTEXT_WORKER=1
+      else
+        echo -e "${YELLOW}  ⚠ Context Worker 文件已安装，但本次未能载入；可重新登录后再试${NC}"
+      fi
+      if [ "$HAS_CONTEXT_WORKER" = "1" ]; then
+        echo -e "${GREEN}  ✓ 旧 Self Reflection Worker 已安装（Agent V1 RC 默认关闭）${NC}"
+      fi
+    else
+      rm -f "$CONTEXT_WORKER_PLIST_STAGE"
+      CONTEXT_WORKER_PLIST_STAGE=""
+      echo -e "${YELLOW}  ⚠ Context Worker 安装失败；仍可用 CLI 手动运行${NC}"
+    fi
+  fi
+fi
+
+# Re:member Agent V1 与旧 Self Reflection 使用独立 job。它只监听明确的
+# Agent 请求/用户动作目录，不在安装、登录、间隔或异常退出时自启。
+# 即使事件到达，runner 也会再独立校验 enabled gate 并 fail closed。
+if [ "$HAS_CONTEXT_AGENT" = "1" ] \
+  && [ "$INSTALL_BACKGROUND_AUTOMATION" = "1" ]; then
+  if { [ -e "$REMEMBER_AGENT_PLIST" ] || [ -L "$REMEMBER_AGENT_PLIST" ]; } \
+    && ! memento_remember_agent_worker_owned "$REMEMBER_AGENT_PLIST"; then
+    echo -e "${YELLOW}  ⚠ 保留无法确认归属的同名 Re:member Agent Worker: $REMEMBER_AGENT_PLIST${NC}"
+  else
+    REMEMBER_AGENT_PLIST_STAGE=$(mktemp \
+      "$HOME/Library/LaunchAgents/.com.memento.remember-agent-v1.plist.XXXXXX")
+    if "$PYTHON3_RUNTIME" - \
+      "$REMEMBER_AGENT_PLIST_STAGE" \
+      "$CONTEXT_RUNTIME_DEST/run_remember_agent_v1_once.sh" \
+      "$SECRETARY_DIR" \
+      "$CONTEXT_ROOT/agent-v1/requests" \
+      "$CONTEXT_ROOT/agent-v1/user-actions" \
+      "$CONTEXT_ROOT/cognitive-secretary-v1/user-actions" \
+      "$REMEMBER_AGENT_STDOUT_LOG" \
+      "$REMEMBER_AGENT_STDERR_LOG" <<'PY' &&
+import plistlib
+import sys
+from pathlib import Path
+
+(
+    output,
+    runner,
+    vault,
+    request_watch,
+    action_watch,
+    cognitive_action_watch,
+    stdout_path,
+    stderr_path,
+) = sys.argv[1:]
+payload = {
+    "Label": "com.memento.remember-agent-v1",
+    "MementoManaged": "com.memento.remember-agent-v1.v1",
+    "ProgramArguments": [
+        "/bin/bash",
+        runner,
+        vault,
+    ],
+    "WatchPaths": [
+        request_watch,
+        action_watch,
+        cognitive_action_watch,
+    ],
+    "ProcessType": "Background",
+    "ThrottleInterval": 1,
+    "StandardOutPath": stdout_path,
+    "StandardErrorPath": stderr_path,
+}
+with Path(output).open("wb") as handle:
+    plistlib.dump(payload, handle, fmt=plistlib.FMT_XML, sort_keys=True)
+PY
+      plutil -lint "$REMEMBER_AGENT_PLIST_STAGE" >/dev/null \
+      && chmod 600 "$REMEMBER_AGENT_PLIST_STAGE" \
+      && memento_validate_context_tree \
+      && memento_context_safe_log_file "$REMEMBER_AGENT_STDOUT_LOG" \
+      && memento_context_safe_log_file "$REMEMBER_AGENT_STDERR_LOG"; then
+      if [ -f "$REMEMBER_AGENT_PLIST" ] \
+        && [ "${MEMENTO_SKIP_CONTEXT_WORKER_LOAD:-0}" != "1" ] \
+        && [ "${MEMENTO_SKIP_REMEMBER_AGENT_LOAD:-0}" != "1" ]; then
+        launchctl bootout "gui/$(id -u)" "$REMEMBER_AGENT_PLIST" 2>/dev/null \
+          || launchctl unload "$REMEMBER_AGENT_PLIST" 2>/dev/null \
+          || true
+      fi
+      mv "$REMEMBER_AGENT_PLIST_STAGE" "$REMEMBER_AGENT_PLIST"
+      REMEMBER_AGENT_PLIST_STAGE=""
+      if [ "${MEMENTO_SKIP_CONTEXT_WORKER_LOAD:-0}" = "1" ] \
+        || [ "${MEMENTO_SKIP_REMEMBER_AGENT_LOAD:-0}" = "1" ]; then
+        HAS_REMEMBER_AGENT_WORKER=1
+      elif launchctl bootstrap "gui/$(id -u)" "$REMEMBER_AGENT_PLIST" 2>/dev/null \
+        || launchctl load "$REMEMBER_AGENT_PLIST" 2>/dev/null; then
+        HAS_REMEMBER_AGENT_WORKER=1
+      else
+        echo -e "${YELLOW}  ⚠ Re:member Agent 事件 Worker 文件已安装，但本次未能载入；可重新登录后再试${NC}"
+      fi
+      if [ "$HAS_REMEMBER_AGENT_WORKER" = "1" ]; then
+        echo -e "${GREEN}  ✓ Re:member Agent V1 事件 Worker 已安装（无 RunAtLoad / KeepAlive / 定时，gate 默认不存在）${NC}"
+      fi
+    else
+      rm -f "$REMEMBER_AGENT_PLIST_STAGE"
+      REMEMBER_AGENT_PLIST_STAGE=""
+      echo -e "${YELLOW}  ⚠ Re:member Agent 事件 Worker 安装失败；未修改用户的 Agent 状态或启用 gate${NC}"
+    fi
+  fi
+fi
+
 tighten_vault_permissions
 
 echo ""
@@ -1903,11 +3147,14 @@ echo ""
 echo -e "${BLUE}Obsidian Vault:${NC} ~/AISecretary"
 echo -e "${BLUE}脚本目录:${NC} ~/AISecretary/.scripts"
 echo -e "${BLUE}Vault 首页:${NC} ~/AISecretary/Memento.md"
-if [ "$HAS_REVIEW" = "1" ]; then
-  echo -e "${BLUE}Daily Review:${NC} ~/AISecretary/Reviews/Daily"
+if [ "$HAS_CONTEXT_AGENT" = "1" ]; then
+  echo -e "${BLUE}Context Agent:${NC} ~/AISecretary/.context-agent/runtime"
 fi
-if [ "$SNAPSHOT_APP_READY" = "1" ]; then
-  echo -e "${BLUE}每日第一帧:${NC} 每天第一次成功记录后触发一次"
+if [ "$HAS_CONTEXT_WORKER" = "1" ]; then
+  echo -e "${BLUE}Self Reflection:${NC} 独立 Worker 继续按需处理"
+fi
+if [ "$HAS_REMEMBER_AGENT_WORKER" = "1" ]; then
+  echo -e "${BLUE}Re:member:${NC} Agent V1 RC 事件 Worker 已安装；新安装默认未启用"
 fi
 echo -e "${BLUE}已装服务:${NC}"
 echo "  - 存入 AI 秘书           (选中文字 → 直接存入)"
@@ -1917,23 +3164,15 @@ echo "  - 存入 AI 秘书 (截图)     (调系统截图 → OCR → 存入)"
 if [ "$VOICE_APP_READY" = "1" ]; then
   echo "  - 存入 AI 秘书 (语音)     (本地录音 → Apple 转写 → 存入)"
 fi
-if [ "$SNAPSHOT_APP_READY" = "1" ]; then
-  echo "  - 伴随能力: 每日第一帧     (前置照片 → 一次天气 → 本地落档)"
-fi
 echo ""
 echo -e "${YELLOW}━━━ 首次安装: 确认文本/截图快捷键 ━━━${NC}"
 echo "  打开: 系统设置 → 键盘 → 键盘快捷键 → 服务"
-echo "  在「文本」分类下:  存入 AI 秘书 / (选标签) / (加备注)"
-echo "  在「常规」分类下:  存入 AI 秘书 (截图)"
+echo "  在「常规」分类下:  存入 AI 秘书 / (选标签) / (加备注) / (截图)"
 echo "  推荐组合: ⌃1 / ⌃2 / ⌃3 / ⌃4"
 echo "  语音不默认绑定快捷键;可从 Services 菜单调用,部分非原生 App 不支持该入口。"
 echo ""
 echo -e "${BLUE}━━━ 测试 ━━━${NC}"
 echo "  ~/AISecretary/.scripts/append_text.sh \"hello Memento\""
-if [ "$SNAPSHOT_APP_READY" = "1" ]; then
-  echo "  首次触发会请求相机权限;照片成功后才请求一次粗略位置用于天气。"
-  echo "  今天已有记录时默认从明天启用;当天测试见仓库 README 的 reset 命令。"
-fi
 echo ""
 echo -e "${BLUE}━━━ 在 Obsidian 中打开 ━━━${NC}"
 echo "  open -a Obsidian ~/AISecretary"

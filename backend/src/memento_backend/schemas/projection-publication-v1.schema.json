@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/projection-publication-v1.schema.json",
+  "title": "Projection Publication V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "kind", "publication_id", "sequence", "operation", "bundle_id", "bundle_sha256", "manifest_path", "previous_publication_sha256", "published_at"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "kind": {"const": "memento_projection_publication"},
+    "publication_id": {"type": "string", "pattern": "^pub_[0-9a-f]{24}$"},
+    "sequence": {"type": "integer", "minimum": 1},
+    "operation": {"enum": ["publish", "rollback"]},
+    "bundle_id": {"type": "string", "pattern": "^prjb_[0-9a-f]{24}$"},
+    "bundle_sha256": {"$ref": "#/$defs/sha256"},
+    "manifest_path": {"type": "string", "pattern": "^projections/bundles/prjb_[0-9a-f]{24}/manifest\\.json$"},
+    "previous_publication_sha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]},
+    "published_at": {"type": "string", "format": "date-time"}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

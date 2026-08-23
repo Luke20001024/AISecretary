@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "kind": "memento_shadow_case_set_draft",
+  "note": "先创建只读快照，再将 input_paths 替换为该快照中的真实相对路径。此草稿不会授权读取真实 Vault，也不会调用产品模型",
+  "cases": [
+    {
+      "case_id": "replace-with-stable-case-id",
+      "input_paths": ["records/example.md"],
+      "expected_links": ["expected-object-ref"],
+      "allowed_inferences": ["allowed-inference-id"],
+      "should_stop": true,
+      "checks": {
+        "source_reference_checks": 1,
+        "self_traceability_checks": 1,
+        "resource_opinion_checks": 1,
+        "adapter_checks": 1,
+        "source_hash_checks": 1
+      }
+    }
+  ]
+}

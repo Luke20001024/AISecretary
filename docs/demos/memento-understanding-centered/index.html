@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Memento · 以理解为中心的三版离线 Demo</title>
+  <style>
+    :root{--paper:#f8f7f2;--ink:#191918;--muted:#77736b;--line:#d9d6ce;--soft:#eeebe3;--rust:#bc4429;--green:#526c61;--blue:#405e78;--sans:-apple-system,BlinkMacSystemFont,"PingFang SC","SF Pro Text","Helvetica Neue",sans-serif;--serif:"Songti SC","STSong","Noto Serif CJK SC",serif}
+    *{box-sizing:border-box}
+    html{background:#dfddd6}
+    body{margin:0;color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+    a{color:inherit}
+    .page{width:min(1320px,100%);min-height:100vh;margin:auto;background:var(--paper);box-shadow:0 24px 80px rgba(34,30,23,.12)}
+    .mast{padding:66px clamp(22px,6vw,82px) 48px;border-bottom:1px solid var(--line)}
+    .kicker{font:600 11px/1.3 var(--sans);letter-spacing:.18em;text-transform:uppercase;color:var(--rust)}
+    h1{max-width:960px;margin:18px 0 22px;font:500 clamp(42px,7vw,86px)/1.05 var(--serif);letter-spacing:-.055em}
+    .lead{max-width:850px;margin:0;color:#57534c;font:17px/1.85 var(--serif)}
+    .definition{display:grid;grid-template-columns:130px 1fr;gap:28px;margin-top:44px;padding:25px 0;border-top:4px solid var(--ink);border-bottom:1px solid var(--line)}
+    .definition strong{font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+    .definition p{margin:0;font:500 clamp(21px,3vw,32px)/1.5 var(--serif)}
+    .chain{padding:36px clamp(22px,6vw,82px);border-bottom:1px solid var(--line)}
+    .section-head{display:flex;justify-content:space-between;align-items:end;gap:24px;margin-bottom:24px}
+    .section-head h2{margin:0;font:500 28px/1.25 var(--serif)}
+    .section-head p{max-width:620px;margin:0;color:var(--muted);font-size:13px;line-height:1.7}
+    .steps{display:grid;grid-template-columns:repeat(6,1fr);border:1px solid var(--line);background:var(--line);gap:1px}
+    .step{min-height:148px;background:var(--paper);padding:18px 15px;position:relative}
+    .step span{display:block;color:var(--rust);font:600 10px/1 var(--sans);letter-spacing:.12em;margin-bottom:20px}
+    .step strong{font:500 17px/1.25 var(--serif)}
+    .step p{margin:9px 0 0;color:var(--muted);font-size:11px;line-height:1.6}
+    .versions{padding:54px clamp(22px,6vw,82px) 65px}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .card{display:flex;flex-direction:column;min-height:530px;border:1px solid var(--line);background:#fbfaf6;position:relative;overflow:hidden;transition:transform .18s ease,box-shadow .18s ease}
+    .card:hover{transform:translateY(-3px);box-shadow:0 22px 48px rgba(31,28,23,.09)}
+    .card::before{content:"";height:7px;background:var(--rust)}
+    .card:nth-child(2)::before{background:var(--blue)}
+    .card:nth-child(3)::before{background:var(--green)}
+    .card-body{display:flex;flex:1;flex-direction:column;padding:25px}
+    .number{font-size:10px;letter-spacing:.18em;color:var(--muted)}
+    .card h3{margin:22px 0 7px;font:500 31px/1.15 var(--serif);letter-spacing:-.025em}
+    .card .question{min-height:48px;margin:0 0 23px;color:var(--rust);font-size:13px;line-height:1.7}
+    .card:nth-child(2) .question{color:var(--blue)}
+    .card:nth-child(3) .question{color:var(--green)}
+    .card .desc{margin:0;color:#605c54;font-size:13px;line-height:1.8}
+    .signal{margin:25px 0;padding:18px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);display:grid;gap:10px}
+    .signal div{display:grid;grid-template-columns:64px 1fr;gap:10px;font-size:11px;line-height:1.55}
+    .signal b{color:var(--muted);font-weight:500}
+    .open{margin-top:auto;display:flex;justify-content:space-between;align-items:center;padding:14px 15px;background:var(--ink);color:white;text-decoration:none;font-size:13px;border:1px solid var(--ink)}
+    .open:hover,.open:focus-visible{background:var(--rust);border-color:var(--rust)}
+    .compare{padding:0 clamp(22px,6vw,82px) 70px}
+    .matrix{overflow:auto;border:1px solid var(--line)}
+    table{width:100%;min-width:760px;border-collapse:collapse;font-size:12px}
+    th,td{text-align:left;vertical-align:top;padding:17px 18px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);line-height:1.65}
+    th:last-child,td:last-child{border-right:0}tr:last-child td{border-bottom:0}
+    th{background:var(--soft);font-weight:600}td:first-child{font-weight:600;width:150px}
+    .bottom{display:flex;justify-content:space-between;gap:30px;margin-top:28px;color:var(--muted);font-size:11px;line-height:1.7}
+    @media(max-width:980px){.steps{grid-template-columns:repeat(3,1fr)}.grid{grid-template-columns:1fr}.card{min-height:0}.card .question{min-height:0}.definition{grid-template-columns:1fr;gap:12px}}
+    @media(max-width:600px){.mast{padding-top:42px}.steps{grid-template-columns:repeat(2,1fr)}.step{min-height:132px}.section-head{display:block}.section-head p{margin-top:10px}.bottom{display:block}.bottom span{display:block;margin-top:8px}}
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="mast">
+      <div class="kicker">Memento · Understanding-centered concepts · Offline</div>
+      <h1>记录留下事实，理解让过去开始为今天工作。</h1>
+      <p class="lead">这组三版 Demo 推翻此前以视觉形式为主要差异的做法。三版使用同一批虚构记录与理解，分别验证即时可用、长期自我认识和成长反馈三种产品重心。</p>
+      <div class="definition">
+        <strong>产品定义</strong>
+        <p>[猜测] 一个会整理、会找回、会更新，也会在你授权时拿证据反问你的个人认知秘书。</p>
+      </div>
+    </header>
+
+    <section class="chain" aria-labelledby="chain-title">
+      <div class="section-head">
+        <h2 id="chain-title">三版共享同一条理解链路</h2>
+        <p>原始记录始终保留；AI 的拆解和人物理解均是可修订的中间产物。三版只改变最先呈现的价值与用户的操作重心。</p>
+      </div>
+      <div class="steps" aria-label="从原始记录到结果回流的六步链路">
+        <div class="step"><span>01 / FACT</span><strong>原始记录</strong><p>原文、时间、来源与附件保持可追溯。</p></div>
+        <div class="step"><span>02 / SORT</span><strong>内容拆解</strong><p>识别类型、主题、立场、状态和用途。</p></div>
+        <div class="step"><span>03 / MEMORY</span><strong>可用记忆</strong><p>去重、关联、发现冲突并维护版本。</p></div>
+        <div class="step"><span>04 / UNDERSTAND</span><strong>长期理解</strong><p>形成带依据、反例和边界的可修订假设。</p></div>
+        <div class="step"><span>05 / RESPOND</span><strong>反馈与挑战</strong><p>找回信息、提出反例或建议一个小实验。</p></div>
+        <div class="step"><span>06 / LEARN</span><strong>结果回流</strong><p>记录有用、无关、过时与现实结果。</p></div>
+      </div>
+    </section>
+
+    <section class="versions" aria-labelledby="versions-title">
+      <div class="section-head">
+        <h2 id="versions-title">三种产品方向</h2>
+        <p>[猜测] 三版都可以成立，但它们优化的是不同的核心时刻。请选择你最愿意每天打开的一版，再判断是否需要吸收其他两版的局部能力。</p>
+      </div>
+      <div class="grid">
+        <article class="card">
+          <div class="card-body">
+            <div class="number">DIRECTION 01 · UTILITY</div>
+            <h3>认知秘书桌面</h3>
+            <p class="question">“我存过什么？这条内容已经被怎样消化？”</p>
+            <p class="desc">以自动收件箱和“问过去的自己”为第一价值。每条记录立即变成一份可检查的内容拆解，并进入可检索、可关联的个人记忆。</p>
+            <div class="signal"><div><b>最突出</b><span>第一天的整理效率与找回能力</span></div><div><b>主操作</b><span>搜索、检查拆解、正确 / 改一下 / 仅保存</span></div><div><b>风险</b><span>[猜测] 工具感较强，长期人物感需要继续积累</span></div></div>
+            <a class="open" href="01-cognitive-secretary.html">打开认知秘书桌面 <span aria-hidden="true">→</span></a>
+          </div>
+        </article>
+        <article class="card">
+          <div class="card-body">
+            <div class="number">DIRECTION 02 · IDENTITY</div>
+            <h3>版本化人物档案</h3>
+            <p class="question">“她现在怎样理解我？这个理解为什么改变？”</p>
+            <p class="desc">以三条当前理解为人物首页。每条理解沿着当前版本、变化、支持、反例和版本史展开，原始记录保持为最底层事实。</p>
+            <div class="signal"><div><b>最突出</b><span>长期信任、自我连续与可校准性</span></div><div><b>主操作</b><span>切换理解、查看来路、比较版本、修改或拒绝</span></div><div><b>风险</b><span>[猜测] 新用户需要先积累足够记录，才会明显感到价值</span></div></div>
+            <a class="open" href="02-living-profile.html">打开版本化人物档案 <span aria-hidden="true">→</span></a>
+          </div>
+        </article>
+        <article class="card">
+          <div class="card-body">
+            <div class="number">DIRECTION 03 · GROWTH</div>
+            <h3>长期问题工作室</h3>
+            <p class="question">“我反复在寻找什么？下一次怎样验证？”</p>
+            <p class="desc">按长期问题组织跨主题记录。当前答案、反例、未知和小实验形成闭环；挑战能力只在用户主动开启后出现。</p>
+            <div class="signal"><div><b>最突出</b><span>思想变化、反方秘书与现实行动反馈</span></div><div><b>主操作</b><span>选择问题、挑战当前答案、启动实验、回填结果</span></div><div><b>风险</b><span>[猜测] 操作和认知负担最高，更适合作为深度模式</span></div></div>
+            <a class="open" href="03-question-studio.html">打开长期问题工作室 <span aria-hidden="true">→</span></a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="compare" aria-labelledby="compare-title">
+      <div class="section-head"><h2 id="compare-title">如何比较这三版</h2><p>不要先判断哪版更“炫”。请观察你能否在五秒内说清页面交付了什么，以及是否愿意长期把真实记录交给它整理。</p></div>
+      <div class="matrix">
+        <table>
+          <thead><tr><th>判断维度</th><th>认知秘书桌面</th><th>版本化人物档案</th><th>长期问题工作室</th></tr></thead>
+          <tbody>
+            <tr><td>第一价值</td><td>分得清、找得回</td><td>看见自己及其变化</td><td>发现局限并尝试新选择</td></tr>
+            <tr><td>每天打开的理由</td><td>处理今天的记录</td><td>查看当前理解与最近变化</td><td>继续一个长期问题</td></tr>
+            <tr><td>AI 的关键判断</td><td>拆解内容与回答检索问题</td><td>形成和修订人物理解</td><td>提出反例与可证伪假设</td></tr>
+            <tr><td>适合的阶段</td><td>[猜测] 最适合先建立日常使用</td><td>[猜测] 最接近 Memento 的长期品牌核心</td><td>[猜测] 最适合后续叠加成长能力</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="bottom"><span>完全离线 · 虚构数据 · 所有操作只在当前页面模拟</span><span>旧版 Demo 保留在原目录，便于回看设计选择，不参与本组三版比较。</span></div>
+    </section>
+  </main>
+</body>
+</html>

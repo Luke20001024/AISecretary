@@ -1,0 +1,9 @@
+{
+  "manifest_version": 3,
+  "name": "Memento 4.0 Preview",
+  "version": "0.10.0",
+  "description": "Fixed-data Memento new-tab product preview. No local-directory access, models, or scheduling.",
+  "chrome_url_overrides": {
+    "newtab": "dashboard.html"
+  }
+}

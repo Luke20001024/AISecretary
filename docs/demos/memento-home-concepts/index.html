@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Memento 首页方向 · 四版离线 Demo</title>
+  <style>
+    :root{--paper:#fafaf7;--soft:#f0ede5;--ink:#1a1a1a;--muted:#7a766f;--line:rgba(26,26,26,.12);--accent:#c73e1d;--sans:-apple-system,BlinkMacSystemFont,"PingFang SC","SF Pro Text","Helvetica Neue",sans-serif;--serif:"Songti SC","STSong",serif}
+    *{box-sizing:border-box}body{margin:0;background:#e8e6df;color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}.paper{width:min(1240px,100%);min-height:100vh;margin:auto;background:var(--paper);padding:72px clamp(22px,6vw,84px) 80px;box-shadow:0 28px 90px rgba(36,31,23,.12)}
+    .eyebrow{font-size:11px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase}h1{font:500 clamp(42px,7vw,86px)/1.06 var(--serif);letter-spacing:-.06em;margin:18px 0 20px;max-width:890px}.lead{max-width:760px;color:#5f5a52;font:17px/1.9 var(--serif);margin:0}.principle{margin:42px 0 54px;padding:20px 24px;border-left:3px solid var(--accent);background:var(--soft);font-size:14px;line-height:1.8;max-width:860px}
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}.card{border:1px solid var(--line);border-radius:20px;padding:24px;min-height:360px;display:flex;flex-direction:column;position:relative;overflow:hidden;transition:.2s ease}.card:hover{transform:translateY(-3px);box-shadow:0 18px 45px rgba(25,22,17,.09)}.card:before{content:"";position:absolute;left:0;right:0;top:0;height:5px;background:var(--accent)}.card:nth-child(2):before{background:#1a1a1a}.card:nth-child(3):before{background:linear-gradient(90deg,#b84525,#758375)}.card:nth-child(4):before{height:8px;background:linear-gradient(102deg,#111 0 36%,#d22317 36% 58%,#f6f6f2 58% 82%,#111 82%)}.number{font:11px/1 var(--sans);letter-spacing:.16em;color:var(--muted)}.card h2{font:500 28px/1.25 var(--serif);margin:20px 0 7px}.direction{font-size:12px;color:var(--accent);margin-bottom:20px}.card p{color:var(--muted);font-size:13px;line-height:1.75;margin:0}.mini{margin:22px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:14px 0;display:grid;gap:8px}.mini span{font-size:12px}.mini span:before{content:"—";color:var(--accent);margin-right:8px}.open{margin-top:auto;display:flex;justify-content:space-between;align-items:center;text-decoration:none;color:var(--paper);background:var(--ink);border-radius:10px;padding:12px 14px;font-size:13px}.open:hover{background:#302f2c}.open i{font-style:normal;font-size:18px}
+    .compare{margin-top:65px;padding-top:35px;border-top:1px solid var(--line)}.compare h2{font:500 30px/1.2 var(--serif);margin:0 0 22px}.criteria{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}.criteria div{background:var(--paper);padding:18px 20px}.criteria strong{font-size:13px}.criteria p{font-size:12px;color:var(--muted);margin:7px 0 0;line-height:1.7}.foot{margin-top:35px;color:var(--muted);font-size:11px;display:flex;justify-content:space-between;gap:18px}
+    @media(max-width:850px){.paper{padding-top:44px}.grid{grid-template-columns:1fr}.card{min-height:0}.criteria{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <main class="paper">
+    <div class="eyebrow">Memento · Homepage directions · Offline prototype</div>
+    <h1>同一份今天，四种看见自己的方式。</h1>
+    <p class="lead">四版使用相同的虚构记录、理解和状态。它们分别把注意力放在安静记录、当场校准、时间感受，以及用抽象几何看见理解怎样形成。</p>
+    <div class="principle"><strong>共同底线：</strong>今日记录始终可读；理解必须带依据和边界；没有变化时保持安静；导出进入独立抽屉；所有演示均不读取真实 Vault、不调用 API，也不会写入本地文件。</div>
+
+    <section class="grid" aria-label="四个首页版本">
+      <article class="card"><div class="number">VERSION 01</div><h2>安静记录</h2><div class="direction">习惯优先 · 默认首页候选</div><p>今日记录是绝对主体。“她眼中的我”平时压成状态行，只有出现有意义的变化时才展开一次。</p><div class="mini"><span>最低打扰</span><span>最接近现有使用习惯</span><span>AI 只在需要时出现</span></div><a class="open" href="01-quiet-record.html">打开安静记录版 <i>→</i></a></article>
+      <article class="card"><div class="number">VERSION 02</div><h2>可校准镜面</h2><div class="direction">信任优先 · 产品理念验证</div><p>首页直接呈现一个局部理解，并让用户查看依据、限定范围、修改或拒绝，完整体现记录—理解—校准。</p><div class="mini"><span>候选与已写入状态明确</span><span>理解旁边直接给出控制权</span><span>适合验证 AI 判断价值</span></div><a class="open" href="02-calibrated-mirror.html">打开可校准版 <i>→</i></a></article>
+      <article class="card"><div class="number">VERSION 03</div><h2>时间中的我</h2><div class="direction">情感优先 · 品牌实验</div><p>把记录、跨日重复和长期理解编织在同一条时间线上，强调“人如何在时间中逐渐显现”。</p><div class="mini"><span>最强时间感</span><span>记录与理解关系最直观</span><span>适合作为回望模式</span></div><a class="open" href="03-time-stream.html">打开时间流版 <i>→</i></a></article>
+      <article class="card"><div class="number">VERSION 04</div><h2>构成中的我</h2><div class="direction">至上主义启发 · 艺术方向实验</div><p>用黑方、红轴、圆与白色平面表达当前理解、新证据、反例和原始事实，让“理解如何被构成”成为首页的视觉中心。</p><div class="mini"><span>最强视觉身份</span><span>几何承担真实产品语义</span><span>适合验证品牌差异化</span></div><a class="open" href="04-suprematist-mirror.html">打开至上主义版 <i>→</i></a></article>
+    </section>
+
+    <section class="compare"><h2>看 Demo 时，只判断四件事</h2><div class="criteria"><div><strong>价值是否清楚</strong><p>五秒内，你会把它理解成记录工具、AI 总结页，还是一份持续形成且可修正的个人 Context？</p></div><div><strong>今日记录是否仍重要</strong><p>无需寻找入口就能看到今天留下的内容，AI 区域不会压住原始事实。</p></div><div><strong>理解是否可信</strong><p>能否区分候选与已写入理解，能否看到依据、范围和修正出口。</p></div><div><strong>页面是否愿意长期打开</strong><p>没有新变化时是否足够安静，连续使用后会不会形成审核压力或被评估感。</p></div></div></section>
+    <div class="foot"><span>离线概念演示 · 所有数据均为虚构</span><span>04 是艺术方向实验，02 仍是可读性与信任基线</span></div>
+  </main>
+</body>
+</html>

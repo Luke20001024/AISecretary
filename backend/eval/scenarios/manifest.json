@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0",
+  "fixture_kind": "synthetic_r5_scenarios",
+  "cases": [
+    {
+      "id": "S01_plain_user_judgment",
+      "label": "普通文字判断",
+      "input": {"source_type": "text", "authorized_text": "变化的理由比结果更值得留下", "user_authored": true},
+      "expected_role": "personal_signal",
+      "expected_route": "interpret",
+      "expected_capture_objects": ["SourceRecordRevision", "CaptureDecisionRevision"],
+      "forbidden_objects": ["ResourceCardRevision", "MemoryAtomRevision", "ThemeRevision", "SelfInsightRevision"]
+    },
+    {
+      "id": "S02_link_read_later",
+      "label": "链接加待会再看",
+      "input": {"source_type": "url", "authorized_text": "https://example.com/article\n待会再看", "user_note": "待会再看", "resource_url": "https://example.com/article"},
+      "expected_role": "read_later",
+      "expected_route": "ask_on_use",
+      "expected_capture_objects": ["SourceRecordRevision", "CaptureDecisionRevision", "ResourceCardRevision", "ReadLaterIntentRevision"],
+      "forbidden_objects": ["RecordInterpretationRevision", "MemoryAtomRevision", "ThemeRevision", "SelfInsightRevision"]
+    },
+    {
+      "id": "S03_long_webpage_screenshot",
+      "label": "长网页截图",
+      "input": {"source_type": "screenshot_ocr", "authorized_text": "作者正文与大量 OCR 内容"},
+      "expected_role": "resource",
+      "expected_route": "resource_index",
+      "expected_capture_objects": ["SourceRecordRevision", "CaptureDecisionRevision", "ResourceCardRevision"],
+      "forbidden_objects": ["RecordInterpretationRevision", "MemoryAtomRevision", "ThemeRevision", "SelfInsightRevision"]
+    },
+    {
+      "id": "S04_highlight_with_note",
+      "label": "网页高亮加用户备注",
+      "input": {"source_type": "screenshot_ocr", "authorized_text": "作者段落\n这个和当前 Context 问题有关", "selected_text": "作者段落", "user_note": "这个和当前 Context 问题有关"},
+      "expected_role": "mixed",
+      "expected_route": "resource_index_and_interpret",
+      "expected_capture_objects": ["SourceRecordRevision", "CaptureDecisionRevision", "ResourceCardRevision"],
+      "forbidden_objects": ["MemoryAtomRevision", "ThemeRevision", "SelfInsightRevision"]
+    },
+    {
+      "id": "S05_pure_resource",
+      "label": "纯资料无个人判断",
+      "input": {"source_type": "file_note", "authorized_text": "一份产品研究 PDF 的索引内容"},
+      "expected_role": "resource",
+      "expected_route": "resource_index",
+      "expected_capture_objects": ["SourceRecordRevision", "CaptureDecisionRevision", "ResourceCardRevision"],
+      "forbidden_objects": ["RecordInterpretationRevision", "MemoryAtomRevision", "ThemeRevision", "SelfInsightRevision"]
+    },
+    {
+      "id": "S06_voice_judgment",
+      "label": "语音记录",
+      "input": {"source_type": "voice_transcript", "authorized_text": "刚才那个变化应该留下来，回去以后再整理", "user_authored": true},
+      "expected_role": "personal_signal",
+      "expected_route": "interpret",
+      "expected_capture_objects": ["SourceRecordRevision", "CaptureDecisionRevision"],
+      "forbidden_objects": ["ResourceCardRevision", "MemoryAtomRevision", "ThemeRevision", "SelfInsightRevision"]
+    },
+    {
+      "id": "S07_external_ai_trace",
+      "label": "AI 对话片段",
+      "input": {"source_type": "external_trace", "authorized_text": "这次决定采用先确认边界的方案", "user_note": "这次决定采用先确认边界的方案"},
+      "expected_role": "external_trace",
+      "expected_route": "interpret",
+      "expected_capture_objects": ["SourceRecordRevision", "CaptureDecisionRevision"],
+      "forbidden_objects": ["ThemeRevision", "SelfInsightRevision"]
+    },
+    {
+      "id": "S08_ambiguous_voice",
+      "label": "模糊低置信度输入",
+      "input": {"source_type": "voice_transcript", "authorized_text": "那个东西先这样吧"},
+      "expected_role": "ambiguous",
+      "expected_route": "needs_confirmation",
+      "expected_capture_objects": ["SourceRecordRevision", "CaptureDecisionRevision"],
+      "forbidden_objects": ["RecordInterpretationRevision", "MemoryAtomRevision", "ThemeRevision", "SelfInsightRevision"]
+    }
+  ]
+}

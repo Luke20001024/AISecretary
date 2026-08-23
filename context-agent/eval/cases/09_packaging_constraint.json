@@ -1,0 +1,37 @@
+{
+  "name": "held-out packaging constraint",
+  "live_eval": true,
+  "sources": {
+    "2026-08-08.md": "# 2026-08-08\n\n## 11:40 · 安装包验收\n\n发布包不得引用公网 CDN，所有静态资源必须随安装包分发。\n"
+  },
+  "mock_response": {
+    "schema_version": "1.0",
+    "status": "candidate",
+    "candidate": {
+      "statement": "发布包不得引用公网 CDN，静态资源必须随安装包分发。",
+      "scope": "Memento 发布包",
+      "why_now": "这是发布包必须持续满足的明确验收边界。",
+      "category": "constraint",
+      "sensitive": false,
+      "uncertainty": "low",
+      "evidence": [
+        {
+          "file": "2026-08-08.md",
+          "line": 5,
+          "quote": "发布包不得引用公网 CDN，所有静态资源必须随安装包分发。"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "contract_valid": true,
+    "evidence_valid": true,
+    "status": "candidate",
+    "category": "constraint"
+  },
+  "usage": {
+    "prompt_tokens": 590,
+    "completion_tokens": 100,
+    "total_tokens": 690
+  }
+}

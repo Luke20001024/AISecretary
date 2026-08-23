@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://memento.local/schemas/self-projection-v1.schema.json",
+  "title": "SelfProjection V1", "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "kind", "projection_version", "projection_id", "bundle_id", "generated_at", "as_of", "input_sha256", "primary_insight", "other_insights", "related_theme_refs", "recent_changes", "boundaries"],
+  "properties": {
+    "schema_version": {"const": "1.0"}, "kind": {"const": "memento_self_projection"}, "projection_version": {"const": "memento-self-v1"},
+    "projection_id": {"type": "string", "pattern": "^self_[0-9a-f]{24}$"}, "bundle_id": {"type": "string", "pattern": "^prjb_[0-9a-f]{24}$"},
+    "generated_at": {"type": "string", "format": "date-time"}, "as_of": {"type": "string", "format": "date"}, "input_sha256": {"$ref": "#/$defs/sha256"},
+    "primary_insight": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/insight"}]}, "other_insights": {"type": "array", "maxItems": 31, "items": {"$ref": "#/$defs/insight"}},
+    "related_theme_refs": {"type": "array", "maxItems": 64, "uniqueItems": true, "items": {"$ref": "#/$defs/themeRef"}},
+    "recent_changes": {"type": "array", "maxItems": 24, "items": {"type": "object", "additionalProperties": false, "required": ["date", "insight_ref", "reason"], "properties": {"date": {"type": "string", "format": "date"}, "insight_ref": {"$ref": "#/$defs/selfInsightRef"}, "reason": {"type": "string", "minLength": 1, "maxLength": 600}}}},
+    "boundaries": {"type": "array", "maxItems": 64, "items": {"type": "object", "additionalProperties": false, "required": ["insight_ref", "support_ref"], "properties": {"insight_ref": {"$ref": "#/$defs/selfInsightRef"}, "support_ref": {"$ref": "#/$defs/supportRef"}}}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "ref": {"type": "object", "additionalProperties": false, "required": ["kind", "id", "revision", "revision_sha256"], "properties": {"kind": {"enum": ["self_insight", "theme", "memory_atom"]}, "id": {"type": "string", "pattern": "^(sin|thm|mat)_[0-9a-f]{24}$"}, "revision": {"type": "integer", "minimum": 1}, "revision_sha256": {"$ref": "#/$defs/sha256"}}, "allOf": [{"if": {"properties": {"kind": {"const": "self_insight"}}}, "then": {"properties": {"id": {"pattern": "^sin_"}}}}, {"if": {"properties": {"kind": {"const": "theme"}}}, "then": {"properties": {"id": {"pattern": "^thm_"}}}}, {"if": {"properties": {"kind": {"const": "memory_atom"}}}, "then": {"properties": {"id": {"pattern": "^mat_"}}}}]},
+    "selfInsightRef": {"allOf": [{"$ref": "#/$defs/ref"}, {"properties": {"kind": {"const": "self_insight"}}}]},
+    "themeRef": {"allOf": [{"$ref": "#/$defs/ref"}, {"properties": {"kind": {"const": "theme"}}}]},
+    "supportRef": {"allOf": [{"$ref": "#/$defs/ref"}, {"properties": {"kind": {"enum": ["theme", "memory_atom"]}}}]},
+    "insight": {"type": "object", "additionalProperties": false, "required": ["insight_ref", "title", "statement", "scope", "uncertainty", "maturity", "confirmation", "sensitivity", "visibility", "theme_refs", "support_count", "boundary_count", "change_reason", "detail_projection_id"], "properties": {"insight_ref": {"$ref": "#/$defs/selfInsightRef"}, "title": {"type": "string", "minLength": 1, "maxLength": 80}, "statement": {"type": "string", "minLength": 1, "maxLength": 1000}, "scope": {"type": "string", "minLength": 1, "maxLength": 800}, "uncertainty": {"type": "string", "minLength": 1, "maxLength": 600}, "maturity": {"enum": ["forming", "observed", "stable", "dormant"]}, "confirmation": {"enum": ["draft", "observed", "user_confirmed", "restricted"]}, "sensitivity": {"enum": ["normal", "sensitive", "restricted"]}, "visibility": {"enum": ["local_only", "grant_only", "restricted"]}, "theme_refs": {"type": "array", "minItems": 2, "maxItems": 32, "uniqueItems": true, "items": {"$ref": "#/$defs/themeRef"}}, "support_count": {"type": "integer", "minimum": 2}, "boundary_count": {"type": "integer", "minimum": 0}, "change_reason": {"type": "string", "minLength": 1, "maxLength": 600}, "detail_projection_id": {"type": "string", "pattern": "^sdt_[0-9a-f]{24}$"}}}
+  }
+}

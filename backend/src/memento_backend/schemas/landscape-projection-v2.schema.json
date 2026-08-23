@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://memento.local/schemas/landscape-projection-v2.schema.json",
+  "title": "LandscapeProjection V2", "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "kind", "projection_version", "projection_id", "bundle_id", "generated_at", "as_of", "input_sha256", "summary", "terrain", "peaks", "nodes", "edges", "previous_projection_sha256"],
+  "properties": {
+    "schema_version": {"const": "2.0"}, "kind": {"const": "memento_landscape_projection"}, "projection_version": {"const": "memento-landscape-v2"},
+    "projection_id": {"type": "string", "pattern": "^lnd_[0-9a-f]{24}$"}, "bundle_id": {"type": "string", "pattern": "^prjb_[0-9a-f]{24}$"},
+    "generated_at": {"type": "string", "format": "date-time"}, "as_of": {"type": "string", "format": "date"}, "input_sha256": {"$ref": "#/$defs/sha256"},
+    "summary": {"type": "object", "additionalProperties": false, "required": ["active_themes", "recent_changes", "forming_themes"], "properties": {"active_themes": {"type": "integer", "minimum": 0}, "recent_changes": {"type": "integer", "minimum": 0}, "forming_themes": {"type": "integer", "minimum": 0}}},
+    "terrain": {"type": "object", "additionalProperties": false, "required": ["algorithm_version", "coordinate_space", "grid_size", "contour_levels"], "properties": {"algorithm_version": {"const": "stable-theme-terrain-v1"}, "coordinate_space": {"const": "normalized_0_1"}, "grid_size": {"type": "integer", "minimum": 16, "maximum": 512}, "contour_levels": {"type": "integer", "minimum": 1, "maximum": 32}}},
+    "peaks": {"type": "array", "maxItems": 256, "items": {"$ref": "#/$defs/peak"}},
+    "nodes": {"type": "array", "maxItems": 4096, "items": {"$ref": "#/$defs/node"}},
+    "edges": {"type": "array", "maxItems": 8192, "items": {"$ref": "#/$defs/edge"}},
+    "previous_projection_sha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "ref": {"type": "object", "additionalProperties": false, "required": ["kind", "id", "revision", "revision_sha256"], "properties": {"kind": {"enum": ["theme", "memory_atom", "relation"]}, "id": {"type": "string", "pattern": "^(thm|mat|rel)_[0-9a-f]{24}$"}, "revision": {"type": "integer", "minimum": 1}, "revision_sha256": {"$ref": "#/$defs/sha256"}}, "allOf": [{"if": {"properties": {"kind": {"const": "theme"}}}, "then": {"properties": {"id": {"pattern": "^thm_"}}}}, {"if": {"properties": {"kind": {"const": "memory_atom"}}}, "then": {"properties": {"id": {"pattern": "^mat_"}}}}, {"if": {"properties": {"kind": {"const": "relation"}}}, "then": {"properties": {"id": {"pattern": "^rel_"}}}}]},
+    "themeRef": {"allOf": [{"$ref": "#/$defs/ref"}, {"properties": {"kind": {"const": "theme"}}}]},
+    "memoryAtomRef": {"allOf": [{"$ref": "#/$defs/ref"}, {"properties": {"kind": {"const": "memory_atom"}}}]},
+    "relationRef": {"allOf": [{"$ref": "#/$defs/ref"}, {"properties": {"kind": {"const": "relation"}}}]},
+    "peak": {"type": "object", "additionalProperties": false, "required": ["theme_ref", "title", "statement", "x", "y", "elevation", "evidence_count", "counterevidence_count", "evidence_days", "recent_change", "lifecycle", "detail_projection_id"], "properties": {"theme_ref": {"$ref": "#/$defs/themeRef"}, "title": {"type": "string", "minLength": 1, "maxLength": 80}, "statement": {"type": "string", "minLength": 1, "maxLength": 800}, "x": {"type": "number", "minimum": 0, "maximum": 1}, "y": {"type": "number", "minimum": 0, "maximum": 1}, "elevation": {"type": "number", "minimum": 0, "maximum": 1}, "evidence_count": {"type": "integer", "minimum": 0}, "counterevidence_count": {"type": "integer", "minimum": 0}, "evidence_days": {"type": "integer", "minimum": 0}, "recent_change": {"type": "boolean"}, "lifecycle": {"enum": ["forming", "active", "tension", "dormant"]}, "detail_projection_id": {"type": "string", "pattern": "^tdt_[0-9a-f]{24}$"}}},
+    "node": {"type": "object", "additionalProperties": false, "required": ["memory_atom_ref", "x", "y", "recent", "theme_refs"], "properties": {"memory_atom_ref": {"$ref": "#/$defs/memoryAtomRef"}, "x": {"type": "number", "minimum": 0, "maximum": 1}, "y": {"type": "number", "minimum": 0, "maximum": 1}, "recent": {"type": "boolean"}, "theme_refs": {"type": "array", "maxItems": 24, "uniqueItems": true, "items": {"$ref": "#/$defs/themeRef"}}}},
+    "edge": {"type": "object", "additionalProperties": false, "required": ["relation_ref", "from_id", "to_id", "type"], "properties": {"relation_ref": {"$ref": "#/$defs/relationRef"}, "from_id": {"type": "string", "pattern": "^(mat|thm)_[0-9a-f]{24}$"}, "to_id": {"type": "string", "pattern": "^(mat|thm)_[0-9a-f]{24}$"}, "type": {"enum": ["supports", "counterexample", "revises", "scope_boundary", "same_topic", "derived_from"]}}}
+  }
+}

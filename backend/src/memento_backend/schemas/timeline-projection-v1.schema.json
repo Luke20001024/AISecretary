@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://memento.local/schemas/timeline-projection-v1.schema.json",
+  "title": "TimelineProjection V1", "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "kind", "projection_version", "projection_id", "bundle_id", "generated_at", "as_of", "input_sha256", "range", "entries", "change_dates", "page"],
+  "properties": {
+    "schema_version": {"const": "1.0"}, "kind": {"const": "memento_timeline_projection"}, "projection_version": {"const": "memento-timeline-v1"},
+    "projection_id": {"type": "string", "pattern": "^tln_[0-9a-f]{24}$"}, "bundle_id": {"type": "string", "pattern": "^prjb_[0-9a-f]{24}$"},
+    "generated_at": {"type": "string", "format": "date-time"}, "as_of": {"type": "string", "format": "date"}, "input_sha256": {"$ref": "#/$defs/sha256"},
+    "range": {"type": "object", "additionalProperties": false, "required": ["start", "end", "days"], "properties": {"start": {"type": "string", "format": "date"}, "end": {"type": "string", "format": "date"}, "days": {"type": "integer", "minimum": 1}}},
+    "entries": {"type": "array", "maxItems": 4096, "items": {"$ref": "#/$defs/entry"}},
+    "change_dates": {"type": "array", "maxItems": 3660, "uniqueItems": true, "items": {"type": "string", "format": "date"}},
+    "page": {"type": "object", "additionalProperties": false, "required": ["cursor", "next_cursor", "has_more"], "properties": {"cursor": {"oneOf": [{"type": "null"}, {"type": "string", "minLength": 1, "maxLength": 200}]}, "next_cursor": {"oneOf": [{"type": "null"}, {"type": "string", "minLength": 1, "maxLength": 200}]}, "has_more": {"type": "boolean"}}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "ref": {"type": "object", "additionalProperties": false, "required": ["kind", "id", "revision", "revision_sha256"], "properties": {"kind": {"enum": ["source_record", "record_interpretation", "theme"]}, "id": {"type": "string", "pattern": "^(rec|int|thm)_[0-9a-f]{24}$"}, "revision": {"type": "integer", "minimum": 1}, "revision_sha256": {"$ref": "#/$defs/sha256"}}, "allOf": [{"if": {"properties": {"kind": {"const": "source_record"}}}, "then": {"properties": {"id": {"pattern": "^rec_"}}}}, {"if": {"properties": {"kind": {"const": "record_interpretation"}}}, "then": {"properties": {"id": {"pattern": "^int_"}}}}, {"if": {"properties": {"kind": {"const": "theme"}}}, "then": {"properties": {"id": {"pattern": "^thm_"}}}}]},
+    "sourceRecordRef": {"allOf": [{"$ref": "#/$defs/ref"}, {"properties": {"kind": {"const": "source_record"}}}]},
+    "interpretationRef": {"allOf": [{"$ref": "#/$defs/ref"}, {"properties": {"kind": {"const": "record_interpretation"}}}]},
+    "themeRef": {"allOf": [{"$ref": "#/$defs/ref"}, {"properties": {"kind": {"const": "theme"}}}]},
+    "entry": {"type": "object", "additionalProperties": false, "required": ["record_ref", "interpretation_ref", "captured_at", "local_date", "source_type", "source_app", "status", "summary", "theme_refs", "record_detail_projection_id"], "properties": {"record_ref": {"$ref": "#/$defs/sourceRecordRef"}, "interpretation_ref": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/interpretationRef"}]}, "captured_at": {"type": "string", "format": "date-time"}, "local_date": {"type": "string", "format": "date"}, "source_type": {"type": "string", "minLength": 1, "maxLength": 80}, "source_app": {"type": "string", "minLength": 1, "maxLength": 200}, "status": {"enum": ["raw_saved", "ready", "needs_review", "original_only", "connected", "failed_preserved"]}, "summary": {"oneOf": [{"type": "null"}, {"type": "string", "minLength": 1, "maxLength": 600}]}, "theme_refs": {"type": "array", "maxItems": 24, "uniqueItems": true, "items": {"$ref": "#/$defs/themeRef"}}, "record_detail_projection_id": {"type": "string", "pattern": "^rdt_[0-9a-f]{24}$"}}}
+  }
+}

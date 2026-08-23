@@ -1,0 +1,341 @@
+{
+  "sources": [
+    {
+      "file": "2026-08-01.md",
+      "content": "# 2026-08-01\n评审方案前，先写清成功标准和失败标准。\n",
+      "sha256": "7edd2313b22709f9eaa3497b0fe85ffdb80ffebff507847878889a54afaec2cb"
+    },
+    {
+      "file": "2026-08-02.md",
+      "content": "# 2026-08-02\n这次仍然先定义验证标准，再排实现顺序。\n",
+      "sha256": "8da2a592f6aaddffbc2ae24513f476a62d97fd5ddf7dac8f4ec6759e845d54d1"
+    }
+  ],
+  "hashes": {
+    "request_raw_sha256": "0bb59cf2ef72e6a2e86a28bbf80093046b49ef55600c51f1f6a05908b036ae79",
+    "response_canonical_sha256": "84c539ff1e2f2f5a0f61971fb564506aa2505a5bed108b7e24e66c4a78d9528a",
+    "history_sha256": "6da91683e6bc50461cc7c75f1b5bfccb68abd83e5e61d3ed6df0a161fd6eb457",
+    "policy_sha256": "a386d8ce9e7aae788f42c4b2b03ddc8c562f24ae7601c695d82249cef80734d3"
+  },
+  "request": {
+    "schema_version": "1.0",
+    "id": "arq_111111111111111111111111",
+    "kind": "remember_agent_request",
+    "status": "pending",
+    "created_at": "2026-08-11T04:00:00.000Z",
+    "trigger": "manual",
+    "as_of": "2026-08-11",
+    "window_days": 14
+  },
+  "memory": {
+    "memory_id": "mem_f1d55da7f1cfacb3dc19345f",
+    "revision": 1,
+    "revision_sha256": "628ac7338216af56cc9b3fcd2bfafc44df453f0ecd208ce96bd96dc0ee8b12ef",
+    "status": "active",
+    "title": "先明确验证标准",
+    "statement": "在产品方案中，多次先定义验证标准再进入实现。",
+    "scope": "产品方案评审",
+    "insight_kind": "observation",
+    "uncertainty": "medium",
+    "evidence": [
+      {
+        "file": "2026-08-01.md",
+        "line": 2,
+        "quote": "评审方案前，先写清成功标准和失败标准。"
+      },
+      {
+        "file": "2026-08-02.md",
+        "line": 2,
+        "quote": "这次仍然先定义验证标准，再排实现顺序。"
+      }
+    ],
+    "counterevidence": [],
+    "created_at": "2026-08-11T04:00:06.000Z",
+    "provenance": {
+      "origin": "agent_memory",
+      "run_id": "arun_f80ff0f7255cb9cb84f2e260",
+      "request_id": "arq_111111111111111111111111",
+      "operation": "new",
+      "base_profile_ref": null
+    }
+  },
+  "response": {
+    "schema_version": "1.0",
+    "request_id": "arq_111111111111111111111111",
+    "request_sha256": "0bb59cf2ef72e6a2e86a28bbf80093046b49ef55600c51f1f6a05908b036ae79",
+    "kind": "remember_agent_response",
+    "status": "updated",
+    "created_at": "2026-08-11T04:00:06.000Z",
+    "run_id": "arun_f80ff0f7255cb9cb84f2e260",
+    "run_key": "ark_b832352568428472b14173bf",
+    "cache_hit": false,
+    "as_of": "2026-08-11",
+    "window_days": 14,
+    "record_days": 2,
+    "source_hashes": [
+      {
+        "file": "2026-08-01.md",
+        "sha256": "7edd2313b22709f9eaa3497b0fe85ffdb80ffebff507847878889a54afaec2cb"
+      },
+      {
+        "file": "2026-08-02.md",
+        "sha256": "8da2a592f6aaddffbc2ae24513f476a62d97fd5ddf7dac8f4ec6759e845d54d1"
+      }
+    ],
+    "input_history_sha256": "6da91683e6bc50461cc7c75f1b5bfccb68abd83e5e61d3ed6df0a161fd6eb457",
+    "input_profile_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+    "input_feedback_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "input_user_action_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "result_profile_sha256": "b426a2aba344f8607c9bdb7e623efc075e906a5b0dfa93ce03e9c0883d0ff022",
+    "memory": {
+      "memory_id": "mem_f1d55da7f1cfacb3dc19345f",
+      "revision": 1,
+      "revision_sha256": "628ac7338216af56cc9b3fcd2bfafc44df453f0ecd208ce96bd96dc0ee8b12ef",
+      "status": "active",
+      "title": "先明确验证标准",
+      "statement": "在产品方案中，多次先定义验证标准再进入实现。",
+      "scope": "产品方案评审",
+      "insight_kind": "observation",
+      "uncertainty": "medium",
+      "evidence": [
+        {
+          "file": "2026-08-01.md",
+          "line": 2,
+          "quote": "评审方案前，先写清成功标准和失败标准。"
+        },
+        {
+          "file": "2026-08-02.md",
+          "line": 2,
+          "quote": "这次仍然先定义验证标准，再排实现顺序。"
+        }
+      ],
+      "counterevidence": [],
+      "created_at": "2026-08-11T04:00:06.000Z",
+      "provenance": {
+        "origin": "agent_memory",
+        "run_id": "arun_f80ff0f7255cb9cb84f2e260",
+        "request_id": "arq_111111111111111111111111",
+        "operation": "new",
+        "base_profile_ref": null
+      }
+    },
+    "trace": {
+      "model_turns": 2,
+      "tool_calls": 2,
+      "actions": [
+        "search_history",
+        "finalize_patch"
+      ],
+      "reason_codes": [
+        "need_history_evidence",
+        "evidence_sufficient"
+      ],
+      "history_matches": 2,
+      "stop_reason": "patch_committed"
+    },
+    "usage": {
+      "model_calls": 2,
+      "prompt_tokens": 800,
+      "completion_tokens": 200,
+      "total_tokens": 1000,
+      "prompt_cache_hit_tokens": 100,
+      "prompt_cache_miss_tokens": 700,
+      "reasoning_tokens": 50,
+      "usage_missing": false,
+      "cost_usd": 0.001
+    },
+    "error": null,
+    "error_kind": null
+  },
+  "run": {
+    "schema_version": "1.0",
+    "kind": "remember_agent_run",
+    "run_id": "arun_f80ff0f7255cb9cb84f2e260",
+    "run_key": "ark_b832352568428472b14173bf",
+    "cache_hit": false,
+    "request_id": "arq_111111111111111111111111",
+    "request_sha256": "0bb59cf2ef72e6a2e86a28bbf80093046b49ef55600c51f1f6a05908b036ae79",
+    "status": "updated",
+    "started_at": "2026-08-11T04:00:01.000Z",
+    "completed_at": "2026-08-11T04:00:06.000Z",
+    "provider": "mock",
+    "model": "fixture",
+    "policy_sha256": "a386d8ce9e7aae788f42c4b2b03ddc8c562f24ae7601c695d82249cef80734d3",
+    "budget": {
+      "max_turns": 3,
+      "max_tool_calls": 3,
+      "max_total_tokens": 12000,
+      "max_prompt_chars": 180000
+    },
+    "input_hashes": {
+      "source_hashes": [
+        {
+          "file": "2026-08-01.md",
+          "sha256": "7edd2313b22709f9eaa3497b0fe85ffdb80ffebff507847878889a54afaec2cb"
+        },
+        {
+          "file": "2026-08-02.md",
+          "sha256": "8da2a592f6aaddffbc2ae24513f476a62d97fd5ddf7dac8f4ec6759e845d54d1"
+        }
+      ],
+      "history_sha256": "6da91683e6bc50461cc7c75f1b5bfccb68abd83e5e61d3ed6df0a161fd6eb457",
+      "profile_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+      "feedback_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "user_action_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    "steps": [
+      {
+        "turn": 1,
+        "action": "search_history",
+        "reason_code": "need_history_evidence",
+        "arguments_sha256": "5fbed7c235f0a394a1db30605e595f23e52a5a0ff5922bdf366a23849403b37f",
+        "result_kind": "history_matches",
+        "result_count": 2,
+        "error_kind": null
+      },
+      {
+        "turn": 2,
+        "action": "finalize_patch",
+        "reason_code": "evidence_sufficient",
+        "arguments_sha256": "fae5bb3eab721fbf1d6d84654c0e869ac41e8b34eb8c248f189900710be0e752",
+        "result_kind": "memory_updated",
+        "result_count": 1,
+        "error_kind": null
+      }
+    ],
+    "usage": {
+      "model_calls": 2,
+      "prompt_tokens": 800,
+      "completion_tokens": 200,
+      "total_tokens": 1000,
+      "prompt_cache_hit_tokens": 100,
+      "prompt_cache_miss_tokens": 700,
+      "reasoning_tokens": 50,
+      "usage_missing": false,
+      "cost_usd": 0.001
+    },
+    "response_sha256": "84c539ff1e2f2f5a0f61971fb564506aa2505a5bed108b7e24e66c4a78d9528a",
+    "error_kind": null
+  },
+  "profile": {
+    "schema_version": "1.0",
+    "kind": "remember_agent_profile",
+    "projection_version": "remember-agent-profile-v1.0",
+    "projection_updated_at": "2026-08-11T04:00:06.000Z",
+    "profile_sha256": "b426a2aba344f8607c9bdb7e623efc075e906a5b0dfa93ce03e9c0883d0ff022",
+    "memories": [
+      {
+        "memory_id": "mem_f1d55da7f1cfacb3dc19345f",
+        "revision": 1,
+        "revision_sha256": "628ac7338216af56cc9b3fcd2bfafc44df453f0ecd208ce96bd96dc0ee8b12ef",
+        "status": "active",
+        "title": "先明确验证标准",
+        "statement": "在产品方案中，多次先定义验证标准再进入实现。",
+        "scope": "产品方案评审",
+        "insight_kind": "observation",
+        "uncertainty": "medium",
+        "evidence": [
+          {
+            "file": "2026-08-01.md",
+            "line": 2,
+            "quote": "评审方案前，先写清成功标准和失败标准。"
+          },
+          {
+            "file": "2026-08-02.md",
+            "line": 2,
+            "quote": "这次仍然先定义验证标准，再排实现顺序。"
+          }
+        ],
+        "counterevidence": [],
+        "created_at": "2026-08-11T04:00:06.000Z",
+        "provenance": {
+          "origin": "agent_memory",
+          "run_id": "arun_f80ff0f7255cb9cb84f2e260",
+          "request_id": "arq_111111111111111111111111",
+          "operation": "new",
+          "base_profile_ref": null
+        }
+      }
+    ],
+    "latest_run": {
+      "run_id": "arun_f80ff0f7255cb9cb84f2e260",
+      "run_key": "ark_b832352568428472b14173bf",
+      "cache_hit": false,
+      "request_id": "arq_111111111111111111111111",
+      "status": "updated",
+      "completed_at": "2026-08-11T04:00:06.000Z",
+      "model_turns": 2,
+      "tool_calls": 2,
+      "actions": [
+        "search_history",
+        "finalize_patch"
+      ],
+      "reason_codes": [
+        "need_history_evidence",
+        "evidence_sufficient"
+      ],
+      "history_matches": 2,
+      "stop_reason": "patch_committed",
+      "usage": {
+        "model_calls": 2,
+        "prompt_tokens": 800,
+        "completion_tokens": 200,
+        "total_tokens": 1000,
+        "prompt_cache_hit_tokens": 100,
+        "prompt_cache_miss_tokens": 700,
+        "reasoning_tokens": 50,
+        "usage_missing": false,
+        "cost_usd": 0.001
+      }
+    },
+    "stats": {
+      "legacy_seen": 0,
+      "stored_seen": 1,
+      "stored_active": 1,
+      "tombstones": 0,
+      "invalid_excluded": 0,
+      "user_actions_seen": 0,
+      "user_actions_valid": 0,
+      "user_actions_applied": 0,
+      "active": 1
+    }
+  },
+  "user_actions": [
+    {
+      "schema_version": "1.0",
+      "id": "uact_666666666666666666666666",
+      "kind": "remember_agent_user_action",
+      "created_at": "2026-08-12T02:00:00.000Z",
+      "action": "edit",
+      "memory_id": "mem_f1d55da7f1cfacb3dc19345f",
+      "base_revision": 1,
+      "base_revision_sha256": "628ac7338216af56cc9b3fcd2bfafc44df453f0ecd208ce96bd96dc0ee8b12ef",
+      "statement": "在产品方案中，我通常先写清验证标准再决定实现顺序。",
+      "scope": "产品方案评审"
+    },
+    {
+      "schema_version": "1.0",
+      "id": "uact_777777777777777777777777",
+      "kind": "remember_agent_user_action",
+      "created_at": "2026-08-12T03:00:00.000Z",
+      "action": "delete",
+      "memory_id": "mem_f1d55da7f1cfacb3dc19345f",
+      "base_revision": 1,
+      "base_revision_sha256": "628ac7338216af56cc9b3fcd2bfafc44df453f0ecd208ce96bd96dc0ee8b12ef",
+      "statement": null,
+      "scope": null
+    },
+    {
+      "schema_version": "1.0",
+      "id": "uact_888888888888888888888888",
+      "kind": "remember_agent_user_action",
+      "created_at": "2026-08-12T04:00:00.000Z",
+      "action": "edit",
+      "memory_id": "mem_f1d55da7f1cfacb3dc19345f",
+      "base_revision": 1,
+      "base_revision_sha256": "628ac7338216af56cc9b3fcd2bfafc44df453f0ecd208ce96bd96dc0ee8b12ef",
+      "statement": "删除后的迟到修改不应让这条理解恢复。",
+      "scope": "产品方案评审"
+    }
+  ]
+}

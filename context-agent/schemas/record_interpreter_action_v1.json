@@ -1,0 +1,270 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/record_interpreter_action_v1.json",
+  "title": "Memento Record Interpreter Action v1",
+  "oneOf": [
+    { "$ref": "#/$defs/propose_receipt" },
+    { "$ref": "#/$defs/finish_original_only" },
+    { "$ref": "#/$defs/finish_insufficient_signal" }
+  ],
+  "$defs": {
+    "text80": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80,
+      "pattern": "^(?!\\s)(?!.*\\s$)[^\\u0000]+$"
+    },
+    "evidence_ref": {
+      "type": "string",
+      "pattern": "^eref_[0-9a-f]{16}$"
+    },
+    "object_ref": {
+      "type": "string",
+      "pattern": "^oref_[0-9a-f]{16}$"
+    },
+    "content_type": {
+      "enum": [
+        "quote",
+        "own_idea",
+        "observation",
+        "question",
+        "decision",
+        "action",
+        "experience",
+        "fact",
+        "learning"
+      ]
+    },
+    "purpose": {
+      "enum": [
+        "find_later",
+        "continue_thinking",
+        "create",
+        "future_decision",
+        "action_clue",
+        "preserve_only"
+      ]
+    },
+    "facets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "content_types",
+        "topics",
+        "objects",
+        "stance",
+        "cognitive_state",
+        "purposes"
+      ],
+      "properties": {
+        "content_types": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/content_type" }
+        },
+        "topics": {
+          "type": "array",
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/text80" }
+        },
+        "objects": {
+          "type": "array",
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/text80" }
+        },
+        "stance": {
+          "enum": [
+            "agree",
+            "doubt",
+            "reject",
+            "inspired",
+            "self_observation",
+            "unresolved",
+            "unknown"
+          ]
+        },
+        "cognitive_state": {
+          "enum": [
+            "first_seen",
+            "repeated",
+            "supports_existing",
+            "conflicts_existing",
+            "revises_existing",
+            "verified",
+            "unknown"
+          ]
+        },
+        "purposes": {
+          "type": "array",
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/purpose" }
+        }
+      }
+    },
+    "memory_candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "statement",
+        "memory_kind",
+        "topics",
+        "purposes",
+        "uncertainty",
+        "source_ref_ids"
+      ],
+      "properties": {
+        "statement": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 600,
+          "pattern": "^(?!\\s)(?!.*\\s$)[^\\u0000]+$"
+        },
+        "memory_kind": { "$ref": "#/$defs/content_type" },
+        "topics": {
+          "type": "array",
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/text80" }
+        },
+        "purposes": {
+          "type": "array",
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/purpose" }
+        },
+        "uncertainty": { "enum": ["low", "medium", "high"] },
+        "source_ref_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/evidence_ref" }
+        }
+      }
+    },
+    "relation_candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "from_candidate_index",
+        "to_ref_id",
+        "direction",
+        "statement",
+        "uncertainty",
+        "source_ref_ids"
+      ],
+      "properties": {
+        "type": {
+          "enum": ["supports", "counterexample", "revises", "scope_boundary", "same_topic"]
+        },
+        "from_candidate_index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "to_ref_id": { "$ref": "#/$defs/object_ref" },
+        "direction": { "enum": ["directed", "undirected"] },
+        "statement": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 600,
+          "pattern": "^(?!\\s)(?!.*\\s$)[^\\u0000]+$"
+        },
+        "uncertainty": { "enum": ["low", "medium", "high"] },
+        "source_ref_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/evidence_ref" }
+        }
+      }
+    },
+    "propose_arguments": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "summary",
+        "facets",
+        "memory_candidates",
+        "relation_candidates",
+        "source_ref_ids"
+      ],
+      "properties": {
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 280,
+          "pattern": "^(?!\\s)(?!.*\\s$)[^\\u0000]+$"
+        },
+        "facets": { "$ref": "#/$defs/facets" },
+        "memory_candidates": {
+          "type": "array",
+          "maxItems": 6,
+          "items": { "$ref": "#/$defs/memory_candidate" }
+        },
+        "relation_candidates": {
+          "type": "array",
+          "maxItems": 8,
+          "items": { "$ref": "#/$defs/relation_candidate" }
+        },
+        "source_ref_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/evidence_ref" }
+        }
+      }
+    },
+    "propose_receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "action", "reason_code", "arguments"],
+      "properties": {
+        "schema_version": { "const": "1.0" },
+        "action": { "const": "propose_receipt" },
+        "reason_code": { "const": "interpretation_ready" },
+        "arguments": { "$ref": "#/$defs/propose_arguments" }
+      }
+    },
+    "finish_original_only": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "action", "reason_code", "arguments"],
+      "properties": {
+        "schema_version": { "const": "1.0" },
+        "action": { "const": "finish" },
+        "reason_code": { "const": "original_only" },
+        "arguments": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["reason"],
+          "properties": { "reason": { "const": "original_only" } }
+        }
+      }
+    },
+    "finish_insufficient_signal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "action", "reason_code", "arguments"],
+      "properties": {
+        "schema_version": { "const": "1.0" },
+        "action": { "const": "finish" },
+        "reason_code": { "const": "insufficient_signal" },
+        "arguments": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["reason"],
+          "properties": { "reason": { "const": "insufficient_signal" } }
+        }
+      }
+    }
+  }
+}

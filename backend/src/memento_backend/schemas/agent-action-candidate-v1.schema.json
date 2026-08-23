@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/agent-action-candidate-v1.schema.json",
+  "title": "AgentActionCandidate V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "kind", "candidate_id", "run_id", "agent_role", "action",
+    "proposed_kind", "proposed_object", "source_refs", "source_spans", "reason_code",
+    "confidence", "prompt_version", "policy_version", "input_sha256",
+    "user_action_watermark_sha256", "usage", "created_at"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "kind": { "const": "memento_agent_action_candidate" },
+    "candidate_id": { "type": "string", "pattern": "^cand_[0-9a-f]{24}$" },
+    "run_id": { "type": "string", "pattern": "^run_[0-9a-f]{24}$" },
+    "agent_role": { "enum": ["capture_understanding", "record_interpreter", "daily_integrator", "theme_synthesizer", "self_understanding", "context_router", "resource_reader"] },
+    "action": { "enum": ["propose_create", "propose_revise", "propose_tombstone", "no_change", "stop"] },
+    "proposed_kind": { "enum": ["capture_decision", "record_interpretation", "memory_atom", "relation", "theme", "self_insight", "resource_read_result", "daily_integration_bundle", "none"] },
+    "proposed_object": { "oneOf": [{ "type": "null" }, { "type": "object" }] },
+    "source_refs": { "type": "array", "maxItems": 128, "uniqueItems": true, "items": { "$ref": "#/$defs/objectRef" } },
+    "source_spans": { "type": "array", "maxItems": 64, "items": { "$ref": "#/$defs/sourceSpan" } },
+    "reason_code": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "confidence": { "enum": ["low", "medium", "high"] },
+    "prompt_version": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "policy_version": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "input_sha256": { "$ref": "#/$defs/sha256" },
+    "user_action_watermark_sha256": { "$ref": "#/$defs/sha256" },
+    "usage": { "$ref": "#/$defs/usage" },
+    "created_at": { "type": "string", "format": "date-time" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "action": { "enum": ["no_change", "stop"] } } },
+      "then": { "properties": { "proposed_kind": { "const": "none" }, "proposed_object": { "type": "null" } } },
+      "else": { "properties": { "proposed_kind": { "not": { "const": "none" } }, "proposed_object": { "type": "object" } } }
+    }
+  ],
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "usage": {
+      "type": "object", "additionalProperties": false,
+      "required": ["mode", "provider", "model", "attempt_status", "prompt_tokens", "completion_tokens", "total_tokens", "estimated_cost_usd", "latency_ms"],
+      "properties": {
+        "mode": { "enum": ["deterministic", "provider"] },
+        "provider": { "oneOf": [{ "type": "null" }, { "type": "string", "minLength": 1, "maxLength": 80 }] },
+        "model": { "oneOf": [{ "type": "null" }, { "type": "string", "minLength": 1, "maxLength": 160 }] },
+        "attempt_status": { "enum": ["not_started", "succeeded", "failed", "unknown"] },
+        "prompt_tokens": { "type": "integer", "minimum": 0 },
+        "completion_tokens": { "type": "integer", "minimum": 0 },
+        "total_tokens": { "type": "integer", "minimum": 0 },
+        "estimated_cost_usd": { "type": "number", "minimum": 0 },
+        "latency_ms": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "relativePath": { "type": "string", "minLength": 1, "maxLength": 1024, "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?/)(?!.*\\\\)[^\\u0000]+$" },
+    "objectRef": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "id", "revision", "revision_sha256"],
+      "properties": {
+        "kind": { "enum": ["source_record", "capture_decision", "resource_card", "read_later_intent", "record_interpretation", "memory_atom", "relation", "theme", "self_insight"] },
+        "id": { "type": "string", "pattern": "^(?:rec|cap|res|rli|int|mat|rel|thm|sin)_[0-9a-f]{24}$" },
+        "revision": { "type": "integer", "minimum": 1 },
+        "revision_sha256": { "$ref": "#/$defs/sha256" }
+      },
+      "allOf": [
+        { "if": { "properties": { "kind": { "const": "source_record" } } }, "then": { "properties": { "id": { "pattern": "^rec_[0-9a-f]{24}$" } } } },
+        { "if": { "properties": { "kind": { "const": "capture_decision" } } }, "then": { "properties": { "id": { "pattern": "^cap_[0-9a-f]{24}$" } } } },
+        { "if": { "properties": { "kind": { "const": "resource_card" } } }, "then": { "properties": { "id": { "pattern": "^res_[0-9a-f]{24}$" } } } },
+        { "if": { "properties": { "kind": { "const": "read_later_intent" } } }, "then": { "properties": { "id": { "pattern": "^rli_[0-9a-f]{24}$" } } } },
+        { "if": { "properties": { "kind": { "const": "record_interpretation" } } }, "then": { "properties": { "id": { "pattern": "^int_[0-9a-f]{24}$" } } } },
+        { "if": { "properties": { "kind": { "const": "memory_atom" } } }, "then": { "properties": { "id": { "pattern": "^mat_[0-9a-f]{24}$" } } } },
+        { "if": { "properties": { "kind": { "const": "relation" } } }, "then": { "properties": { "id": { "pattern": "^rel_[0-9a-f]{24}$" } } } },
+        { "if": { "properties": { "kind": { "const": "theme" } } }, "then": { "properties": { "id": { "pattern": "^thm_[0-9a-f]{24}$" } } } },
+        { "if": { "properties": { "kind": { "const": "self_insight" } } }, "then": { "properties": { "id": { "pattern": "^sin_[0-9a-f]{24}$" } } } }
+      ]
+    },
+    "sourceSpan": {
+      "type": "object", "additionalProperties": false,
+      "required": ["record_id", "record_revision", "record_revision_sha256", "source_file", "line_start", "line_end", "quote", "quote_sha256"],
+      "properties": {
+        "record_id": { "type": "string", "pattern": "^rec_[0-9a-f]{24}$" }, "record_revision": { "type": "integer", "minimum": 1 },
+        "record_revision_sha256": { "$ref": "#/$defs/sha256" }, "source_file": { "$ref": "#/$defs/relativePath" },
+        "line_start": { "type": "integer", "minimum": 1 }, "line_end": { "type": "integer", "minimum": 1 },
+        "quote": { "type": "string", "minLength": 1, "maxLength": 20000 }, "quote_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  }
+}

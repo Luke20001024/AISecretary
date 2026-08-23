@@ -1,0 +1,71 @@
+:root {
+  /* Source: chrome-newtab/dashboard.css cognitive-home tokens */
+  --memento-paper: #f0ede5;
+  --memento-surface: #fafaf7;
+  --memento-surface-soft: rgba(240, 237, 229, 0.68);
+  --memento-ink: #1a1a1a;
+  --memento-ink-soft: #2a2a28;
+  --memento-muted: #66635e;
+  --memento-faint: #77736c;
+  --memento-line: rgba(26, 26, 26, 0.09);
+  --memento-line-strong: rgba(26, 26, 26, 0.16);
+  --memento-blue: #547ca6;
+  --memento-blue-deep: #285c86;
+  --memento-blue-line: #8ea8c5;
+  --memento-blue-soft: #e8eef8;
+  --memento-warn: #796353;
+  --memento-warn-soft: #f5efe7;
+  --memento-danger: #8b5149;
+  --memento-danger-soft: #f8efed;
+
+  --memento-font-display: Georgia, "Times New Roman", "Songti SC", serif;
+  --memento-font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+  --memento-font-data: "SF Mono", "JetBrains Mono", "Roboto Mono", ui-monospace, monospace;
+
+  --memento-text-hero: clamp(3.25rem, 7.2vw, 6.75rem);
+  --memento-text-display: clamp(2.5rem, 5.2vw, 5rem);
+  --memento-text-title: clamp(1.75rem, 3vw, 3rem);
+  --memento-text-heading: 1.125rem;
+  --memento-text-body: 0.9375rem;
+  --memento-text-small: 0.75rem;
+  --memento-text-data: 0.625rem;
+
+  --memento-leading-tight: 1.02;
+  --memento-leading-body: 1.7;
+  --memento-leading-small: 1.55;
+
+  --memento-space-1: 0.25rem;
+  --memento-space-2: 0.5rem;
+  --memento-space-3: 0.75rem;
+  --memento-space-4: 1rem;
+  --memento-space-6: 1.5rem;
+  --memento-space-8: 2rem;
+  --memento-space-12: 3rem;
+  --memento-space-16: 4rem;
+  --memento-space-24: 6rem;
+
+  --memento-radius-control: 2px;
+  --memento-radius-window: 6px;
+  --memento-radius-pill: 999px;
+
+  --memento-shadow-window: 0 18px 54px rgba(32, 42, 37, 0.11);
+  --memento-shadow-floating: 0 8px 28px rgba(43, 63, 72, 0.08);
+
+  --memento-ease: cubic-bezier(0.2, 0.75, 0.3, 1);
+  --memento-duration-control: 180ms;
+  --memento-duration-story: 720ms;
+}
+
+.memento-paper-texture {
+  background:
+    radial-gradient(circle at 14% 8%, rgba(255, 255, 255, 0.72), transparent 30%),
+    repeating-linear-gradient(0deg, rgba(93, 81, 59, 0.018) 0, rgba(93, 81, 59, 0.018) 1px, transparent 1px, transparent 5px),
+    var(--memento-paper);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --memento-duration-control: 1ms;
+    --memento-duration-story: 1ms;
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/record-interpretation-v2.schema.json",
+  "title": "RecordInterpretationRevision V2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "kind", "interpretation_id", "revision",
+    "previous_revision_sha256", "status", "operation", "source_record_ref",
+    "capture_decision_ref", "summary", "content_types", "topics", "purposes",
+    "stance", "uncertainty", "source_spans", "prompt_version", "policy_version",
+    "user_action_watermark_sha256", "created_at", "committed_by"
+  ],
+  "properties": {
+    "schema_version": { "const": "2.0" },
+    "kind": { "const": "memento_record_interpretation_revision" },
+    "interpretation_id": { "type": "string", "pattern": "^int_[0-9a-f]{24}$" },
+    "revision": { "type": "integer", "minimum": 1 },
+    "previous_revision_sha256": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/sha256" }] },
+    "status": { "enum": ["ready", "needs_review", "original_only", "tombstone"] },
+    "operation": { "enum": ["interpret", "user_confirm", "user_edit", "original_only", "source_superseded", "tombstone"] },
+    "source_record_ref": { "$ref": "#/$defs/sourceRecordRef" },
+    "capture_decision_ref": { "$ref": "#/$defs/captureDecisionRef" },
+    "summary": { "oneOf": [{ "type": "null" }, { "type": "string", "minLength": 1, "maxLength": 600 }] },
+    "content_types": {
+      "type": "array", "maxItems": 12, "uniqueItems": true,
+      "items": { "enum": ["own_idea", "observation", "question", "decision", "action", "experience", "learning", "quoted_material"] }
+    },
+    "topics": { "type": "array", "maxItems": 24, "uniqueItems": true, "items": { "type": "string", "minLength": 1, "maxLength": 80 } },
+    "purposes": {
+      "type": "array", "maxItems": 12, "uniqueItems": true,
+      "items": { "enum": ["find_later", "continue_thinking", "create", "future_decision", "action_clue", "preserve_only"] }
+    },
+    "stance": { "enum": ["agree", "doubt", "reject", "inspired", "self_observation", "unresolved", "unknown"] },
+    "uncertainty": { "enum": ["low", "medium", "high"] },
+    "source_spans": { "type": "array", "maxItems": 32, "items": { "$ref": "#/$defs/sourceSpan" } },
+    "prompt_version": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "policy_version": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "user_action_watermark_sha256": { "$ref": "#/$defs/sha256" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "committed_by": { "enum": ["workflow", "user", "migration"] }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "revision": { "const": 1 } } },
+      "then": { "properties": { "previous_revision_sha256": { "type": "null" } } },
+      "else": { "properties": { "previous_revision_sha256": { "$ref": "#/$defs/sha256" } } }
+    },
+    {
+      "if": { "properties": { "status": { "enum": ["ready", "needs_review"] } } },
+      "then": {
+        "properties": {
+          "summary": { "type": "string", "minLength": 1, "maxLength": 600 },
+          "source_spans": { "minItems": 1 }
+        }
+      },
+      "else": {
+        "properties": {
+          "summary": { "type": "null" },
+          "content_types": { "maxItems": 0 },
+          "topics": { "maxItems": 0 },
+          "purposes": { "maxItems": 0 },
+          "source_spans": { "maxItems": 0 }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "tombstone" } } },
+      "then": { "properties": { "operation": { "const": "tombstone" } } }
+    }
+  ],
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "relativePath": { "type": "string", "minLength": 1, "maxLength": 1024, "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?/)(?!.*\\\\)[^\\u0000]+$" },
+    "sourceRecordRef": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "id", "revision", "revision_sha256"],
+      "properties": {
+        "kind": { "const": "source_record" }, "id": { "type": "string", "pattern": "^rec_[0-9a-f]{24}$" },
+        "revision": { "type": "integer", "minimum": 1 }, "revision_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "captureDecisionRef": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "id", "revision", "revision_sha256"],
+      "properties": {
+        "kind": { "const": "capture_decision" }, "id": { "type": "string", "pattern": "^cap_[0-9a-f]{24}$" },
+        "revision": { "type": "integer", "minimum": 1 }, "revision_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "sourceSpan": {
+      "type": "object", "additionalProperties": false,
+      "required": ["record_id", "record_revision", "record_revision_sha256", "source_file", "line_start", "line_end", "quote", "quote_sha256"],
+      "properties": {
+        "record_id": { "type": "string", "pattern": "^rec_[0-9a-f]{24}$" },
+        "record_revision": { "type": "integer", "minimum": 1 },
+        "record_revision_sha256": { "$ref": "#/$defs/sha256" },
+        "source_file": { "$ref": "#/$defs/relativePath" },
+        "line_start": { "type": "integer", "minimum": 1 }, "line_end": { "type": "integer", "minimum": 1 },
+        "quote": { "type": "string", "minLength": 1, "maxLength": 20000 }, "quote_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  }
+}

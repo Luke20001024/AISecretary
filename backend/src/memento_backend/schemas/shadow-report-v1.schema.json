@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/shadow-report-v1.schema.json",
+  "title": "Memento Shadow Report V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "kind", "run_id", "status", "plan_id", "plan_sha256", "snapshot_id", "snapshot_sha256", "case_set_ref", "work_product_ref", "observation_sha256", "dataset_kind", "execution_mode", "consent_ref", "metrics", "gate_results", "all_gates_passed", "candidate_bundle_sha256", "candidate_pointer_sha256", "baseline_bundle_sha256", "baseline_snapshot_path", "formal_write_count", "source_snapshot_verified", "real_quality_validated", "finished_at"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "kind": {"const": "memento_shadow_report"},
+    "run_id": {"type": "string", "pattern": "^shr_[0-9a-f]{24}$"},
+    "status": {"enum": ["infrastructure_only", "passed", "failed", "aborted"]},
+    "plan_id": {"type": "string", "pattern": "^shp_[0-9a-f]{24}$"},
+    "plan_sha256": {"$ref": "#/$defs/sha256"},
+    "snapshot_id": {"type": "string", "pattern": "^snp_[0-9a-f]{24}$"},
+    "snapshot_sha256": {"$ref": "#/$defs/sha256"},
+    "case_set_ref": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["case_set_id", "case_set_sha256"],
+          "properties": {
+            "case_set_id": {"type": "string", "pattern": "^shcs_[0-9a-f]{24}$"},
+            "case_set_sha256": {"$ref": "#/$defs/sha256"}
+          }
+        }
+      ]
+    },
+    "work_product_ref": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["work_product_id", "work_product_sha256"],
+          "properties": {
+            "work_product_id": {"type": "string", "pattern": "^shw_[0-9a-f]{24}$"},
+            "work_product_sha256": {"$ref": "#/$defs/sha256"}
+          }
+        }
+      ]
+    },
+    "observation_sha256": {"$ref": "#/$defs/sha256"},
+    "dataset_kind": {"enum": ["synthetic_fixture", "anonymized_samples", "real_vault_snapshot"]},
+    "execution_mode": {"enum": ["deterministic_zero", "provider_shadow"]},
+    "consent_ref": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["consent_id", "consent_sha256"],
+          "properties": {
+            "consent_id": {"type": "string", "pattern": "^shc_[0-9a-f]{24}$"},
+            "consent_sha256": {"$ref": "#/$defs/sha256"}
+          }
+        }
+      ]
+    },
+    "metrics": {
+      "type": "object", "additionalProperties": false,
+      "required": ["counts", "rates", "usage"],
+      "properties": {
+        "counts": {
+          "type": "object", "additionalProperties": false,
+          "required": ["case_count", "expected_link_count", "predicted_link_count", "false_link_count", "missed_link_count", "predicted_inference_count", "over_inference_count", "stop_case_count", "stop_true_positive", "stop_false_positive", "stop_false_negative", "source_reference_checks", "valid_source_references", "self_traceability_checks", "valid_self_traces", "resource_opinion_checks", "resource_as_user_errors", "stale_resurrection_count", "adapter_checks", "adapter_passes", "source_hash_checks", "stable_source_hashes", "provider_attempt_case_count"],
+          "properties": {
+            "case_count": {"type": "integer", "minimum": 1},
+            "expected_link_count": {"$ref": "#/$defs/count"},
+            "predicted_link_count": {"$ref": "#/$defs/count"},
+            "false_link_count": {"$ref": "#/$defs/count"},
+            "missed_link_count": {"$ref": "#/$defs/count"},
+            "predicted_inference_count": {"$ref": "#/$defs/count"},
+            "over_inference_count": {"$ref": "#/$defs/count"},
+            "stop_case_count": {"$ref": "#/$defs/count"},
+            "stop_true_positive": {"$ref": "#/$defs/count"},
+            "stop_false_positive": {"$ref": "#/$defs/count"},
+            "stop_false_negative": {"$ref": "#/$defs/count"},
+            "source_reference_checks": {"$ref": "#/$defs/count"},
+            "valid_source_references": {"$ref": "#/$defs/count"},
+            "self_traceability_checks": {"$ref": "#/$defs/count"},
+            "valid_self_traces": {"$ref": "#/$defs/count"},
+            "resource_opinion_checks": {"$ref": "#/$defs/count"},
+            "resource_as_user_errors": {"$ref": "#/$defs/count"},
+            "stale_resurrection_count": {"$ref": "#/$defs/count"},
+            "adapter_checks": {"$ref": "#/$defs/count"},
+            "adapter_passes": {"$ref": "#/$defs/count"},
+            "source_hash_checks": {"$ref": "#/$defs/count"},
+            "stable_source_hashes": {"$ref": "#/$defs/count"},
+            "provider_attempt_case_count": {"$ref": "#/$defs/count"}
+          }
+        },
+        "rates": {
+          "type": "object", "additionalProperties": false,
+          "required": ["false_link_rate", "missed_link_rate", "over_inference_rate", "stop_precision", "stop_recall", "stop_f1", "source_reference_valid_rate", "self_traceability_rate", "resource_as_user_false_rate", "adapter_pass_rate", "source_hash_stability_rate"],
+          "properties": {
+            "false_link_rate": {"$ref": "#/$defs/nullable_rate"},
+            "missed_link_rate": {"$ref": "#/$defs/nullable_rate"},
+            "over_inference_rate": {"$ref": "#/$defs/nullable_rate"},
+            "stop_precision": {"$ref": "#/$defs/nullable_rate"},
+            "stop_recall": {"$ref": "#/$defs/nullable_rate"},
+            "stop_f1": {"$ref": "#/$defs/nullable_rate"},
+            "source_reference_valid_rate": {"$ref": "#/$defs/nullable_rate"},
+            "self_traceability_rate": {"$ref": "#/$defs/nullable_rate"},
+            "resource_as_user_false_rate": {"$ref": "#/$defs/nullable_rate"},
+            "adapter_pass_rate": {"$ref": "#/$defs/nullable_rate"},
+            "source_hash_stability_rate": {"$ref": "#/$defs/nullable_rate"}
+          }
+        },
+        "usage": {
+          "type": "object", "additionalProperties": false,
+          "required": ["prompt_tokens", "completion_tokens", "total_tokens", "estimated_cost_usd", "latency_p50_ms", "latency_p95_ms", "latency_max_ms"],
+          "properties": {
+            "prompt_tokens": {"$ref": "#/$defs/count"},
+            "completion_tokens": {"$ref": "#/$defs/count"},
+            "total_tokens": {"$ref": "#/$defs/count"},
+            "estimated_cost_usd": {"type": "number", "minimum": 0},
+            "latency_p50_ms": {"$ref": "#/$defs/count"},
+            "latency_p95_ms": {"$ref": "#/$defs/count"},
+            "latency_max_ms": {"$ref": "#/$defs/count"}
+          }
+        }
+      }
+    },
+    "gate_results": {
+      "type": "array", "minItems": 13, "maxItems": 13,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["metric", "direction", "actual", "threshold", "status"],
+        "properties": {
+          "metric": {"type": "string", "minLength": 1},
+          "direction": {"enum": ["min", "max"]},
+          "actual": {"type": ["number", "null"]},
+          "threshold": {"type": "number"},
+          "status": {"enum": ["passed", "failed", "not_evaluated"]}
+        }
+      }
+    },
+    "all_gates_passed": {"type": "boolean"},
+    "candidate_bundle_sha256": {"$ref": "#/$defs/nullable_sha256"},
+    "candidate_pointer_sha256": {"$ref": "#/$defs/nullable_sha256"},
+    "baseline_bundle_sha256": {"$ref": "#/$defs/nullable_sha256"},
+    "baseline_snapshot_path": {
+      "type": ["string", "null"],
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\u0000]+$"
+    },
+    "formal_write_count": {"const": 0},
+    "source_snapshot_verified": {"const": true},
+    "real_quality_validated": {"type": "boolean"},
+    "finished_at": {"type": "string", "format": "date-time"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "nullable_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "count": {"type": "integer", "minimum": 0},
+    "nullable_rate": {"type": ["number", "null"], "minimum": 0, "maximum": 1}
+  }
+}

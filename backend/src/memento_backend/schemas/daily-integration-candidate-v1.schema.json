@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/daily-integration-candidate-v1.schema.json",
+  "title": "DailyIntegrationCandidate V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "kind", "local_date", "memory_atoms", "relations", "prompt_version", "policy_version", "user_action_watermark_sha256", "created_at"],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "kind": { "const": "memento_daily_integration_candidate" },
+    "local_date": { "type": "string", "format": "date" },
+    "memory_atoms": { "type": "array", "maxItems": 128, "items": { "type": "object" } },
+    "relations": { "type": "array", "maxItems": 256, "items": { "type": "object" } },
+    "prompt_version": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "policy_version": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "user_action_watermark_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "created_at": { "type": "string", "format": "date-time" }
+  }
+}

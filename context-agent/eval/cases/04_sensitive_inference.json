@@ -1,0 +1,38 @@
+{
+  "name": "sensitive inference is rejected",
+  "live_eval": false,
+  "sources": {
+    "2026-08-05.md": "# 2026-08-05\n\n## 21:00 · 随手记\n\n今晚去了医院。\n"
+  },
+  "mock_response": {
+    "schema_version": "1.0",
+    "status": "candidate",
+    "candidate": {
+      "statement": "用户可能有疾病，需要减少工作量。",
+      "scope": "global",
+      "why_now": "从就医记录推断。",
+      "category": "constraint",
+      "sensitive": true,
+      "uncertainty": "high",
+      "evidence": [
+        {
+          "file": "2026-08-05.md",
+          "line": 5,
+          "quote": "今晚去了医院。"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "contract_valid": false,
+    "evidence_valid": false,
+    "status": "candidate",
+    "category": "constraint",
+    "error_kind": "sensitive"
+  },
+  "usage": {
+    "prompt_tokens": 510,
+    "completion_tokens": 110,
+    "total_tokens": 620
+  }
+}

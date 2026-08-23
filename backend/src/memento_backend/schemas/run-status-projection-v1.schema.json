@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/run-status-projection-v1.schema.json",
+  "title": "Run Status Projection V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "kind", "request_id", "run_kind", "status", "requested_at", "finished_at", "reason_code", "agent_run_ids", "committed_refs"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "kind": {"const": "memento_run_status_projection"},
+    "request_id": {"type": "string", "pattern": "^rrq_[0-9a-f]{24}$"},
+    "run_kind": {"enum": ["capture_understanding", "record_interpreter", "daily_integrator", "theme_synthesizer", "self_understanding", "context_router", "resource_reader", "rebuild_projections"]},
+    "status": {"enum": ["queued", "completed", "failed", "rejected", "conflict"]},
+    "requested_at": {"type": "string", "format": "date-time"},
+    "finished_at": {"oneOf": [{"type": "null"}, {"type": "string", "format": "date-time"}]},
+    "reason_code": {"oneOf": [{"type": "null"}, {"type": "string", "pattern": "^[a-z][a-z0-9_]{0,63}$"}]},
+    "agent_run_ids": {"type": "array", "maxItems": 32, "uniqueItems": true, "items": {"type": "string", "pattern": "^run_[0-9a-f]{24}$"}},
+    "committed_refs": {"type": "array", "maxItems": 128, "uniqueItems": true, "items": {"$ref": "#/$defs/objectRef"}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "objectRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id", "revision", "revision_sha256"],
+      "properties": {
+        "kind": {"enum": ["source_record", "capture_decision", "resource_card", "read_later_intent", "record_interpretation", "memory_atom", "relation", "theme", "self_insight"]},
+        "id": {"type": "string", "pattern": "^(rec|cap|res|rli|int|mat|rel|thm|sin)_[0-9a-f]{24}$"},
+        "revision": {"type": "integer", "minimum": 1},
+        "revision_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}

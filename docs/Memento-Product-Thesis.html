@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Memento 产品命题：以接近零摩擦的方式承接重要意图，让人与 AI 在轻量互动中共同形成可追溯、可修订的长期理解。">
+  <title>Memento · 一种轻度理解</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f7f6f2;
+      --surface: #ffffff;
+      --ink: #171714;
+      --muted: #6f6d66;
+      --line: #dfddd5;
+      --accent: #2155d9;
+      --soft: #eceff9;
+      --warm: #f0ede4;
+      --max: 1080px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--paper);
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 88% 4%, rgba(33, 85, 217, 0.08), transparent 26rem),
+        var(--paper);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      font-size: 17px;
+      line-height: 1.75;
+      text-rendering: optimizeLegibility;
+    }
+
+    a {
+      color: inherit;
+      text-decoration-color: #a7a59e;
+      text-underline-offset: 0.2em;
+    }
+
+    a:hover { color: var(--accent); }
+
+    .page {
+      width: min(calc(100% - 40px), var(--max));
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 76px;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .brand { font-weight: 720; }
+    .edition { color: var(--muted); }
+
+    main { padding-bottom: 100px; }
+
+    .hero {
+      min-height: 74vh;
+      display: grid;
+      align-content: center;
+      padding: 96px 0 80px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .eyebrow,
+    .section-index,
+    .status {
+      margin: 0;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 720;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 900px;
+      margin: 24px 0 30px;
+      font-size: clamp(50px, 8vw, 96px);
+      font-weight: 650;
+      letter-spacing: -0.06em;
+      line-height: 1.02;
+    }
+
+    .lead {
+      max-width: 760px;
+      margin: 0;
+      color: #3f3e39;
+      font-size: clamp(20px, 2.6vw, 28px);
+      line-height: 1.55;
+    }
+
+    section {
+      padding: 88px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .section-head {
+      display: grid;
+      grid-template-columns: 180px minmax(0, 1fr);
+      gap: 32px;
+      margin-bottom: 48px;
+    }
+
+    h2 {
+      max-width: 760px;
+      margin: 0;
+      font-size: clamp(32px, 5vw, 54px);
+      font-weight: 640;
+      letter-spacing: -0.045em;
+      line-height: 1.15;
+    }
+
+    h3 {
+      margin: 0 0 12px;
+      font-size: 20px;
+      line-height: 1.35;
+    }
+
+    p { margin: 0; }
+
+    .thesis {
+      padding: 40px;
+      border: 1px solid #cfd5e8;
+      border-radius: 24px;
+      background: var(--soft);
+      font-size: clamp(25px, 4vw, 42px);
+      font-weight: 590;
+      letter-spacing: -0.035em;
+      line-height: 1.35;
+    }
+
+    .thesis small {
+      display: block;
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      min-height: 240px;
+      padding: 30px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .card-number {
+      display: block;
+      margin-bottom: 48px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .card p { color: var(--muted); }
+
+    .comparison {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--surface);
+    }
+
+    .comparison article {
+      padding: 36px;
+    }
+
+    .comparison article + article {
+      border-left: 1px solid var(--line);
+    }
+
+    .comparison .label {
+      display: inline-block;
+      margin-bottom: 56px;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .comparison strong {
+      display: block;
+      margin-bottom: 16px;
+      font-size: 28px;
+      letter-spacing: -0.025em;
+      line-height: 1.25;
+    }
+
+    .comparison p { color: var(--muted); }
+
+    .tradeoff {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 24px;
+      margin-top: 24px;
+      padding: 24px 30px;
+      border-radius: 16px;
+      background: var(--warm);
+      text-align: center;
+    }
+
+    .tradeoff span:nth-child(2) { color: var(--muted); }
+
+    .loop {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 48px;
+    }
+
+    .loop div {
+      position: relative;
+      padding: 24px 18px;
+      border-top: 2px solid var(--ink);
+    }
+
+    .loop b {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+
+    .loop span {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .remember-card {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 38px;
+      border: 1px solid #cad1e8;
+      border-radius: 24px;
+      background: var(--surface);
+      box-shadow: 0 24px 70px rgba(31, 39, 68, 0.08);
+    }
+
+    .remember-card .prompt {
+      margin: 26px 0;
+      font-size: 24px;
+      letter-spacing: -0.02em;
+      line-height: 1.5;
+    }
+
+    .evidence {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 28px;
+    }
+
+    .actions span {
+      padding: 8px 13px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: #4d4c46;
+      font-size: 14px;
+    }
+
+    .actions span:first-child {
+      color: white;
+      border-color: var(--accent);
+      background: var(--accent);
+    }
+
+    .principle {
+      max-width: 760px;
+      margin: 36px auto 0;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .roadmap {
+      display: grid;
+      gap: 14px;
+    }
+
+    .phase {
+      display: grid;
+      grid-template-columns: 160px minmax(0, 1fr) 170px;
+      gap: 28px;
+      align-items: start;
+      padding: 30px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .phase:last-child { border-bottom: 1px solid var(--line); }
+
+    .phase p { color: var(--muted); }
+
+    .phase .outcome {
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .judgement {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 56px;
+      align-items: start;
+    }
+
+    .judgement-copy {
+      font-size: 23px;
+      line-height: 1.65;
+    }
+
+    .signal-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .signal-list div {
+      padding: 18px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .signal-list b { display: block; }
+    .signal-list span { color: var(--muted); font-size: 14px; }
+
+    .closing {
+      padding-bottom: 40px;
+      border-bottom: 0;
+    }
+
+    .closing p {
+      max-width: 900px;
+      font-size: clamp(32px, 5.5vw, 64px);
+      font-weight: 620;
+      letter-spacing: -0.05em;
+      line-height: 1.17;
+    }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 32px 0 54px;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+      font-size: 13px;
+    }
+
+    @media (max-width: 760px) {
+      body { font-size: 16px; }
+      .page { width: min(calc(100% - 28px), var(--max)); }
+      .hero { min-height: auto; padding: 88px 0 64px; }
+      h1 { font-size: clamp(46px, 16vw, 74px); }
+      section { padding: 64px 0; }
+      .section-head,
+      .grid,
+      .comparison,
+      .judgement { grid-template-columns: 1fr; }
+      .section-head { gap: 16px; }
+      .comparison article + article {
+        border-top: 1px solid var(--line);
+        border-left: 0;
+      }
+      .comparison .label { margin-bottom: 30px; }
+      .tradeoff { grid-template-columns: 1fr; gap: 6px; }
+      .loop { grid-template-columns: 1fr; }
+      .loop div { padding: 16px 2px; }
+      .phase { grid-template-columns: 1fr; gap: 10px; }
+      .card { min-height: auto; }
+      .card-number { margin-bottom: 28px; }
+      .thesis, .remember-card { padding: 28px; }
+      footer { flex-direction: column; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
+
+    @media print {
+      body { background: white; }
+      .hero { min-height: auto; }
+      section { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="brand">Memento</div>
+      <div class="edition">Product thesis · 2026.08</div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <p class="eyebrow">From memory to mutual understanding</p>
+        <h1>一种轻度理解</h1>
+        <p class="lead">Memento 以接近零摩擦的方式承接重要意图，让人与 AI 在轻量、可拒绝、可修正的互动中，共同形成长期理解。</p>
+      </section>
+
+      <section aria-labelledby="thesis-title">
+        <div class="section-head">
+          <p class="section-index">00 / 核心命题</p>
+          <h2 id="thesis-title">不是让 AI 记得更多，而是让理解形成得更可信。</h2>
+        </div>
+        <div class="thesis">
+          Memento 让你几乎不被打断地留下重要 Context，并让“AI 如何理解你”始终可见、可追溯、可修正。
+          <small>用户决定什么值得被记住；AI 说明自己如何理解。</small>
+        </div>
+      </section>
+
+      <section aria-labelledby="advantages-title">
+        <div class="section-head">
+          <p class="section-index">01 / 真正优势</p>
+          <h2 id="advantages-title">四个已经清晰的产品支点</h2>
+        </div>
+        <div class="grid">
+          <article class="card">
+            <span class="card-number">01</span>
+            <h3>记录与回看都接近零摩擦</h3>
+            <p>在当前窗口一次触发完成记录；在新标签页这个自然间隙重新出现。零摩擦不等于零确认，而是零切换、零复述、零整理。</p>
+          </article>
+          <article class="card">
+            <span class="card-number">02</span>
+            <h3>跨入口承接同一个人的意图</h3>
+            <p>搜索、聊天、文档、代码、截图与声音不再彼此割裂。Memento 不替代这些工具，而是在其上形成一层个人 Context。</p>
+          </article>
+          <article class="card">
+            <span class="card-number">03</span>
+            <h3>主动触发就是重要性标注</h3>
+            <p>“曾经出现在屏幕上”不等于重要。用户主动留下的一刻，同时表达了：这件事值得未来的我和 AI 再次理解。</p>
+          </article>
+          <article class="card">
+            <span class="card-number">04</span>
+            <h3>先保存事实，再允许 AI 理解</h3>
+            <p>原始事实立即可用，AI 解释可以晚一点生成、删除或重建。模型可以变化，用户的证据、修改权和判断权不能消失。</p>
+          </article>
+        </div>
+      </section>
+
+      <section aria-labelledby="chronicle-title">
+        <div class="section-head">
+          <p class="section-index">02 / 产品差异</p>
+          <h2 id="chronicle-title">Memento 与 Chronicle 解决的不是同一个问题</h2>
+        </div>
+        <div class="comparison">
+          <article>
+            <span class="label">Chronicle</span>
+            <strong>观察近期屏幕，让 Codex 记得你正在做什么。</strong>
+            <p>优势是后台自动、覆盖完整，并直接服务于 Codex 的任务连续性。系统从屏幕活动中推断哪些信息值得形成工作记忆。</p>
+          </article>
+          <article>
+            <span class="label">Memento</span>
+            <strong>由用户决定什么值得成为 AI 理解自己的依据。</strong>
+            <p>重点是高质量的主动信号、跨入口的事实层，以及未来可被确认、纠正、撤回并交给不同 AI 使用的个人 Context。</p>
+          </article>
+        </div>
+        <div class="tradeoff" aria-label="Chronicle 与 Memento 的核心取舍">
+          <span>Chronicle：零操作，系统替用户选择</span>
+          <span>↔</span>
+          <span>Memento：近乎零切换，保留一次确认</span>
+        </div>
+      </section>
+
+      <section aria-labelledby="interaction-title">
+        <div class="section-head">
+          <p class="section-index">03 / 交互命题</p>
+          <h2 id="interaction-title">从“审核 AI 记忆”转向“在互动中共同形成理解”</h2>
+        </div>
+        <div class="loop" aria-label="轻度理解的形成过程">
+          <div><b>发现</b><span>从多条事实中发现一个局部模式</span></div>
+          <div><b>暂时理解</b><span>以不确定而非结论的语气表达</span></div>
+          <div><b>恰时出现</b><span>只在自然回看或即将使用时询问</span></div>
+          <div><b>轻量回应</b><span>确认、限定、纠正或拒绝</span></div>
+          <div><b>局部修订</b><span>保留证据、反例、变化与版本</span></div>
+        </div>
+
+        <article class="remember-card">
+          <p class="status">Re:member moment</p>
+          <p class="prompt">我好像更理解你为什么不喜欢完全自动化了。你在意的可能不是自动化本身，而是它能不能被撤回。是这样吗？</p>
+          <p class="evidence">依据：最近 3 条记录 · 查看原始事实</p>
+          <div class="actions" aria-label="可选择的回应">
+            <span>是的</span>
+            <span>只在高风险改动里</span>
+            <span>我想改一句</span>
+            <span>不要记住</span>
+          </div>
+        </article>
+        <p class="principle">完整记忆管理页仍然存在，但只作为审计与安全出口，而不是每天必须完成的工作。</p>
+      </section>
+
+      <section aria-labelledby="roadmap-title">
+        <div class="section-head">
+          <p class="section-index">04 / 演进重点</p>
+          <h2 id="roadmap-title">先完成一个最小理解闭环，再扩展长期个人模型</h2>
+        </div>
+        <div class="roadmap">
+          <article class="phase">
+            <p class="status">Now · 理解候选</p>
+            <div>
+              <h3>AI 一次只提出一个局部理解</h3>
+              <p>给出证据与不确定性，允许“是的 / 只是这次 / 改一下 / 不要记住”，并将反馈与 AI 输出分开保存。</p>
+            </div>
+            <p class="outcome">验证：用户愿意回应</p>
+          </article>
+          <article class="phase">
+            <p class="status">Next · 使用中校准</p>
+            <div>
+              <h3>让已确认 Context 进入真实 AI 任务</h3>
+              <p>当 AI 使用过去的理解时说明来源，允许用户当场纠正；优先实现一键 Context 包或只读本地检索。</p>
+            </div>
+            <p class="outcome">验证：记忆产生价值</p>
+          </article>
+          <article class="phase">
+            <p class="status">Later · Re:member</p>
+            <div>
+              <h3>从单条记忆走向随时间变化的局部理解</h3>
+              <p>先从产品判断、工作偏好等低风险侧面开始，允许反例、矛盾、版本和撤回，再逐步扩展到跨 AI Context。</p>
+            </div>
+            <p class="outcome">验证：长期理解可信</p>
+          </article>
+        </div>
+      </section>
+
+      <section aria-labelledby="judgement-title">
+        <div class="section-head">
+          <p class="section-index">05 / 客观判断</p>
+          <h2 id="judgement-title">值得继续，但条件是从记录闭环走向价值闭环</h2>
+        </div>
+        <div class="judgement">
+          <p class="judgement-copy">问题真实、方向有辨识度，当前产品也已经建立记录与回看基础。尚未被证明的是：用户是否会持续主动记录，以及过去的 Context 是否能在未来任务中真正减少解释、找回判断或纠正 AI。下一阶段不应继续堆功能，而应集中验证这件事。</p>
+          <div class="signal-list">
+            <div><b>核心指标</b><span>每周被重新使用、并帮助了后续任务的历史 Context 数量</span></div>
+            <div><b>继续信号</b><span>用户持续记录，并能明确说出一次“幸好它记住了”</span></div>
+            <div><b>危险信号</b><span>用户喜欢总结，却从未在未来任务中再次使用记录</span></div>
+            <div><b>当前边界</b><span>Re:member、反馈学习与跨 AI 调用仍是待验证能力</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="closing" aria-label="结论">
+        <p>Memento 不试图默默建立一份关于你的画像。它通过许多轻微、可拒绝、可修正的互动，与你共同形成理解。</p>
+      </section>
+    </main>
+
+    <footer>
+      <span>Memento · User-owned context for AI</span>
+      <span><a href="https://learn.chatgpt.com/docs/customization/chronicle">Chronicle 官方说明</a></span>
+    </footer>
+  </div>
+</body>
+</html>

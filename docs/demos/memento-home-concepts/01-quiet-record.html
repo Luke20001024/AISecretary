@@ -1,0 +1,1827 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="Memento 首页概念演示：安静记录版">
+  <title>Memento · 安静记录版</title>
+  <style>
+    :root {
+      --paper: #f7f4ed;
+      --paper-deep: #eee8dc;
+      --paper-soft: #fbf9f4;
+      --ink: #191816;
+      --ink-soft: #45413b;
+      --muted: #7e786f;
+      --faint: #a29b91;
+      --line: rgba(39, 34, 28, 0.12);
+      --line-strong: rgba(39, 34, 28, 0.2);
+      --red: #b83b26;
+      --red-deep: #8e2b1d;
+      --red-soft: #f3ded5;
+      --green: #426453;
+      --green-soft: #e2ece5;
+      --shadow: 0 20px 70px rgba(42, 34, 24, 0.16);
+      --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+      --serif: "Songti SC", "STSong", "Noto Serif CJK SC", Georgia, serif;
+      --mono: "SFMono-Regular", "SF Mono", Menlo, Consolas, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-width: 320px;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--sans);
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    body {
+      min-height: 100dvh;
+      margin: 0;
+      background:
+        radial-gradient(circle at 14% 0%, rgba(255, 255, 255, 0.7), transparent 31rem),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.22), transparent 26rem),
+        var(--paper);
+    }
+
+    body.is-locked {
+      overflow: hidden;
+    }
+
+    button,
+    select,
+    textarea,
+    input {
+      font: inherit;
+    }
+
+    button {
+      color: inherit;
+    }
+
+    button:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible,
+    input:focus-visible {
+      outline: 2px solid var(--red);
+      outline-offset: 3px;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    .visually-hidden {
+      position: absolute !important;
+      width: 1px !important;
+      height: 1px !important;
+      padding: 0 !important;
+      overflow: hidden !important;
+      clip: rect(0, 0, 0, 0) !important;
+      white-space: nowrap !important;
+      border: 0 !important;
+    }
+
+    .page {
+      width: min(calc(100% - 40px), 880px);
+      margin: 0 auto;
+      padding: 34px 0 80px;
+    }
+
+    .masthead {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      min-height: 44px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 11px;
+      font-family: var(--serif);
+      font-size: 19px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .brand-mark {
+      width: 13px;
+      height: 13px;
+      background: var(--red);
+      box-shadow: 4px 4px 0 rgba(184, 59, 38, 0.14);
+      transform: rotate(-2deg);
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .text-button,
+    .quiet-link,
+    .entry-action {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .text-button {
+      display: inline-flex;
+      align-items: center;
+      text-decoration: none;
+      min-height: 38px;
+      padding: 0 14px;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      color: var(--ink-soft);
+      font-size: 13px;
+      transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+    }
+
+    .text-button:hover {
+      border-color: var(--ink-soft);
+      background: rgba(255, 255, 255, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .demo-note {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin: 22px 0 0;
+      padding: 10px 13px;
+      border: 1px solid rgba(142, 43, 29, 0.16);
+      border-radius: 8px;
+      background: rgba(243, 222, 213, 0.44);
+      color: var(--red-deep);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .demo-note strong {
+      font-weight: 650;
+    }
+
+    .demo-number {
+      flex: none;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .state-lab {
+      display: grid;
+      grid-template-columns: 116px minmax(0, 1fr);
+      align-items: center;
+      gap: 18px;
+      margin: 18px 0 32px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .state-lab-title {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 650;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .state-switch {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 3px;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(235, 229, 218, 0.72);
+    }
+
+    .state-button {
+      min-width: 0;
+      min-height: 34px;
+      padding: 6px 10px;
+      border: 0;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 12px;
+      white-space: nowrap;
+      transition: color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+    }
+
+    .state-button:hover {
+      color: var(--ink);
+    }
+
+    .state-button[aria-pressed="true"] {
+      background: var(--paper-soft);
+      box-shadow: 0 1px 5px rgba(40, 34, 28, 0.1);
+      color: var(--ink);
+      font-weight: 620;
+    }
+
+    .understanding {
+      margin-bottom: 52px;
+    }
+
+    .section-kicker {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    .section-kicker h1,
+    .section-kicker h2 {
+      margin: 0;
+      font-family: var(--serif);
+      font-size: 16px;
+      font-weight: 650;
+      letter-spacing: 0.02em;
+    }
+
+    .section-kicker .quiet-link {
+      min-height: 30px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .section-kicker .quiet-link:hover {
+      color: var(--red-deep);
+    }
+
+    .quiet-state {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 14px;
+      min-height: 72px;
+      padding: 15px 2px;
+      border-top: 1px solid var(--line-strong);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .status-seal {
+      position: relative;
+      width: 31px;
+      height: 31px;
+      border: 1px solid var(--line-strong);
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.35);
+    }
+
+    .status-seal::after {
+      position: absolute;
+      inset: 50% auto auto 50%;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      content: "";
+      transform: translate(-50%, -50%);
+    }
+
+    .status-seal.is-working::after {
+      width: 9px;
+      height: 9px;
+      border: 2px solid rgba(184, 59, 38, 0.2);
+      border-top-color: var(--red);
+      background: transparent;
+      animation: spin 900ms linear infinite;
+    }
+
+    .quiet-copy {
+      min-width: 0;
+    }
+
+    .quiet-copy strong {
+      display: block;
+      margin-bottom: 2px;
+      font-size: 14px;
+      font-weight: 620;
+    }
+
+    .quiet-copy span {
+      display: block;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 12px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .quiet-meta {
+      color: var(--faint);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+
+    .insight-card {
+      position: relative;
+      overflow: hidden;
+      padding: 26px 28px 25px;
+      border: 1px solid var(--line-strong);
+      border-radius: 16px;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 55%),
+        var(--paper-soft);
+    }
+
+    .insight-card::before {
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 3px;
+      background: var(--red);
+      content: "";
+    }
+
+    .insight-card.is-updated::before {
+      background: var(--green);
+    }
+
+    .insight-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 16px;
+      color: var(--red-deep);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    .insight-label .signal {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--red);
+      box-shadow: 0 0 0 5px rgba(184, 59, 38, 0.09);
+    }
+
+    .insight-card.is-updated .insight-label {
+      color: var(--green);
+    }
+
+    .insight-card.is-updated .signal {
+      background: var(--green);
+      box-shadow: 0 0 0 5px rgba(66, 100, 83, 0.09);
+    }
+
+    .insight-card blockquote {
+      max-width: 690px;
+      margin: 0;
+      font-family: var(--serif);
+      font-size: clamp(20px, 3.2vw, 27px);
+      font-weight: 540;
+      letter-spacing: -0.015em;
+      line-height: 1.55;
+    }
+
+    .insight-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 7px 12px;
+      margin-top: 15px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .insight-meta span + span::before {
+      margin-right: 12px;
+      color: var(--line-strong);
+      content: "·";
+    }
+
+    .candidate-note {
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    .candidate-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .action-button {
+      min-height: 38px;
+      padding: 8px 14px;
+      border: 1px solid var(--line-strong);
+      border-radius: 9px;
+      background: transparent;
+      color: var(--ink-soft);
+      cursor: pointer;
+      font-size: 12px;
+      transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+    }
+
+    .action-button:hover {
+      border-color: rgba(39, 34, 28, 0.36);
+      background: rgba(255, 255, 255, 0.65);
+      color: var(--ink);
+    }
+
+    .action-button.primary {
+      border-color: var(--ink);
+      background: var(--ink);
+      color: var(--paper-soft);
+    }
+
+    .action-button.primary:hover {
+      background: #302d29;
+    }
+
+    .action-button.danger:hover {
+      border-color: rgba(184, 59, 38, 0.35);
+      color: var(--red-deep);
+    }
+
+    .edit-panel {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+    }
+
+    .edit-panel label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .edit-panel textarea {
+      display: block;
+      width: 100%;
+      min-height: 92px;
+      resize: vertical;
+      padding: 12px 14px;
+      border: 1px solid var(--line-strong);
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.52);
+      color: var(--ink);
+      font-family: var(--serif);
+      font-size: 15px;
+      line-height: 1.65;
+    }
+
+    .edit-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .today {
+      scroll-margin-top: 20px;
+    }
+
+    .date-line {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    .date-line h2 {
+      margin: 0;
+      font-family: var(--serif);
+      font-size: clamp(30px, 5vw, 43px);
+      font-weight: 540;
+      letter-spacing: -0.035em;
+      line-height: 1.12;
+    }
+
+    .date-line h2 span {
+      color: var(--red);
+    }
+
+    .date-stamp {
+      padding-bottom: 5px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 1.5;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-bottom: 16px;
+    }
+
+    .filter-button {
+      min-height: 31px;
+      padding: 5px 11px;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .filter-button:hover {
+      color: var(--ink);
+    }
+
+    .filter-button[aria-pressed="true"] {
+      border-color: rgba(184, 59, 38, 0.18);
+      background: var(--red-soft);
+      color: var(--red-deep);
+      font-weight: 620;
+    }
+
+    .entry-list {
+      border-top: 1px solid var(--line-strong);
+    }
+
+    .entry {
+      display: grid;
+      grid-template-columns: 58px minmax(0, 1fr) auto;
+      gap: 16px;
+      padding: 22px 2px 23px;
+      border-bottom: 1px solid var(--line);
+      animation: reveal 220ms ease both;
+    }
+
+    .entry[hidden] {
+      display: none;
+    }
+
+    .entry-time {
+      padding-top: 3px;
+      color: var(--faint);
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    .entry-body {
+      min-width: 0;
+    }
+
+    .entry-body p {
+      margin: 0;
+      font-family: var(--serif);
+      font-size: 16px;
+      letter-spacing: 0.005em;
+      line-height: 1.82;
+    }
+
+    .entry-kind {
+      align-self: start;
+      margin-top: 2px;
+      padding: 3px 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 10px;
+      white-space: nowrap;
+    }
+
+    .empty-filter {
+      padding: 32px 0;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .day-end {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 18px 2px 0;
+      color: var(--faint);
+      font-size: 11px;
+    }
+
+    .day-end button {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .page-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      margin-top: 76px;
+      padding-top: 20px;
+      border-top: 1px solid var(--line);
+      color: var(--faint);
+      font-size: 10px;
+      letter-spacing: 0.04em;
+    }
+
+    .backdrop {
+      position: fixed;
+      z-index: 20;
+      inset: 0;
+      background: rgba(25, 22, 18, 0.32);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 220ms ease;
+      backdrop-filter: blur(2px);
+    }
+
+    .backdrop.is-open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .export-drawer {
+      position: fixed;
+      z-index: 30;
+      inset: 8px 8px 8px auto;
+      width: min(440px, calc(100vw - 16px));
+      overflow-y: auto;
+      padding: 25px 25px 28px;
+      border: 1px solid var(--line-strong);
+      border-radius: 16px;
+      background: var(--paper-soft);
+      box-shadow: var(--shadow);
+      transform: translateX(calc(100% + 18px));
+      transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .export-drawer.is-open {
+      transform: translateX(0);
+    }
+
+    .dialog-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .dialog-eyebrow {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--red-deep);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .dialog-head h2 {
+      margin: 0;
+      font-family: var(--serif);
+      font-size: 24px;
+      font-weight: 570;
+      letter-spacing: -0.02em;
+    }
+
+    .dialog-head p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .icon-button {
+      flex: none;
+      display: grid;
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 19px;
+      line-height: 1;
+      place-items: center;
+    }
+
+    .icon-button:hover {
+      border-color: var(--line-strong);
+      color: var(--ink);
+    }
+
+    .control-group {
+      padding: 21px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .control-group > label,
+    .control-label {
+      display: block;
+      margin-bottom: 9px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 650;
+      letter-spacing: 0.05em;
+    }
+
+    .range-select {
+      width: 100%;
+      height: 43px;
+      padding: 0 38px 0 12px;
+      border: 1px solid var(--line-strong);
+      border-radius: 9px;
+      appearance: none;
+      background:
+        linear-gradient(45deg, transparent 50%, var(--muted) 50%) calc(100% - 17px) 19px / 5px 5px no-repeat,
+        linear-gradient(135deg, var(--muted) 50%, transparent 50%) calc(100% - 12px) 19px / 5px 5px no-repeat,
+        rgba(255, 255, 255, 0.52);
+      color: var(--ink);
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .switch-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 8px 0;
+      cursor: pointer;
+    }
+
+    .switch-copy strong {
+      display: block;
+      margin-bottom: 2px;
+      font-size: 13px;
+      font-weight: 610;
+    }
+
+    .switch-copy span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .switch {
+      position: relative;
+      flex: none;
+      width: 39px;
+      height: 23px;
+    }
+
+    .switch input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+    }
+
+    .switch-track {
+      position: absolute;
+      inset: 0;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      background: var(--paper-deep);
+      transition: background 160ms ease;
+    }
+
+    .switch-track::after {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: var(--paper-soft);
+      box-shadow: 0 1px 3px rgba(30, 25, 20, 0.25);
+      content: "";
+      transition: transform 160ms ease;
+    }
+
+    .switch input:checked + .switch-track {
+      border-color: var(--ink);
+      background: var(--ink);
+    }
+
+    .switch input:checked + .switch-track::after {
+      transform: translateX(16px);
+    }
+
+    .switch input:focus-visible + .switch-track {
+      outline: 2px solid var(--red);
+      outline-offset: 3px;
+    }
+
+    .pack-summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 20px 0 0;
+    }
+
+    .pack-summary span {
+      padding: 5px 8px;
+      border-radius: 6px;
+      background: var(--paper-deep);
+      color: var(--ink-soft);
+      font-size: 10px;
+    }
+
+    .preview-toggle {
+      width: 100%;
+      margin-top: 17px;
+      min-height: 40px;
+      border: 1px solid var(--line-strong);
+      border-radius: 9px;
+      background: transparent;
+      color: var(--ink-soft);
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .preview-toggle:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    .pack-preview {
+      max-height: 260px;
+      overflow: auto;
+      margin: 10px 0 0;
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #f0ece3;
+      color: #423d37;
+      font-family: var(--mono);
+      font-size: 10px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+    }
+
+    .copy-pack {
+      width: 100%;
+      min-height: 46px;
+      margin-top: 14px;
+      border: 1px solid var(--ink);
+      border-radius: 10px;
+      background: var(--ink);
+      color: var(--paper-soft);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 620;
+    }
+
+    .copy-pack:hover {
+      background: #302d29;
+    }
+
+    .copy-pack:disabled {
+      cursor: not-allowed;
+      opacity: 0.42;
+    }
+
+    .copy-feedback {
+      min-height: 19px;
+      margin: 8px 0 0;
+      color: var(--green);
+      font-size: 11px;
+      text-align: center;
+    }
+
+    .drawer-footnote {
+      margin: 14px 0 0;
+      color: var(--faint);
+      font-size: 10px;
+      line-height: 1.55;
+      text-align: center;
+    }
+
+    .modal-layer {
+      position: fixed;
+      z-index: 50;
+      inset: 0;
+      display: grid;
+      padding: 18px;
+      background: rgba(25, 22, 18, 0.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 200ms ease;
+      place-items: center;
+      backdrop-filter: blur(3px);
+    }
+
+    .modal-layer.is-open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .evidence-modal {
+      width: min(100%, 650px);
+      max-height: min(760px, calc(100dvh - 36px));
+      overflow: auto;
+      padding: 25px 27px 27px;
+      border: 1px solid var(--line-strong);
+      border-radius: 16px;
+      background: var(--paper-soft);
+      box-shadow: var(--shadow);
+      transform: translateY(12px) scale(0.985);
+      transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .modal-layer.is-open .evidence-modal {
+      transform: translateY(0) scale(1);
+    }
+
+    .interpretation {
+      margin: 22px 0 0;
+      padding: 16px 17px;
+      border-left: 3px solid var(--red);
+      background: rgba(243, 222, 213, 0.42);
+    }
+
+    .interpretation span {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--red-deep);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    .interpretation p {
+      margin: 0;
+      font-family: var(--serif);
+      font-size: 17px;
+      line-height: 1.65;
+    }
+
+    .evidence-intro {
+      margin: 18px 0 8px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    .evidence-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .evidence-item {
+      display: grid;
+      grid-template-columns: 76px minmax(0, 1fr);
+      gap: 15px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .evidence-date {
+      color: var(--faint);
+      font-family: var(--mono);
+      font-size: 10px;
+      line-height: 1.65;
+    }
+
+    .evidence-item p {
+      margin: 0;
+      font-family: var(--serif);
+      font-size: 14px;
+      line-height: 1.72;
+    }
+
+    .evidence-scope {
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.65;
+    }
+
+    .toast {
+      position: fixed;
+      z-index: 80;
+      left: 50%;
+      bottom: 24px;
+      max-width: calc(100vw - 32px);
+      padding: 10px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 999px;
+      background: rgba(25, 24, 22, 0.94);
+      color: #fffdf8;
+      font-size: 12px;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, 8px);
+      transition: opacity 180ms ease, transform 180ms ease;
+      white-space: nowrap;
+    }
+
+    .toast.is-visible {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    @keyframes spin {
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    @keyframes reveal {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 640px) {
+      .page {
+        width: min(calc(100% - 30px), 880px);
+        padding-top: 20px;
+      }
+
+      .masthead {
+        align-items: center;
+      }
+
+      .brand {
+        font-size: 18px;
+      }
+
+      .demo-note {
+        align-items: flex-start;
+      }
+
+      .demo-number {
+        display: none;
+      }
+
+      .state-lab {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        margin-bottom: 28px;
+      }
+
+      .state-switch {
+        overflow-x: auto;
+        grid-template-columns: repeat(4, minmax(74px, 1fr));
+      }
+
+      .understanding {
+        margin-bottom: 44px;
+      }
+
+      .quiet-state {
+        grid-template-columns: auto minmax(0, 1fr);
+      }
+
+      .quiet-meta {
+        display: none;
+      }
+
+      .insight-card {
+        padding: 22px 20px 21px;
+        border-radius: 13px;
+      }
+
+      .candidate-actions .action-button {
+        flex: 1 1 calc(50% - 4px);
+      }
+
+      .date-line {
+        align-items: flex-start;
+      }
+
+      .date-stamp {
+        padding-top: 4px;
+      }
+
+      .entry {
+        grid-template-columns: 46px minmax(0, 1fr);
+        gap: 10px;
+        padding: 19px 0 20px;
+      }
+
+      .entry-body p {
+        font-size: 15px;
+        line-height: 1.78;
+      }
+
+      .entry-kind {
+        grid-column: 2;
+        justify-self: start;
+        margin-top: 0;
+      }
+
+      .page-footer {
+        flex-direction: column;
+        gap: 5px;
+        margin-top: 56px;
+      }
+
+      .export-drawer {
+        padding: 22px 20px 26px;
+      }
+
+      .evidence-modal {
+        padding: 22px 19px 24px;
+      }
+
+      .evidence-item {
+        grid-template-columns: 1fr;
+        gap: 4px;
+      }
+
+      .toast {
+        width: max-content;
+        white-space: normal;
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 390px) {
+      .page {
+        width: calc(100% - 26px);
+      }
+
+      .top-actions .text-button {
+        min-height: 35px;
+        padding: 0 12px;
+      }
+
+      .section-kicker {
+        align-items: baseline;
+      }
+
+      .date-line h2 {
+        font-size: 31px;
+      }
+
+      .date-stamp {
+        font-size: 9px;
+      }
+
+      .filters {
+        gap: 4px;
+      }
+
+      .filter-button {
+        padding-inline: 9px;
+      }
+
+      .candidate-actions .action-button {
+        flex-basis: 100%;
+      }
+
+      .day-end {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 6px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page" id="main-content">
+    <header class="masthead">
+      <div class="brand" aria-label="Memento">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>Memento</span>
+      </div>
+      <div class="top-actions">
+        <a class="text-button" href="index.html">四版对照</a>
+        <button class="text-button" id="open-export" type="button" aria-haspopup="dialog" aria-controls="export-drawer">
+          带走 Context
+        </button>
+      </div>
+    </header>
+
+    <aside class="demo-note" aria-label="演示说明">
+      <span><strong>概念演示：</strong>以下记录、理解与操作结果均为虚构演示数据，不会读取或修改你的 Memento。</span>
+      <span class="demo-number">Concept 01 / Quiet</span>
+    </aside>
+
+    <section class="state-lab" aria-labelledby="state-lab-title">
+      <div class="state-lab-title" id="state-lab-title">演示 AI 状态</div>
+      <div class="state-switch" role="group" aria-label="切换她眼中的我状态">
+        <button class="state-button" type="button" data-state="quiet" aria-pressed="true">无变化</button>
+        <button class="state-button" type="button" data-state="candidate" aria-pressed="false">有候选</button>
+        <button class="state-button" type="button" data-state="processing" aria-pressed="false">整理中</button>
+        <button class="state-button" type="button" data-state="updated" aria-pressed="false">已更新</button>
+      </div>
+    </section>
+
+    <section class="understanding" aria-labelledby="understanding-title">
+      <div class="section-kicker">
+        <h1 id="understanding-title">她眼中的我</h1>
+        <button class="quiet-link" id="open-understandings" type="button">查看全部 <span aria-hidden="true">→</span></button>
+      </div>
+
+      <div data-state-view="quiet">
+        <div class="quiet-state">
+          <span class="status-seal" aria-hidden="true"></span>
+          <div class="quiet-copy">
+            <strong>3 条工作中的理解</strong>
+            <span id="quiet-message">已核对最近 14 天的记录，暂时没有需要更新的理解。</span>
+          </div>
+          <span class="quiet-meta">今天 03:12</span>
+        </div>
+      </div>
+
+      <div data-state-view="candidate" hidden>
+        <article class="insight-card" aria-labelledby="candidate-title">
+          <p class="insight-label"><span class="signal" aria-hidden="true"></span>一个局部理解正在形成</p>
+          <blockquote id="candidate-title">在产品方案评审中，你近期更常先检查反例和失败条件，再决定是否继续推进。</blockquote>
+          <div class="insight-meta" aria-label="理解候选信息">
+            <span>仍在观察</span>
+            <span>近 14 天</span>
+            <span>3 条依据</span>
+            <span>范围：产品评审</span>
+          </div>
+          <p class="candidate-note">这是 AI 的暂时解释，尚未写入长期 Context。原始记录不会因你的选择而改变。</p>
+          <div class="candidate-actions">
+            <button class="action-button primary" type="button" data-candidate-action="confirm">符合</button>
+            <button class="action-button" type="button" data-candidate-action="scope">仅限产品评审</button>
+            <button class="action-button" type="button" data-candidate-action="edit">改一下</button>
+            <button class="action-button danger" type="button" data-candidate-action="reject">不成立</button>
+            <button class="action-button" type="button" data-open-evidence>查看 3 条依据</button>
+          </div>
+          <form class="edit-panel" id="candidate-edit-panel" hidden>
+            <label for="candidate-edit">把这条理解改成你认可的表达</label>
+            <textarea id="candidate-edit">在产品方案评审中，我会先明确不可接受的结果，再决定是否继续推进。</textarea>
+            <div class="edit-actions">
+              <button class="action-button primary" type="submit">保存修改</button>
+              <button class="action-button" id="cancel-candidate-edit" type="button">取消</button>
+            </div>
+          </form>
+        </article>
+      </div>
+
+      <div data-state-view="processing" hidden>
+        <div class="quiet-state" role="status" aria-live="polite">
+          <span class="status-seal is-working" aria-hidden="true"></span>
+          <div class="quiet-copy">
+            <strong>正在核对最近 14 天的记录</strong>
+            <span>已有的 3 条理解保持不变；整理完成前不会自动覆盖。</span>
+          </div>
+          <span class="quiet-meta">本地任务</span>
+        </div>
+      </div>
+
+      <div data-state-view="updated" hidden>
+        <article class="insight-card is-updated" aria-labelledby="updated-title">
+          <p class="insight-label"><span class="signal" aria-hidden="true"></span>一条理解已经更新</p>
+          <blockquote id="updated-title">在产品方案评审中，你近期更常先检查反例和失败条件，再决定是否继续推进。</blockquote>
+          <div class="insight-meta" aria-label="已更新理解信息">
+            <span>4 条工作中的理解</span>
+            <span>刚刚更新</span>
+            <span>3 条依据</span>
+            <span>可继续修正或删除</span>
+          </div>
+          <div class="candidate-actions">
+            <button class="action-button" type="button" data-open-evidence>查看依据</button>
+            <button class="action-button" id="revise-updated" type="button">继续修正</button>
+            <button class="action-button danger" id="delete-updated" type="button">删除这条理解</button>
+          </div>
+        </article>
+      </div>
+
+      <p id="state-announcement" class="visually-hidden" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="today" aria-labelledby="today-title">
+      <div class="date-line">
+        <h2 id="today-title">今天留下了 <span id="visible-count">5</span> 条记录</h2>
+        <div class="date-stamp">2026 · 08 · 16<br>星期日</div>
+      </div>
+
+      <nav class="filters" aria-label="筛选今天的记录">
+        <button class="filter-button" type="button" data-filter="all" aria-pressed="true">全部 5</button>
+        <button class="filter-button" type="button" data-filter="产品" aria-pressed="false">产品 2</button>
+        <button class="filter-button" type="button" data-filter="灵感" aria-pressed="false">灵感 2</button>
+        <button class="filter-button" type="button" data-filter="下次再读" aria-pressed="false">下次再读 1</button>
+        <button class="filter-button" type="button" data-filter="TODO" aria-pressed="false">TODO 1</button>
+      </nav>
+
+      <div class="entry-list" id="entry-list">
+        <article class="entry" data-tags="产品 灵感">
+          <time class="entry-time" datetime="2026-08-16T10:50">10:50</time>
+          <div class="entry-body">
+            <p>感觉长期来看，我需要对整个 UI 做一次重构。重点不是增加功能，而是让主页更清楚地表达：这里保存的是可被 AI 复用的 Context。</p>
+          </div>
+          <span class="entry-kind">产品</span>
+        </article>
+
+        <article class="entry" data-tags="灵感">
+          <time class="entry-time" datetime="2026-08-16T10:20">10:20</time>
+          <div class="entry-body">
+            <p>好烦恼，感觉自己少了一些秩序感。但也许问题不在于没有计划，而在于同时想维护的系统太多。</p>
+          </div>
+          <span class="entry-kind">灵感</span>
+        </article>
+
+        <article class="entry" data-tags="产品">
+          <time class="entry-time" datetime="2026-08-16T09:42">09:42</time>
+          <div class="entry-body">
+            <p>评审首页方案时，先写出失败条件：如果用户五秒内看不懂“关于我”和今天记录的关系，这个设计就没有成立。</p>
+          </div>
+          <span class="entry-kind">产品</span>
+        </article>
+
+        <article class="entry" data-tags="下次再读">
+          <time class="entry-time" datetime="2026-08-16T08:55">08:55</time>
+          <div class="entry-body">
+            <p>Context 的价值不在于被保存，而在于未来任务里被正确使用。下次设计导出时，要把“使用范围”也一起带走。</p>
+          </div>
+          <span class="entry-kind">下次再读</span>
+        </article>
+
+        <article class="entry" data-tags="TODO">
+          <time class="entry-time" datetime="2026-08-16T08:14">08:14</time>
+          <div class="entry-body">
+            <p>把三套首页做成可交互的离线 Demo，使用同一组记录和理解来比较，不让视觉差异替代产品判断。</p>
+          </div>
+          <span class="entry-kind">TODO</span>
+        </article>
+      </div>
+
+      <div class="empty-filter" id="empty-filter" hidden>这个筛选下还没有记录。</div>
+
+      <div class="day-end">
+        <span id="filter-summary">已展示今天的全部 5 条演示记录</span>
+        <button type="button" id="view-past">查看过去 <span aria-hidden="true">→</span></button>
+      </div>
+    </section>
+
+    <footer class="page-footer">
+      <span>MEMENTO · LOCAL-FIRST CONTEXT</span>
+      <span>离线概念演示 · 不读取真实数据</span>
+    </footer>
+  </main>
+
+  <div class="backdrop" id="export-backdrop" aria-hidden="true"></div>
+  <aside class="export-drawer" id="export-drawer" role="dialog" aria-modal="true" aria-labelledby="export-title" aria-hidden="true" inert>
+    <div class="dialog-head">
+      <div>
+        <span class="dialog-eyebrow">Context Pack · Demo</span>
+        <h2 id="export-title">带走这些 Context</h2>
+        <p>先看清范围，再交给下一个 AI。本演示不会访问剪贴板。</p>
+      </div>
+      <button class="icon-button" id="close-export" type="button" aria-label="关闭导出抽屉">×</button>
+    </div>
+
+    <div class="control-group">
+      <label for="export-range">时间范围</label>
+      <select class="range-select" id="export-range">
+        <option value="today">今天 · 2026 年 8 月 16 日</option>
+        <option value="7days">最近 7 天</option>
+        <option value="30days">最近 30 天</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <span class="control-label">包含内容</span>
+      <label class="switch-row">
+        <span class="switch-copy">
+          <strong>原始记录</strong>
+          <span id="raw-record-description">今天的 5 条原文，不做改写</span>
+        </span>
+        <span class="switch">
+          <input id="include-records" type="checkbox" checked>
+          <span class="switch-track" aria-hidden="true"></span>
+        </span>
+      </label>
+      <label class="switch-row">
+        <span class="switch-copy">
+          <strong>已确认理解</strong>
+          <span id="confirmed-description">2 条与本次产品工作相关的理解</span>
+        </span>
+        <span class="switch">
+          <input id="include-understandings" type="checkbox" checked>
+          <span class="switch-track" aria-hidden="true"></span>
+        </span>
+      </label>
+    </div>
+
+    <div class="pack-summary" id="pack-summary" aria-live="polite">
+      <span>今天</span>
+      <span>原始记录 5</span>
+      <span>已确认理解 2</span>
+    </div>
+
+    <button class="preview-toggle" id="toggle-preview" type="button" aria-expanded="false" aria-controls="pack-preview">
+      预览 Context Pack
+    </button>
+    <pre class="pack-preview" id="pack-preview" hidden></pre>
+
+    <button class="copy-pack" id="copy-pack" type="button">模拟复制给其他 AI</button>
+    <p class="copy-feedback" id="copy-feedback" role="status" aria-live="polite"></p>
+    <p class="drawer-footnote">概念演示：点击只反馈模拟结果，不会写入系统剪贴板，也不会发送到任何服务。</p>
+  </aside>
+
+  <div class="modal-layer" id="evidence-layer" aria-hidden="true" inert>
+    <section class="evidence-modal" id="evidence-modal" role="dialog" aria-modal="true" aria-labelledby="evidence-title">
+      <div class="dialog-head">
+        <div>
+          <span class="dialog-eyebrow">Evidence · Demo</span>
+          <h2 id="evidence-title">这条理解从哪里来</h2>
+          <p>原始事实与 AI 解释分开显示。</p>
+        </div>
+        <button class="icon-button" id="close-evidence" type="button" aria-label="关闭依据弹层">×</button>
+      </div>
+
+      <div class="interpretation">
+        <span>AI 的暂时解释</span>
+        <p id="evidence-interpretation">在产品方案评审中，你近期更常先检查反例和失败条件，再决定是否继续推进。</p>
+      </div>
+
+      <p class="evidence-intro">以下是支持这个候选的 3 条演示原始记录。它们只支持“产品评审”这一局部范围。</p>
+      <ol class="evidence-list">
+        <li class="evidence-item">
+          <time class="evidence-date" datetime="2026-08-16T09:42">08 · 16<br>09:42</time>
+          <p>“评审首页方案时，先写出失败条件：如果用户五秒内看不懂‘关于我’和今天记录的关系，这个设计就没有成立。”</p>
+        </li>
+        <li class="evidence-item">
+          <time class="evidence-date" datetime="2026-08-14T18:30">08 · 14<br>18:30</time>
+          <p>“这版方案先不要继续加功能，先验证首页能不能说明 Context 之后会怎么被使用。”</p>
+        </li>
+        <li class="evidence-item">
+          <time class="evidence-date" datetime="2026-08-11T15:10">08 · 11<br>15:10</time>
+          <p>“评审时最好先列出错判代价和不可接受的结果，再讨论哪一个方案更完整。”</p>
+        </li>
+      </ol>
+      <p class="evidence-scope">解释边界：这些事实不足以推导你的通用性格，也不代表你在所有决策中都会采用同一种方式。</p>
+    </section>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var stateButtons = Array.from(document.querySelectorAll("[data-state]"));
+      var stateViews = Array.from(document.querySelectorAll("[data-state-view]"));
+      var stateAnnouncement = document.getElementById("state-announcement");
+      var quietMessage = document.getElementById("quiet-message");
+      var updatedTitle = document.getElementById("updated-title");
+      var evidenceInterpretation = document.getElementById("evidence-interpretation");
+      var candidateEditPanel = document.getElementById("candidate-edit-panel");
+      var candidateEdit = document.getElementById("candidate-edit");
+      var activeDialog = null;
+      var returnFocus = null;
+      var toastTimer = null;
+
+      var stateLabels = {
+        quiet: "无变化：关于我保持安静状态",
+        candidate: "有候选：展示一条待判断的局部理解",
+        processing: "整理中：正在核对最近十四天的记录",
+        updated: "已更新：展示一条刚刚更新的理解"
+      };
+
+      function setState(nextState, shouldAnnounce) {
+        stateButtons.forEach(function (button) {
+          button.setAttribute("aria-pressed", String(button.getAttribute("data-state") === nextState));
+        });
+        stateViews.forEach(function (view) {
+          view.hidden = view.getAttribute("data-state-view") !== nextState;
+        });
+        candidateEditPanel.hidden = true;
+        if (shouldAnnounce !== false) {
+          stateAnnouncement.textContent = stateLabels[nextState];
+        }
+      }
+
+      stateButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          quietMessage.textContent = "已核对最近 14 天的记录，暂时没有需要更新的理解。";
+          setState(button.getAttribute("data-state"));
+        });
+      });
+
+      function showToast(message) {
+        var toast = document.getElementById("toast");
+        window.clearTimeout(toastTimer);
+        toast.textContent = message;
+        toast.classList.add("is-visible");
+        toastTimer = window.setTimeout(function () {
+          toast.classList.remove("is-visible");
+        }, 2600);
+      }
+
+      document.querySelectorAll("[data-candidate-action]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          var action = button.getAttribute("data-candidate-action");
+          if (action === "confirm") {
+            updatedTitle.textContent = document.getElementById("candidate-title").textContent;
+            evidenceInterpretation.textContent = updatedTitle.textContent;
+            setState("updated");
+            showToast("已写入演示 Context；原始记录保持不变");
+          }
+          if (action === "scope") {
+            var scopedCopy = "只在产品方案评审中，我通常会先检查反例和失败条件，再决定是否继续推进。";
+            updatedTitle.textContent = scopedCopy;
+            evidenceInterpretation.textContent = scopedCopy;
+            setState("updated");
+            showToast("已限定为“产品方案评审”范围");
+          }
+          if (action === "edit") {
+            candidateEditPanel.hidden = false;
+            candidateEdit.focus();
+          }
+          if (action === "reject") {
+            quietMessage.textContent = "这个候选已被移除；原有的 3 条理解没有变化。";
+            setState("quiet");
+            showToast("已移除候选，不会写入长期 Context");
+          }
+        });
+      });
+
+      document.getElementById("cancel-candidate-edit").addEventListener("click", function () {
+        candidateEditPanel.hidden = true;
+      });
+
+      candidateEditPanel.addEventListener("submit", function (event) {
+        event.preventDefault();
+        var revised = candidateEdit.value.trim();
+        if (!revised) {
+          showToast("请先写下你认可的表达");
+          candidateEdit.focus();
+          return;
+        }
+        updatedTitle.textContent = revised;
+        evidenceInterpretation.textContent = revised;
+        setState("updated");
+        showToast("已按你的表达更新演示 Context");
+      });
+
+      document.getElementById("revise-updated").addEventListener("click", function () {
+        candidateEdit.value = updatedTitle.textContent;
+        setState("candidate", false);
+        candidateEditPanel.hidden = false;
+        candidateEdit.focus();
+        stateAnnouncement.textContent = "已返回编辑状态";
+      });
+
+      document.getElementById("delete-updated").addEventListener("click", function () {
+        quietMessage.textContent = "刚才更新的理解已从演示中删除；原始记录仍然保留。";
+        setState("quiet");
+        showToast("已删除演示理解，原始记录仍保留");
+      });
+
+      document.getElementById("open-understandings").addEventListener("click", function () {
+        showToast("完整理解管理页不在本次首页概念演示中");
+      });
+
+      document.getElementById("view-past").addEventListener("click", function () {
+        showToast("历史浏览不在本次首页概念演示中");
+      });
+
+      var filterButtons = Array.from(document.querySelectorAll("[data-filter]"));
+      var entries = Array.from(document.querySelectorAll(".entry"));
+      var visibleCount = document.getElementById("visible-count");
+      var filterSummary = document.getElementById("filter-summary");
+      var emptyFilter = document.getElementById("empty-filter");
+
+      filterButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          var filter = button.getAttribute("data-filter");
+          var shown = 0;
+          filterButtons.forEach(function (item) {
+            item.setAttribute("aria-pressed", String(item === button));
+          });
+          entries.forEach(function (entry) {
+            var visible = filter === "all" || entry.getAttribute("data-tags").split(" ").indexOf(filter) !== -1;
+            entry.hidden = !visible;
+            if (visible) {
+              shown += 1;
+            }
+          });
+          visibleCount.textContent = String(shown);
+          emptyFilter.hidden = shown !== 0;
+          filterSummary.textContent = filter === "all"
+            ? "已展示今天的全部 5 条演示记录"
+            : "已展示“" + filter + "”下的 " + shown + " 条演示记录";
+        });
+      });
+
+      var exportDrawer = document.getElementById("export-drawer");
+      var exportBackdrop = document.getElementById("export-backdrop");
+      var openExport = document.getElementById("open-export");
+      var closeExport = document.getElementById("close-export");
+      var exportRange = document.getElementById("export-range");
+      var includeRecords = document.getElementById("include-records");
+      var includeUnderstandings = document.getElementById("include-understandings");
+      var rawDescription = document.getElementById("raw-record-description");
+      var confirmedDescription = document.getElementById("confirmed-description");
+      var packSummary = document.getElementById("pack-summary");
+      var togglePreview = document.getElementById("toggle-preview");
+      var packPreview = document.getElementById("pack-preview");
+      var copyPack = document.getElementById("copy-pack");
+      var copyFeedback = document.getElementById("copy-feedback");
+
+      var rangeData = {
+        today: { label: "今天", records: 5, understandings: 2 },
+        "7days": { label: "最近 7 天", records: 18, understandings: 3 },
+        "30days": { label: "最近 30 天", records: 63, understandings: 5 }
+      };
+
+      function makePackPreview() {
+        var data = rangeData[exportRange.value];
+        var parts = [
+          "# Memento Context Pack",
+          "范围：" + data.label,
+          "生成方式：离线概念演示"
+        ];
+        if (includeRecords.checked) {
+          parts.push(
+            "",
+            "## 原始记录（" + data.records + " 条）",
+            "- 10:50 主页需要清楚表达可被 AI 复用的 Context。",
+            "- 09:42 先写出首页方案的失败条件。",
+            data.records > 5 ? "- …其余 " + (data.records - 2) + " 条演示记录" : "- …其余 3 条演示记录"
+          );
+        }
+        if (includeUnderstandings.checked) {
+          parts.push(
+            "",
+            "## 已确认理解（" + data.understandings + " 条）",
+            "- 范围：产品评审｜先明确质量与失败条件，再推进方案。",
+            "- 范围：工作 Context｜重视结论能否在未来任务中复用。"
+          );
+        }
+        parts.push("", "说明：请只在当前任务需要时使用，并保留原始记录与解释的区别。");
+        return parts.join("\n");
+      }
+
+      function updatePack() {
+        var data = rangeData[exportRange.value];
+        var nothingSelected = !includeRecords.checked && !includeUnderstandings.checked;
+        rawDescription.textContent = data.label + "的 " + data.records + " 条原文，不做改写";
+        confirmedDescription.textContent = data.understandings + " 条与本次产品工作相关的理解";
+        packSummary.innerHTML = "";
+        [data.label,
+          includeRecords.checked ? "原始记录 " + data.records : "未含原始记录",
+          includeUnderstandings.checked ? "已确认理解 " + data.understandings : "未含已确认理解"
+        ].forEach(function (text) {
+          var item = document.createElement("span");
+          item.textContent = text;
+          packSummary.appendChild(item);
+        });
+        packPreview.textContent = nothingSelected ? "请至少选择一类 Context。" : makePackPreview();
+        copyPack.disabled = nothingSelected;
+        copyFeedback.textContent = "";
+      }
+
+      function openDrawer() {
+        returnFocus = document.activeElement;
+        exportDrawer.classList.add("is-open");
+        exportBackdrop.classList.add("is-open");
+        exportDrawer.removeAttribute("inert");
+        exportDrawer.setAttribute("aria-hidden", "false");
+        exportBackdrop.setAttribute("aria-hidden", "false");
+        document.body.classList.add("is-locked");
+        activeDialog = exportDrawer;
+        closeExport.focus();
+      }
+
+      function closeDrawer() {
+        exportDrawer.classList.remove("is-open");
+        exportBackdrop.classList.remove("is-open");
+        exportDrawer.setAttribute("inert", "");
+        exportDrawer.setAttribute("aria-hidden", "true");
+        exportBackdrop.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("is-locked");
+        activeDialog = null;
+        if (returnFocus) {
+          returnFocus.focus();
+        }
+      }
+
+      openExport.addEventListener("click", openDrawer);
+      closeExport.addEventListener("click", closeDrawer);
+      exportBackdrop.addEventListener("click", closeDrawer);
+      exportRange.addEventListener("change", updatePack);
+      includeRecords.addEventListener("change", updatePack);
+      includeUnderstandings.addEventListener("change", updatePack);
+
+      togglePreview.addEventListener("click", function () {
+        var willOpen = packPreview.hidden;
+        packPreview.hidden = !willOpen;
+        togglePreview.setAttribute("aria-expanded", String(willOpen));
+        togglePreview.textContent = willOpen ? "收起 Context Pack 预览" : "预览 Context Pack";
+        if (willOpen) {
+          packPreview.textContent = !includeRecords.checked && !includeUnderstandings.checked
+            ? "请至少选择一类 Context。"
+            : makePackPreview();
+        }
+      });
+
+      copyPack.addEventListener("click", function () {
+        copyFeedback.textContent = "已完成模拟复制 · 未写入系统剪贴板";
+      });
+
+      var evidenceLayer = document.getElementById("evidence-layer");
+      var evidenceModal = document.getElementById("evidence-modal");
+      var closeEvidence = document.getElementById("close-evidence");
+
+      function openEvidence(event) {
+        returnFocus = event.currentTarget;
+        evidenceLayer.classList.add("is-open");
+        evidenceLayer.removeAttribute("inert");
+        evidenceLayer.setAttribute("aria-hidden", "false");
+        document.body.classList.add("is-locked");
+        activeDialog = evidenceModal;
+        closeEvidence.focus();
+      }
+
+      function closeEvidenceModal() {
+        evidenceLayer.classList.remove("is-open");
+        evidenceLayer.setAttribute("inert", "");
+        evidenceLayer.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("is-locked");
+        activeDialog = null;
+        if (returnFocus) {
+          returnFocus.focus();
+        }
+      }
+
+      document.querySelectorAll("[data-open-evidence]").forEach(function (button) {
+        button.addEventListener("click", openEvidence);
+      });
+      closeEvidence.addEventListener("click", closeEvidenceModal);
+      evidenceLayer.addEventListener("click", function (event) {
+        if (event.target === evidenceLayer) {
+          closeEvidenceModal();
+        }
+      });
+
+      function trapFocus(event, container) {
+        var focusable = Array.from(container.querySelectorAll(
+          "button:not([disabled]), select:not([disabled]), textarea:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex='-1'])"
+        )).filter(function (element) {
+          return !element.hidden && element.offsetParent !== null;
+        });
+        if (!focusable.length) {
+          return;
+        }
+        var first = focusable[0];
+        var last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+          if (evidenceLayer.classList.contains("is-open")) {
+            closeEvidenceModal();
+          } else if (exportDrawer.classList.contains("is-open")) {
+            closeDrawer();
+          }
+        }
+        if (event.key === "Tab" && activeDialog) {
+          trapFocus(event, activeDialog);
+        }
+      });
+
+      updatePack();
+      setState("quiet", false);
+    }());
+  </script>
+</body>
+</html>

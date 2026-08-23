@@ -30,7 +30,7 @@ rg -q '今天留下了' chrome-newtab/dashboard.js
 rg -q '全部记录' chrome-newtab/dashboard.js
 rg -q "KNOWN_TAGS = new Set\(\['TODO', '灵感', '下次再读'\]\)" chrome-newtab/dashboard.js
 rg -q 'rememberedDirectoryHandle' chrome-newtab/dashboard.js
-rg -qF 'void tryAutoLoad();' chrome-newtab/dashboard.js
+rg -qF 'enterCognitiveDemo();' chrome-newtab/dashboard.js
 rg -qF 'directory-access-library.js' chrome-newtab/dashboard.html
 rg -qF 'photo-cache-library.js' chrome-newtab/dashboard.html
 rg -qF 'dashboard-cache-library.js' chrome-newtab/dashboard.html
@@ -172,7 +172,7 @@ if (!selected.includes('flowId = selectionFlowId')
   throw new Error('选定目录的加载边界没有在前后核验流程代次');
 }
 const clickStart = source.indexOf("grantBtn.addEventListener('click'");
-const clickEnd = source.indexOf('void tryAutoLoad();', clickStart);
+const clickEnd = source.indexOf('enterCognitiveDemo();', clickStart);
 const click = source.slice(clickStart, clickEnd);
 if (!click.includes('const flowId = ++selectionFlowId')
     || !click.includes('directoryLoadGate.begin()')
@@ -380,19 +380,17 @@ MEMENTO_VAULT="$TMP_ROOT" bash daily-review/verify_review.sh "$DATE" >/dev/null
 
 # 本机存在已安装目录时,顺便防止“源码已改、Chrome 仍运行旧版”。
 INSTALLED_ROOT="${MEMENTO_INSTALLED_ROOT:-$HOME/AISecretary}"
-if [ -d "$INSTALLED_ROOT/.chrome-newtab" ] && [ -d "$INSTALLED_ROOT/.review" ]; then
-  for FILE in README.md archive-sanitizer-library.js daily-summary-library.js dashboard-cache-library.js dashboard.css dashboard.html dashboard.js dashboard-operations-library.js directory-access-library.js manifest.json photo-cache-library.js photo-library.js prompts.js viewer.html viewer.js; do
+if [ -d "$INSTALLED_ROOT/.chrome-newtab" ]; then
+  for FILE in README.md archive-sanitizer-library.js cognitive-demo-fixture.js cognitive-home-library.js daily-summary-library.js dashboard-cache-library.js dashboard.css dashboard.html dashboard.js dashboard-operations-library.js directory-access-library.js manifest.json photo-cache-library.js photo-library.js prompts.js remember-agent-v1-library.js viewer.html viewer.js; do
     cmp -s "chrome-newtab/$FILE" "$INSTALLED_ROOT/.chrome-newtab/$FILE" || {
       echo "已安装扩展未同步: $FILE" >&2
       exit 1
     }
   done
-  for FILE in DAILY_REVIEW.md README.md review_cycle.sh review_state.sh review_status.sh verify_review.sh; do
-    cmp -s "daily-review/$FILE" "$INSTALLED_ROOT/.review/$FILE" || {
-      echo "已安装 Daily Review 未同步: $FILE" >&2
-      exit 1
-    }
-  done
+fi
+if [ -d "$INSTALLED_ROOT/.review" ] && find "$INSTALLED_ROOT/.review" -type f -print -quit | grep -q .; then
+  echo "基础记录版不应保留可执行的 Daily Review 协议" >&2
+  exit 1
 fi
 
-echo "✓ record-first dashboard: no completion state, neutral TODO tag, strict and backward-readable Daily Review"
+echo "✓ record-first dashboard: fixed cognitive view, basic capture, and no installed Daily Review protocol"

@@ -1,0 +1,23 @@
+[
+  {
+    "name": "unicode-lower-straße-emoji",
+    "statement": "  Straße　🧠  ",
+    "scope": " Product\tReview ",
+    "normalized_key": "straße 🧠\nproduct review",
+    "expected_id": "ptag_fdcbb5eecc15f1a0e91af316"
+  },
+  {
+    "name": "unicode-lower-strasse-emoji",
+    "statement": "STRASSE 🧠",
+    "scope": "product review",
+    "normalized_key": "strasse 🧠\nproduct review",
+    "expected_id": "ptag_86660cf4addf07e442068340"
+  },
+  {
+    "name": "pinned-ascii-lower-unicode-version-drift-u-1c89",
+    "statement": " U+1C89 Ᲊ ",
+    "scope": "Pinned V1",
+    "normalized_key": "u+1c89 Ᲊ\npinned v1",
+    "expected_id": "ptag_6d0ba3675f24733e567bdc60"
+  }
+]

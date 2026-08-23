@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/user-action-v1.schema.json",
+  "title": "User Action V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "kind", "action_id", "action", "target_ref", "payload", "base_user_action_watermark_sha256", "submitted_at", "submitted_by"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "kind": {"const": "memento_user_action"},
+    "action_id": {"type": "string", "pattern": "^uact_[0-9a-f]{24}$"},
+    "action": {"enum": ["confirm", "just_once", "scope", "edit", "reject", "accurate", "changed", "revise", "tombstone"]},
+    "target_ref": {"$ref": "#/$defs/objectRef"},
+    "payload": {"type": "object", "maxProperties": 32},
+    "base_user_action_watermark_sha256": {"$ref": "#/$defs/sha256"},
+    "submitted_at": {"type": "string", "format": "date-time"},
+    "submitted_by": {"const": "user"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "objectRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id", "revision", "revision_sha256"],
+      "properties": {
+        "kind": {"enum": ["source_record", "capture_decision", "resource_card", "read_later_intent", "record_interpretation", "memory_atom", "relation", "theme", "self_insight"]},
+        "id": {"type": "string", "pattern": "^(rec|cap|res|rli|int|mat|rel|thm|sin)_[0-9a-f]{24}$"},
+        "revision": {"type": "integer", "minimum": 1},
+        "revision_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}

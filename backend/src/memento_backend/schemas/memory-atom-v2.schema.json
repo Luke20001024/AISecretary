@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/memory-atom-v2.schema.json",
+  "title": "MemoryAtomRevision V2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "kind", "memory_atom_id", "revision", "previous_revision_sha256",
+    "status", "operation", "statement", "memory_kind", "topics", "purposes",
+    "uncertainty", "evidence_refs", "source_spans", "first_seen_on", "last_seen_on",
+    "change_reason", "policy_version", "created_at", "committed_by"
+  ],
+  "properties": {
+    "schema_version": { "const": "2.0" },
+    "kind": { "const": "memento_memory_atom_revision" },
+    "memory_atom_id": { "type": "string", "pattern": "^mat_[0-9a-f]{24}$" },
+    "revision": { "type": "integer", "minimum": 1 },
+    "previous_revision_sha256": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/sha256" }] },
+    "status": { "enum": ["active", "tombstone"] },
+    "operation": { "enum": ["materialize", "reinforce", "revise", "user_edit", "user_delete"] },
+    "statement": { "type": "string", "minLength": 1, "maxLength": 600 },
+    "memory_kind": { "enum": ["judgment", "question", "decision", "action", "experience", "learning", "boundary", "outcome"] },
+    "topics": { "type": "array", "minItems": 1, "maxItems": 24, "uniqueItems": true, "items": { "type": "string", "minLength": 1, "maxLength": 80 } },
+    "purposes": { "type": "array", "maxItems": 12, "uniqueItems": true, "items": { "type": "string", "minLength": 1, "maxLength": 80 } },
+    "uncertainty": { "enum": ["low", "medium", "high"] },
+    "evidence_refs": { "type": "array", "minItems": 1, "maxItems": 64, "uniqueItems": true, "items": { "$ref": "#/$defs/interpretationRef" } },
+    "source_spans": { "type": "array", "minItems": 1, "maxItems": 64, "items": { "$ref": "#/$defs/sourceSpan" } },
+    "first_seen_on": { "type": "string", "format": "date" },
+    "last_seen_on": { "type": "string", "format": "date" },
+    "change_reason": { "type": "string", "minLength": 1, "maxLength": 600 },
+    "policy_version": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "created_at": { "type": "string", "format": "date-time" },
+    "committed_by": { "enum": ["workflow", "user", "migration"] }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "revision": { "const": 1 } } },
+      "then": { "properties": { "previous_revision_sha256": { "type": "null" }, "operation": { "const": "materialize" } } },
+      "else": { "properties": { "previous_revision_sha256": { "$ref": "#/$defs/sha256" } } }
+    },
+    {
+      "if": { "properties": { "status": { "const": "tombstone" } } },
+      "then": { "properties": { "operation": { "const": "user_delete" } } }
+    }
+  ],
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "relativePath": { "type": "string", "minLength": 1, "maxLength": 1024, "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?/)(?!.*\\\\)[^\\u0000]+$" },
+    "interpretationRef": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "id", "revision", "revision_sha256"],
+      "properties": {
+        "kind": { "const": "record_interpretation" }, "id": { "type": "string", "pattern": "^int_[0-9a-f]{24}$" },
+        "revision": { "type": "integer", "minimum": 1 }, "revision_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "sourceSpan": {
+      "type": "object", "additionalProperties": false,
+      "required": ["record_id", "record_revision", "record_revision_sha256", "source_file", "line_start", "line_end", "quote", "quote_sha256"],
+      "properties": {
+        "record_id": { "type": "string", "pattern": "^rec_[0-9a-f]{24}$" }, "record_revision": { "type": "integer", "minimum": 1 },
+        "record_revision_sha256": { "$ref": "#/$defs/sha256" }, "source_file": { "$ref": "#/$defs/relativePath" },
+        "line_start": { "type": "integer", "minimum": 1 }, "line_end": { "type": "integer", "minimum": 1 },
+        "quote": { "type": "string", "minLength": 1, "maxLength": 20000 }, "quote_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  }
+}

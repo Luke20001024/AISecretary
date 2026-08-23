@@ -1,0 +1,1 @@
+"""Trusted workflow commit gates."""

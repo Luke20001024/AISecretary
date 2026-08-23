@@ -15,6 +15,12 @@
 *.tmp
 tmp/
 dist/
+.env
+.env.*
+!.env.example
+context-agent/eval/results/
+__pycache__/
+*.py[cod]
 
 # 手工备份目录 (git 接手后退役)
 back1/

@@ -1,0 +1,29 @@
+{
+  "observations": [
+    {
+      "case_id": "replace-with-stable-case-id",
+      "expected_links": ["expected-object-ref"],
+      "predicted_links": ["predicted-object-ref"],
+      "allowed_inferences": ["allowed-inference-id"],
+      "predicted_inferences": ["predicted-inference-id"],
+      "should_stop": true,
+      "did_stop": true,
+      "source_reference_checks": 1,
+      "valid_source_references": 1,
+      "self_traceability_checks": 1,
+      "valid_self_traces": 1,
+      "resource_opinion_checks": 1,
+      "resource_as_user_errors": 0,
+      "stale_resurrections": 0,
+      "adapter_checks": 1,
+      "adapter_passes": 1,
+      "source_hash_checks": 1,
+      "stable_source_hashes": 1,
+      "provider_attempted": false,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "estimated_cost_usd": 0.0,
+      "latency_ms": 0
+    }
+  ]
+}

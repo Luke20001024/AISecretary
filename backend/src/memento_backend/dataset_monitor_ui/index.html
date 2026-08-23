@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Memento · 真实样本监看</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="mark"></span><span>Memento</span></div>
+    <div class="system-state"><span class="live-dot"></span><span>现有快捷键测试集</span></div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <p class="eyebrow">REAL CAPTURE DATASET</p>
+        <h1>继续用原来的方式记录<br><span>这里负责接住测试样本</span></h1>
+      </div>
+      <div class="hero-note">
+        <p>⌃1–⌃5 保持不变</p>
+        <p>页面只读取真实落盘结果</p>
+      </div>
+    </section>
+
+    <section class="pipeline" aria-label="当前接入流程">
+      <div class="pipeline-step"><span>01</span><strong>现有快捷键</strong><small>划字 · 备注 · 标签 · 截图 · 语音</small></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step"><span>02</span><strong>只读收取</strong><small>原文 · 来源 · 附件 · Hash</small></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step"><span>03</span><strong>测试集草案</strong><small>等待你确认 Agent 应怎样处理</small></div>
+    </section>
+
+    <section class="summary" aria-live="polite">
+      <div class="summary-item"><span>已采集</span><strong id="capture-count">—</strong><small>条真实记录</small></div>
+      <div class="summary-item"><span>结构覆盖</span><strong id="coverage-count">—</strong><small>项自动检查</small></div>
+      <div class="summary-item"><span>正式写入</span><strong>0</strong><small>仅测试集副本</small></div>
+      <div class="summary-item"><span>模型标注</span><strong>0</strong><small>全部等待你确认</small></div>
+      <div class="summary-action">
+        <button id="refresh-button" type="button">立即收取</button>
+        <span id="updated-at">正在读取…</span>
+      </div>
+    </section>
+
+    <section class="work-area">
+      <article class="panel checklist-panel">
+        <div class="panel-heading">
+          <div><p class="eyebrow">CHECKLIST</p><h2>希望你留下这些样本</h2></div>
+          <span id="checklist-progress">0 / 6</span>
+        </div>
+        <div id="requirements" class="requirements"></div>
+        <div class="content-prompts">
+          <p class="prompt-heading">内容层还需要两段话</p>
+          <div id="content-prompts"></div>
+        </div>
+      </article>
+
+      <article class="panel records-panel">
+        <div class="panel-heading">
+          <div><p class="eyebrow">WHAT ARRIVED</p><h2>已经输入了什么</h2></div>
+          <button id="export-button" class="quiet-button" type="button">生成草案</button>
+        </div>
+        <div id="records" class="records"></div>
+        <div id="empty-state" class="empty-state" hidden>还没有新记录<br><small>使用任一现有快捷键后会自动出现在这里</small></div>
+      </article>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="/app.js" defer></script>
+</body>
+</html>

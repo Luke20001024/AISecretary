@@ -1,0 +1,58 @@
+body { background: var(--paper); }
+.index-bar {
+  position: sticky;
+  z-index: 5;
+  top: 0;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  min-height: 56px;
+  padding: 0 32px;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  backdrop-filter: blur(14px);
+  font-size: 13px;
+}
+.index-bar .brand { font-size: 17px; font-weight: 650; text-decoration: none; }
+.index-bar a,
+.index-footer a { display: inline-flex; min-height: 44px; align-items: center; }
+.index-bar > :last-child { justify-self: end; color: var(--muted); }
+.index-main { width: min(1180px, calc(100% - 48px)); margin: 0 auto; padding: 38px 0 80px; }
+.intro { max-width: 760px; padding: 38px 0 54px; }
+.eyebrow { margin: 0 0 10px; color: var(--accent-deep); font-family: var(--mono); font-size: 12px; }
+.intro h1 { margin: 0; max-width: 720px; font-size: clamp(30px, 4vw, 50px); line-height: 1.16; letter-spacing: -.045em; }
+.intro > p:last-child { max-width: 650px; margin: 22px 0 0; color: var(--muted); font-size: 17px; }
+.direction-list { border-top: 1px solid var(--ink); }
+.direction {
+  display: grid;
+  grid-template-columns: minmax(260px, 5fr) minmax(360px, 7fr);
+  gap: clamp(28px, 6vw, 80px);
+  padding: 38px 0;
+  border-bottom: 1px solid var(--line-strong);
+}
+.direction-media { aspect-ratio: 3 / 2; overflow: hidden; background: var(--paper-soft); }
+.direction-media img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.direction-copy { align-self: center; }
+.direction-index { color: var(--accent-deep); font-family: var(--mono); font-size: 11px; }
+.direction h2 { margin: 8px 0 12px; font-size: 28px; letter-spacing: -.02em; }
+.direction p { max-width: 620px; margin: 0; color: var(--muted); }
+.direction dl { display: flex; flex-wrap: wrap; gap: 18px 28px; margin: 24px 0; }
+.direction dl div { min-width: 110px; }
+.direction dt { color: var(--faint); font-family: var(--mono); font-size: 10px; }
+.direction dd { margin: 3px 0 0; font-size: 13px; }
+.open-demo { display: inline-flex; align-items: center; min-height: 44px; color: var(--accent-deep); text-underline-offset: 5px; }
+.shared-contract { display: grid; grid-template-columns: 4fr 8fr; gap: 40px; padding: 60px 0 20px; }
+.shared-contract h2 { margin: 0; font-size: 22px; }
+.shared-contract ol { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--ink); }
+.shared-contract li { display: grid; grid-template-columns: 46px 1fr; padding: 13px 0; border-bottom: 1px solid var(--line); }
+.shared-contract li span { color: var(--accent-deep); font-family: var(--mono); font-size: 11px; }
+.index-footer { display: flex; justify-content: space-between; gap: 20px; padding: 20px 32px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+@media (max-width: 760px) {
+  .index-bar { grid-template-columns: 1fr auto; padding: 0 20px; }
+  .index-bar > span { display: none; }
+  .index-main { width: min(100% - 32px, 620px); padding-top: 22px; }
+  .intro { padding: 28px 0 38px; }
+  .direction { grid-template-columns: 1fr; gap: 22px; }
+  .shared-contract { grid-template-columns: 1fr; gap: 20px; }
+  .index-footer { padding: 18px 16px; }
+}

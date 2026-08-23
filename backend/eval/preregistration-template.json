@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "kind": "memento_shadow_preregistration_template",
+  "status": "awaiting_user_confirmation",
+  "note": "这些阈值只用于准备 R9，不代表用户已经接受，也不能开启真实 Vault 或产品模型",
+  "thresholds": {
+    "false_link_rate_max": 0.1,
+    "missed_link_rate_max": 0.1,
+    "over_inference_rate_max": 0.05,
+    "stop_f1_min": 0.9,
+    "stop_case_count_min": 3,
+    "source_reference_valid_rate_min": 1.0,
+    "self_traceability_rate_min": 1.0,
+    "resource_as_user_false_rate_max": 0.0,
+    "stale_resurrection_count_max": 0,
+    "adapter_pass_rate_min": 1.0,
+    "source_hash_stability_rate_min": 1.0,
+    "estimated_cost_usd_max": 0.5,
+    "latency_p95_ms_max": 12000
+  },
+  "requires_confirmation": [
+    "误连与漏连阈值",
+    "Theme 与 SelfInsight material gate",
+    "敏感信息默认策略",
+    "每日与长期 Agent 频率",
+    "Provider、模型与预算"
+  ]
+}

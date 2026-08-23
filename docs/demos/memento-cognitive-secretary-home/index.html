@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Memento / 认知秘书桌面</title>
+  <link rel="stylesheet" href="../memento-cognitive-landscape/styles.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#home-content">跳到主页内容</a>
+
+  <div class="app-shell" id="app-shell">
+    <header class="topbar home-topbar">
+      <div class="title-lockup">
+        <span class="brand">Memento</span>
+        <span class="title-divider" aria-hidden="true"></span>
+        <div>
+          <h1>她眼中的我 <span>/ 认知秘书</span></h1>
+          <p>记录被整理，理解有来路，每一次修订都会被保留</p>
+        </div>
+      </div>
+
+      <div class="home-summary" aria-label="今日概览" aria-live="polite">
+        <span><strong data-summary-understandings>4</strong> 项当前理解</span>
+        <span><strong data-summary-records>8</strong> 条今日记录</span>
+        <span><strong data-summary-memories>7</strong> 条记忆拆解</span>
+      </div>
+
+      <nav class="global-actions" aria-label="Memento 其他能力">
+        <button type="button" data-secondary-view="history">每日历史</button>
+        <button type="button" data-secondary-view="library">资料库</button>
+        <button type="button" data-secondary-view="export">输出</button>
+        <button class="more-button" type="button" data-secondary-view="settings" aria-label="打开更多设置">…</button>
+      </nav>
+    </header>
+
+    <div class="system-notice" data-system-notice hidden role="status" aria-live="polite">
+      <span data-system-notice-text></span>
+      <button type="button" data-return-today hidden>回到今天</button>
+    </div>
+
+    <main class="workspace home-workspace" id="map-workspace">
+      <div class="home-flow" id="home-content">
+        <section class="map-panel landscape-section" aria-labelledby="landscape-title">
+          <header class="section-head landscape-head">
+            <div class="section-title">
+              <p class="section-index">01 / UNDERSTAND</p>
+              <div>
+                <h2 id="landscape-title">认知地景</h2>
+                <p>山峰来自跨时间的记忆聚合；点与线都可回到你真正留下的内容</p>
+              </div>
+            </div>
+
+            <div class="landscape-actions">
+              <div class="map-summary" aria-label="认知地景摘要" aria-live="polite">
+                <span><strong data-summary-changes>1</strong> 项近期变化</span>
+                <span><strong data-summary-observing>2</strong> 项仍在观察</span>
+              </div>
+              <div class="view-switch" role="tablist" aria-label="切换地景视图">
+                <button type="button" role="tab" aria-selected="true" aria-controls="cognitive-map-panel" tabindex="0" data-view="overview">概览</button>
+                <button type="button" role="tab" aria-selected="false" aria-controls="cognitive-map-panel" tabindex="-1" data-view="relations">关系</button>
+                <button type="button" role="tab" aria-selected="false" aria-controls="cognitive-map-panel" tabindex="-1" data-view="list">列表</button>
+              </div>
+              <button class="round-info" type="button" data-dialog-open="info-dialog" aria-label="查看认知地景说明">i</button>
+            </div>
+          </header>
+
+          <div class="map-canvas" id="cognitive-map-panel" role="tabpanel" aria-label="认知地景视图" data-map-canvas>
+            <svg id="cognitive-map" class="cognitive-map" viewBox="0 0 1120 650" role="group" aria-labelledby="landscape-title" aria-describedby="map-description">
+              <desc id="map-description">四项长期理解、与其关联的记忆点，以及支持、反例和修订关系。位置只表达已经建立的关系。</desc>
+              <defs>
+                <filter id="soft-blue-shadow" x="-45%" y="-45%" width="190%" height="190%"><feGaussianBlur stdDeviation="18"></feGaussianBlur></filter>
+                <radialGradient id="terrain-lens-gradient" cx="50%" cy="50%" r="50%">
+                  <stop offset="0" stop-color="#fff" stop-opacity="1"></stop>
+                  <stop offset="62%" stop-color="#fff" stop-opacity=".88"></stop>
+                  <stop offset="100%" stop-color="#fff" stop-opacity="0"></stop>
+                </radialGradient>
+                <mask id="terrain-lens-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="1120" height="650">
+                  <circle data-terrain-lens cx="-300" cy="-300" r="190" fill="url(#terrain-lens-gradient)"></circle>
+                </mask>
+                <marker id="revision-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 8 4 L 0 8 Z"></path></marker>
+              </defs>
+              <g data-layer="terrain" aria-hidden="true"></g>
+              <g data-layer="terrain-response" mask="url(#terrain-lens-mask)" aria-hidden="true"></g>
+              <g data-layer="shadows" aria-hidden="true"></g>
+              <g data-layer="observation-zones"></g>
+              <g data-layer="relations"></g>
+              <g data-layer="peaks"></g>
+              <g data-layer="memories"></g>
+            </svg>
+
+            <div class="map-tooltip" data-map-tooltip hidden role="tooltip"></div>
+            <div class="map-empty" data-map-empty hidden>
+              <span class="empty-mark" aria-hidden="true"></span>
+              <h2>还没有形成长期理解</h2>
+              <p>记录会先被整理。跨时间证据达到条件并通过校验后，才会形成认知峰。</p>
+            </div>
+
+            <section class="list-view" data-list-view hidden aria-labelledby="list-view-title">
+              <header><div><p>等价文字视图</p><h2 id="list-view-title">当前保留的长期理解</h2></div><span>点击任一行查看依据与版本</span></header>
+              <div class="understanding-table" role="list" aria-label="当前长期理解列表">
+                <div class="table-head" aria-hidden="true"><span>当前理解</span><span>适用范围</span><span>依据</span><span>反例</span><span>最近变化</span></div>
+                <div data-list-rows></div>
+              </div>
+            </section>
+
+            <div class="legend-panel" aria-label="认知地景图例">
+              <div class="legend-summary"><strong data-visible-snapshot>今天的地景</strong><span>来自主动保存的记录</span></div>
+              <div class="legend-items">
+                <span><i class="legend-dot is-solid" aria-hidden="true"></i>已归并记忆</span>
+                <span><i class="legend-dot is-hollow" aria-hidden="true"></i>等待归并</span>
+                <span><i class="legend-dot is-bridge" aria-hidden="true"></i>跨峰记忆</span>
+                <span><i class="legend-line" aria-hidden="true"></i>支持</span>
+                <span><i class="legend-line is-revision" aria-hidden="true"></i>修订</span>
+                <span><i class="legend-line is-dashed" aria-hidden="true"></i>反例 / 边界</span>
+              </div>
+            </div>
+            <p class="map-boundary">位置用于整理已建立的关系。峰间远近不代表人格相似度或重要程度。</p>
+          </div>
+
+          <footer class="time-controls" aria-label="认知地景时间回看">
+            <div class="playback-control"><button type="button" data-play-timeline>播放变化</button><span data-timeline-event>今天新增 3 个待归并记忆点，长期理解没有变化</span></div>
+            <div class="snapshot-track" role="group" aria-label="选择地景快照" data-snapshot-track></div>
+            <div class="scope-note">完全离线 / 演示数据</div>
+          </footer>
+        </section>
+
+        <section class="evidence-bridge" aria-labelledby="bridge-title">
+          <div class="bridge-copy">
+            <p class="section-index">02 / ORGANIZE</p>
+            <div><h2 id="bridge-title">今日整理队列</h2><p><span class="live-dot" aria-hidden="true"></span><span data-schedule-status>每条记录即时整理 · 今晚 21:00 自动归并</span></p></div>
+          </div>
+          <div class="flow-steps" aria-label="从记录到理解的路径">
+            <span class="is-done">原文已保存</span><i aria-hidden="true"></i><span class="is-active">逐条整理</span><i aria-hidden="true"></i><span>每日归并</span><i aria-hidden="true"></i><span>进入地景</span>
+          </div>
+          <div class="merge-control">
+            <div><strong data-merge-title>3 条记录可归并</strong><span data-merge-detail>需校准与失败内容不会被强制写入</span></div>
+            <button class="primary-action" type="button" data-merge-today>归并今天</button>
+          </div>
+        </section>
+
+        <section class="records-section" id="records-workspace" aria-labelledby="records-title">
+          <header class="section-head records-head">
+            <div class="section-title">
+              <p class="section-index">03 / REMEMBER</p>
+              <div><h2 id="records-title">今天留下的记录</h2><p>2026 年 8 月 17 日 · 周一。先看 AI 如何整理，原文始终保留在侧边详情中</p></div>
+            </div>
+            <div class="records-tools">
+              <div class="filter-set" role="group" aria-label="筛选今日记录">
+                <button type="button" aria-pressed="true" data-filter="all">全部</button>
+                <button type="button" aria-pressed="false" data-filter="pending">待归并</button>
+                <button type="button" aria-pressed="false" data-filter="review">需校准</button>
+              </div>
+              <button class="quiet-action" type="button" data-secondary-view="all-records">查看全部记录</button>
+            </div>
+          </header>
+
+          <div class="record-selection-note" data-record-selection-note hidden role="status"></div>
+
+          <div class="ledger" aria-label="今日整理回执">
+            <div class="ledger-head" aria-hidden="true"><span>时间 / 来源</span><span>本条整理结果</span><span>记忆拆解</span><span>认知去向</span><span>状态</span></div>
+            <div class="record-list" data-record-list></div>
+          </div>
+
+          <div class="records-empty" data-records-empty hidden>
+            <span class="empty-mark" aria-hidden="true"></span><h3>今天还没有留下记录</h3><p>Memento 会安静等待。下一条内容出现后，它会先被安全保留，再开始整理。</p>
+          </div>
+
+          <footer class="records-foot"><p>主页保留当日整理回执。跨日找回、完整原文、修改痕迹和导出位于次级入口。</p><span>本地 Demo · 页面内操作</span></footer>
+        </section>
+      </div>
+
+      <aside class="context-drawer" data-context-drawer hidden aria-labelledby="drawer-title">
+        <header class="drawer-head"><div><p data-drawer-eyebrow>当前理解</p><h2 id="drawer-title" data-drawer-title>产品判断</h2></div><button class="drawer-close" type="button" data-drawer-close aria-label="关闭详情">×</button></header>
+        <div class="drawer-body" data-drawer-body></div>
+        <footer class="drawer-foot" data-drawer-foot></footer>
+      </aside>
+    </main>
+  </div>
+
+  <dialog class="info-dialog" id="info-dialog" aria-labelledby="info-dialog-title">
+    <header><div><p>如何阅读</p><h2 id="info-dialog-title">认知地景只呈现可追溯的长期理解</h2></div><button type="button" data-dialog-close aria-label="关闭说明">×</button></header>
+    <div class="dialog-body"><dl class="meaning-list">
+      <div><dt>山峰</dt><dd>一条经过跨时间证据校验并提交的长期理解。</dd></div>
+      <div><dt>等高线</dt><dd>长期理解、已归并记忆与跨峰连接共同形成的连续地形。</dd></div>
+      <div><dt>实心点</dt><dd>完成每日归并，可以回到原文的记忆点。</dd></div>
+      <div><dt>空心点</dt><dd>今天已完成初步整理，仍在等待归并的内容。</dd></div>
+      <div><dt>关系线</dt><dd>只显示已保存的支持、反例、修订或适用边界。</dd></div>
+    </dl><p class="dialog-boundary">地景来自你主动保存的局部记录，不代表完整人格画像。</p></div>
+    <footer><button type="button" data-dialog-close>知道了</button></footer>
+  </dialog>
+
+  <dialog class="state-dialog" id="state-dialog" aria-labelledby="state-dialog-title">
+    <header><div><p>离线 Demo 控制</p><h2 id="state-dialog-title">查看地景状态</h2></div><button type="button" data-dialog-close>×</button></header>
+    <div class="state-grid" data-state-grid>
+      <button type="button" data-demo-state="normal"><strong>当前</strong><span>地图正常显示</span></button>
+      <button type="button" data-demo-state="processing"><strong>核对中</strong><span>沿用上一版地景</span></button>
+      <button type="button" data-demo-state="no-change"><strong>无变化</strong><span>只增加今日记忆点</span></button>
+      <button type="button" data-demo-state="new-peak"><strong>新峰</strong><span>提交后才会出现</span></button>
+      <button type="button" data-demo-state="revised"><strong>已修订</strong><span>保留峰位置与版本</span></button>
+      <button type="button" data-demo-state="tension"><strong>存在张力</strong><span>支持与反例并列</span></button>
+      <button type="button" data-demo-state="failed"><strong>校验失败</strong><span>继续显示上一版</span></button>
+      <button type="button" data-demo-state="empty"><strong>空地景</strong><span>证据不足时保持安静</span></button>
+    </div>
+  </dialog>
+
+  <div class="toast" data-toast hidden role="status" aria-live="polite"></div>
+  <div class="live-region visually-hidden" aria-live="polite" data-live-region></div>
+  <script src="../memento-cognitive-landscape/app.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

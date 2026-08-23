@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/self-insight-v2.schema.json",
+  "title": "SelfInsightRevision V2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "kind", "insight_id", "revision", "previous_revision_sha256",
+    "title", "statement", "scope", "uncertainty", "maturity", "confirmation", "theme_refs",
+    "support_refs", "boundary_refs", "change_reason", "sensitivity", "visibility",
+    "policy_version", "prompt_version", "created_at", "committed_by", "committing_action_id"
+  ],
+  "properties": {
+    "schema_version": { "const": "2.0" },
+    "kind": { "const": "memento_self_insight_revision" },
+    "insight_id": { "type": "string", "pattern": "^sin_[0-9a-f]{24}$" },
+    "revision": { "type": "integer", "minimum": 1 },
+    "previous_revision_sha256": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/sha256" }] },
+    "title": { "type": "string", "minLength": 2, "maxLength": 80 },
+    "statement": { "type": "string", "minLength": 1, "maxLength": 1000 },
+    "scope": { "type": "string", "minLength": 1, "maxLength": 800 },
+    "uncertainty": { "type": "string", "minLength": 1, "maxLength": 600 },
+    "maturity": { "enum": ["forming", "observed", "stable", "dormant", "tombstone"] },
+    "confirmation": { "enum": ["draft", "observed", "user_confirmed", "restricted"] },
+    "theme_refs": { "type": "array", "minItems": 2, "maxItems": 32, "uniqueItems": true, "items": { "$ref": "#/$defs/themeRef" } },
+    "support_refs": { "type": "array", "minItems": 2, "maxItems": 128, "uniqueItems": true, "items": { "$ref": "#/$defs/supportRef" } },
+    "boundary_refs": { "type": "array", "maxItems": 64, "uniqueItems": true, "items": { "$ref": "#/$defs/supportRef" } },
+    "change_reason": { "type": "string", "minLength": 1, "maxLength": 600 },
+    "sensitivity": { "enum": ["normal", "sensitive", "restricted"] },
+    "visibility": { "enum": ["local_only", "grant_only", "restricted"] },
+    "policy_version": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "prompt_version": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "created_at": { "type": "string", "format": "date-time" },
+    "committed_by": { "enum": ["workflow", "user", "migration"] },
+    "committing_action_id": { "oneOf": [{ "type": "null" }, { "type": "string", "pattern": "^uact_[0-9a-f]{24}$" }] }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "revision": { "const": 1 } } },
+      "then": { "properties": { "previous_revision_sha256": { "type": "null" } } },
+      "else": { "properties": { "previous_revision_sha256": { "$ref": "#/$defs/sha256" } } }
+    },
+    {
+      "if": { "properties": { "sensitivity": { "enum": ["sensitive", "restricted"] } } },
+      "then": { "properties": { "visibility": { "enum": ["local_only", "restricted"] }, "confirmation": { "enum": ["draft", "observed", "restricted"] } } }
+    },
+    {
+      "if": { "properties": { "committed_by": { "const": "user" } } },
+      "then": { "properties": { "committing_action_id": { "type": "string", "pattern": "^uact_[0-9a-f]{24}$" } } },
+      "else": { "properties": { "committing_action_id": { "type": "null" } } }
+    }
+  ],
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "themeRef": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "id", "revision", "revision_sha256"],
+      "properties": { "kind": { "const": "theme" }, "id": { "type": "string", "pattern": "^thm_[0-9a-f]{24}$" }, "revision": { "type": "integer", "minimum": 1 }, "revision_sha256": { "$ref": "#/$defs/sha256" } }
+    },
+    "memoryAtomRef": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "id", "revision", "revision_sha256"],
+      "properties": { "kind": { "const": "memory_atom" }, "id": { "type": "string", "pattern": "^mat_[0-9a-f]{24}$" }, "revision": { "type": "integer", "minimum": 1 }, "revision_sha256": { "$ref": "#/$defs/sha256" } }
+    },
+    "supportRef": { "oneOf": [{ "$ref": "#/$defs/themeRef" }, { "$ref": "#/$defs/memoryAtomRef" }] }
+  }
+}

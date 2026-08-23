@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/external-trace-v1.schema.json",
+  "title": "ExternalTraceRevision V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "kind", "trace_id", "revision", "previous_revision_sha256",
+    "status", "operation", "session_ref", "grant_ref", "pack_id", "client_id", "task",
+    "trace_type", "content", "context_refs", "source_record_ref", "captured_at",
+    "user_confirmed", "processing_status", "created_at", "committed_by"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "kind": {"const": "memento_external_trace_revision"},
+    "trace_id": {"type": "string", "pattern": "^xtr_[0-9a-f]{24}$"},
+    "revision": {"const": 1},
+    "previous_revision_sha256": {"type": "null"},
+    "status": {"const": "active"},
+    "operation": {"const": "append"},
+    "session_ref": {"$ref": "#/$defs/sessionRef"},
+    "grant_ref": {"$ref": "#/$defs/grantRef"},
+    "pack_id": {"type": "string", "pattern": "^ctxp_[0-9a-f]{24}$"},
+    "client_id": {"type": "string", "minLength": 1, "maxLength": 240},
+    "task": {"type": "string", "minLength": 1, "maxLength": 1000},
+    "trace_type": {"enum": ["decision", "correction", "outcome", "new_question"]},
+    "content": {"type": "string", "minLength": 1, "maxLength": 20000},
+    "context_refs": {"type": "array", "maxItems": 256, "uniqueItems": true, "items": {"$ref": "#/$defs/objectRef"}},
+    "source_record_ref": {"$ref": "#/$defs/recordRef"},
+    "captured_at": {"type": "string", "format": "date-time"},
+    "user_confirmed": {"type": "boolean"},
+    "processing_status": {"const": "raw_saved"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "committed_by": {"const": "workflow"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"trace_type": {"const": "correction"}}},
+      "then": {"properties": {"user_confirmed": {"const": true}}}
+    }
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "grantRef": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "id", "revision", "revision_sha256"],
+      "properties": {"kind": {"const": "context_grant"}, "id": {"type": "string", "pattern": "^grt_[0-9a-f]{24}$"}, "revision": {"type": "integer", "minimum": 1}, "revision_sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "sessionRef": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "id", "revision", "revision_sha256"],
+      "properties": {"kind": {"const": "external_session"}, "id": {"type": "string", "pattern": "^ses_[0-9a-f]{24}$"}, "revision": {"type": "integer", "minimum": 1}, "revision_sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "recordRef": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "id", "revision", "revision_sha256"],
+      "properties": {"kind": {"const": "source_record"}, "id": {"type": "string", "pattern": "^rec_[0-9a-f]{24}$"}, "revision": {"type": "integer", "minimum": 1}, "revision_sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "objectRef": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "id", "revision", "revision_sha256"],
+      "properties": {
+        "kind": {"enum": ["source_record", "memory_atom", "theme", "self_insight"]},
+        "id": {"type": "string", "pattern": "^(rec|mat|thm|sin)_[0-9a-f]{24}$"},
+        "revision": {"type": "integer", "minimum": 1}, "revision_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "oneOf": [
+        {"properties": {"kind": {"const": "source_record"}, "id": {"pattern": "^rec_[0-9a-f]{24}$"}}},
+        {"properties": {"kind": {"const": "memory_atom"}, "id": {"pattern": "^mat_[0-9a-f]{24}$"}}},
+        {"properties": {"kind": {"const": "theme"}, "id": {"pattern": "^thm_[0-9a-f]{24}$"}}},
+        {"properties": {"kind": {"const": "self_insight"}, "id": {"pattern": "^sin_[0-9a-f]{24}$"}}}
+      ]
+    }
+  }
+}

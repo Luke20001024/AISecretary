@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/projection-bundle-v1.schema.json",
+  "title": "ProjectionBundleManifest V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "kind", "projection_version", "bundle_id", "generated_at", "as_of", "input_sha256", "entries", "previous_bundle_sha256"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "kind": {"const": "memento_projection_bundle_manifest"},
+    "projection_version": {"const": "memento-projection-bundle-v1"},
+    "bundle_id": {"type": "string", "pattern": "^prjb_[0-9a-f]{24}$"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "as_of": {"type": "string", "format": "date"},
+    "input_sha256": {"$ref": "#/$defs/sha256"},
+    "entries": {
+      "type": "array", "minItems": 5, "maxItems": 4096, "uniqueItems": true,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["name", "projection_id", "path", "sha256"],
+        "properties": {
+          "name": {"enum": ["home", "timeline", "landscape", "self", "detail_index", "record_detail", "resource_detail", "theme_detail", "self_insight_detail"]},
+          "projection_id": {"type": "string", "pattern": "^(home|tln|lnd|self|dix|rdt|rsd|tdt|sdt)_[0-9a-f]{24}$"},
+          "path": {"type": "string", "pattern": "^projections/(?!\\.\\.(?:/|$))(?!.*\\/\\.\\.(?:/|$))[A-Za-z0-9._/-]+\\.json$"},
+          "sha256": {"$ref": "#/$defs/sha256"}
+        }
+      }
+    },
+    "previous_bundle_sha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

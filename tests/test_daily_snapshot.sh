@@ -8,10 +8,7 @@ trap 'rm -rf "$TMP_ROOT"' EXIT
 
 VAULT="$TMP_ROOT/vault"
 SCRIPTS="$VAULT/.scripts"
-APP="$VAULT/.apps/Memento Daily Snapshot.app"
-EXECUTABLE="$APP/Contents/MacOS/MementoDailySnapshot"
-LAUNCH_LOG="$TMP_ROOT/launch.log"
-mkdir -p "$SCRIPTS" "$(dirname "$EXECUTABLE")"
+mkdir -p "$SCRIPTS"
 
 # 从安装器提取真正会被安装的统一环境脚本，避免测试一份复制品。
 awk '
@@ -21,91 +18,10 @@ awk '
 ' "$ROOT/install_aisecretary.sh" > "$SCRIPTS/memento_env.sh"
 chmod +x "$SCRIPTS/memento_env.sh"
 
-cat > "$EXECUTABLE" <<'FAKE_APP'
-#!/bin/bash
-exit 0
-FAKE_APP
-chmod +x "$EXECUTABLE"
-
-cat > "$TMP_ROOT/fake-launcher.sh" <<'FAKE_LAUNCHER'
-#!/bin/bash
-printf '%s\n' "$*" >> "$MEMENTO_TEST_LAUNCH_LOG"
-FAKE_LAUNCHER
-chmod +x "$TMP_ROOT/fake-launcher.sh"
-
 export MEMENTO_VAULT="$VAULT"
-export MEMENTO_DAILY_SNAPSHOT_LAUNCHER="$TMP_ROOT/fake-launcher.sh"
-export MEMENTO_TEST_LAUNCH_LOG="$LAUNCH_LOG"
 . "$SCRIPTS/memento_env.sh"
 
-# 并发首写只能认领并启动一次。
-for _ in $(seq 1 20); do
-  (memento_trigger_daily_snapshot "2026-07-14" "09:42" "周二" "Codex") &
-done
-wait
-for _ in $(seq 1 40); do
-  [ -f "$LAUNCH_LOG" ] && break
-  sleep 0.05
-done
-
-[ -d "$VAULT/.state/daily-snapshot/2026-07-14.claim" ]
-[ "$(wc -l < "$LAUNCH_LOG" | tr -d ' ')" = "1" ]
-grep -q -- '--capture-date 2026-07-14' "$LAUNCH_LOG"
-grep -q -- '--source-app Codex' "$LAUNCH_LOG"
-
-# 同一天再次记录没有任何新启动；次日独立认领一次。
-memento_trigger_daily_snapshot "2026-07-14" "10:00" "周二" "Feishu"
-memento_trigger_daily_snapshot "2026-07-15" "08:00" "周三" "Feishu"
-for _ in $(seq 1 40); do
-  [ -f "$LAUNCH_LOG" ] && [ "$(wc -l < "$LAUNCH_LOG" | tr -d ' ')" = "2" ] && break
-  sleep 0.05
-done
-[ "$(wc -l < "$LAUNCH_LOG" | tr -d ' ')" = "2" ]
-
-# 禁用开关不会认领，也不会启动。
-export MEMENTO_DAILY_SNAPSHOT_DISABLED=1
-memento_trigger_daily_snapshot "2026-07-16" "08:00" "周四" "Feishu"
-[ ! -e "$VAULT/.state/daily-snapshot/2026-07-16.claim" ]
-[ "$(wc -l < "$LAUNCH_LOG" | tr -d ' ')" = "2" ]
-unset MEMENTO_DAILY_SNAPSHOT_DISABLED
-
-# 落档脚本一次性写入完整块；天气和来源只绑定每日第一帧。
-cp "$ROOT/snapshot-capture/append_daily_snapshot.sh" "$SCRIPTS/append_daily_snapshot.sh"
-chmod +x "$SCRIPTS/append_daily_snapshot.sh"
-PHOTO="$TMP_ROOT/photo.jpg"
-printf 'fake-jpeg-data' > "$PHOTO"
-SNAPSHOT_NOTIFY_LOG="$TMP_ROOT/snapshot-notify.log"
-SNAPSHOT_BIN="$TMP_ROOT/snapshot-bin"
-mkdir -p "$SNAPSHOT_BIN"
-cat > "$SNAPSHOT_BIN/osascript" <<'FAKE_SNAPSHOT_OSASCRIPT'
-#!/bin/bash
-printf '%s\n' "$*" >> "${MEMENTO_TEST_SNAPSHOT_NOTIFY_LOG:?}"
-FAKE_SNAPSHOT_OSASCRIPT
-chmod +x "$SNAPSHOT_BIN/osascript"
-
-MEMENTO_TEST_SNAPSHOT_NOTIFY_LOG="$SNAPSHOT_NOTIFY_LOG" \
-PATH="$SNAPSHOT_BIN:$PATH" \
-  "$SCRIPTS/append_daily_snapshot.sh" \
-  "$PHOTO" "2026-07-14" "09:42" "周二" "Asia/Shanghai" \
-  "阴 · 31.7°C（体感 37.3°C）" "2026-07-14T09:45" "Codex"
-
-DAILY="$VAULT/2026-07-14.md"
-grep -q '^type: memento-daily$' "$DAILY"
-[ "$(grep -c '每日第一帧' "$DAILY")" = "2" ]
-grep -q '> 天气: 阴 · 31.7°C（体感 37.3°C）' "$DAILY"
-grep -q '> 天气观测: 2026-07-14T09:45 · Open-Meteo' "$DAILY"
-grep -q '> 首条记录来源: Codex' "$DAILY"
-ASSET=$(find "$VAULT/assets" -name '*-daily-portrait*.jpg' -type f | head -1)
-[ -n "$ASSET" ]
-[ -s "$ASSET" ]
-[ ! -e "$SNAPSHOT_NOTIFY_LOG" ]
-
-if rg -qF '每日第一帧已存入' "$ROOT/snapshot-capture/append_daily_snapshot.sh"; then
-  echo "每日第一帧成功落档仍会发送重复系统通知" >&2
-  exit 1
-fi
-
-# 异步快照与后续普通记录共用按日写锁；并发追加不能相互穿插或重复 frontmatter。
+# 每日记录写锁：并发追加不能相互穿插或重复 frontmatter。
 LOCK_DATE="2026-07-17"
 for index in $(seq 1 20); do
   BLOCK="$TMP_ROOT/block-$index.md"
@@ -246,7 +162,7 @@ TEXT_SCRIPTS="$TEXT_ROOT/.scripts"
 TEXT_TMP="$TEXT_ROOT/tmp"
 TEXT_BIN="$TEXT_ROOT/bin"
 NOTIFY_LOG="$TEXT_ROOT/notify.log"
-SNAPSHOT_LOG="$TEXT_ROOT/snapshot.log"
+TEXT_TODAY=$(TZ=Asia/Shanghai date +%Y-%m-%d)
 mkdir -p "$TEXT_SCRIPTS" "$TEXT_TMP" "$TEXT_BIN"
 
 awk '
@@ -266,9 +182,6 @@ memento_append_daily_block() {
   cp "$3" "$MEMENTO_VAULT/written-block.md"
 }
 
-memento_trigger_daily_snapshot() {
-  printf '%s\n' "$*" >> "${MEMENTO_TEST_SNAPSHOT_LOG:?}"
-}
 FAKE_ENV
 
 cat > "$TEXT_BIN/osascript" <<'FAKE_OSASCRIPT'
@@ -281,7 +194,6 @@ set +e
 MEMENTO_VAULT="$TEXT_ROOT/vault" \
 MEMENTO_TEST_WRITE_FAIL=1 \
 MEMENTO_TEST_NOTIFY_LOG="$NOTIFY_LOG" \
-MEMENTO_TEST_SNAPSHOT_LOG="$SNAPSHOT_LOG" \
 TMPDIR="$TEXT_TMP" \
 PATH="$TEXT_BIN:$PATH" \
   "$TEXT_SCRIPTS/append_text.sh" "不会落档的内容" >/dev/null 2>&1
@@ -290,12 +202,10 @@ set -e
 
 [ "$WRITE_STATUS" -ne 0 ]
 [ ! -e "$NOTIFY_LOG" ]
-[ ! -e "$SNAPSHOT_LOG" ]
 [ -z "$(find "$TEXT_TMP" -maxdepth 1 -name 'memento-text.*' -print -quit)" ]
 
 MEMENTO_VAULT="$TEXT_ROOT/vault" \
 MEMENTO_TEST_NOTIFY_LOG="$NOTIFY_LOG" \
-MEMENTO_TEST_SNAPSHOT_LOG="$SNAPSHOT_LOG" \
 SOURCE_APP="Codex" TAG="TODO" NOTE="测试备注" \
 TMPDIR="$TEXT_TMP" \
 PATH="$TEXT_BIN:$PATH" \
@@ -314,14 +224,12 @@ if grep -q '#TODO' "$NOTIFY_LOG"; then
   echo "成功通知仍暴露 TODO 任务语义" >&2
   exit 1
 fi
-[ "$(wc -l < "$SNAPSHOT_LOG" | tr -d ' ')" = "1" ]
 [ -z "$(find "$TEXT_TMP" -maxdepth 1 -name 'memento-text.*' -print -quit)" ]
 
 # stdin 是主传输路径；以 echo 选项开头及末尾空行都不能丢失。
 printf '%s' $'-n\n保留正文\n\n' | \
   MEMENTO_VAULT="$TEXT_ROOT/vault" \
   MEMENTO_TEST_NOTIFY_LOG="$NOTIFY_LOG" \
-  MEMENTO_TEST_SNAPSHOT_LOG="$SNAPSHOT_LOG" \
   TMPDIR="$TEXT_TMP" PATH="$TEXT_BIN:$PATH" \
   "$TEXT_SCRIPTS/append_text.sh"
 grep -q '^-n$' "$TEXT_ROOT/vault/written-block.md"
@@ -481,12 +389,11 @@ grep -qF "./assets/$(basename "$TERM_ASSET")" "$TERM_VAULT/$TODAY.md"
 [ ! -d "$TERM_VAULT/.state/write-locks/$TODAY.lock" ]
 [ -z "$(find "$TERM_VAULT" -maxdepth 1 -name '*.append.*' -print -quit)" ]
 
-# 所有带资产的 caller（含独立 snapshot helper）都必须尊重 committed ownership。
+# 所有带资产的 caller 都必须尊重 committed ownership。
 for COMMITTED_SCRIPT in \
   "$CAPTURE_SCRIPTS/append_image.sh" \
   "$CAPTURE_SCRIPTS/append_voice.sh" \
-  "$CAPTURE_SCRIPTS/capture_screenshot.sh" \
-  "$SCRIPTS/append_daily_snapshot.sh"; do
+  "$CAPTURE_SCRIPTS/capture_screenshot.sh"; do
   rg -q 'MEMENTO_DAILY_APPEND_COMMITTED' "$COMMITTED_SCRIPT"
 done
 
@@ -516,11 +423,9 @@ fi
 rg -qF '"$SERVICES_DIR"/AI秘书·*.workflow' "$ROOT/install_aisecretary.sh"
 rg -qF '"$SERVICES_DIR"/AI秘书·*.workflow' "$ROOT/uninstall_aisecretary.sh"
 
-echo "✓ daily snapshot hook: atomic once per day"
-echo "✓ daily snapshot append: photo + time + one-time weather"
 echo "✓ daily note writer: concurrent blocks remain complete"
 echo "✓ daily lock: token-safe stale takeover and migration serialization"
 echo "✓ daily note writer: metadata preservation and failure rollback"
-echo "✓ text writer: notify/snapshot only after durable append"
+echo "✓ text writer: notify only after durable append"
 echo "✓ capture assets: unique, private and failure-safe under concurrency"
 echo "✓ installer semantics: record-first tags and legacy Service cleanup"

@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/shadow-snapshot-v1.schema.json",
+  "title": "Memento Shadow Snapshot V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "kind", "snapshot_id", "snapshot_kind", "source_label", "source_root_sha256", "source_fingerprint_sha256", "created_at", "authorization_ref", "allowed_suffixes", "file_count", "byte_count", "excluded_count", "files", "read_only"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "kind": {"const": "memento_shadow_snapshot"},
+    "snapshot_id": {"type": "string", "pattern": "^snp_[0-9a-f]{24}$"},
+    "snapshot_kind": {"enum": ["synthetic_fixture", "anonymized_samples", "real_vault_snapshot"]},
+    "source_label": {"type": "string", "minLength": 1, "maxLength": 160},
+    "source_root_sha256": {"$ref": "#/$defs/sha256"},
+    "source_fingerprint_sha256": {"$ref": "#/$defs/sha256"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "authorization_ref": {"type": ["string", "null"], "minLength": 1, "maxLength": 240},
+    "allowed_suffixes": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^\\.[a-z0-9]+$"}},
+    "file_count": {"type": "integer", "minimum": 0},
+    "byte_count": {"type": "integer", "minimum": 0},
+    "excluded_count": {"type": "integer", "minimum": 0},
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256", "byte_size"],
+        "properties": {
+          "path": {"type": "string", "minLength": 1, "maxLength": 1024},
+          "sha256": {"$ref": "#/$defs/sha256"},
+          "byte_size": {"type": "integer", "minimum": 0}
+        }
+      }
+    },
+    "read_only": {"const": true}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"snapshot_kind": {"const": "real_vault_snapshot"}}},
+      "then": {"properties": {"authorization_ref": {"type": "string", "minLength": 1}}}
+    }
+  ],
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

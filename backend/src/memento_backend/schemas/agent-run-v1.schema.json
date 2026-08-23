@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/agent-run-v1.schema.json",
+  "title": "AgentRun V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "kind", "run_id", "agent_role", "prompt_version",
+    "policy_version", "input_sha256", "user_action_watermark_sha256",
+    "candidate_id", "candidate_sha256", "terminal_status", "committed_refs",
+    "usage", "created_at", "finished_at"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "kind": { "const": "memento_agent_run" },
+    "run_id": { "type": "string", "pattern": "^run_[0-9a-f]{24}$" },
+    "agent_role": { "enum": ["capture_understanding", "record_interpreter", "daily_integrator", "theme_synthesizer", "self_understanding", "context_router", "resource_reader"] },
+    "prompt_version": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "policy_version": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "input_sha256": { "$ref": "#/$defs/sha256" },
+    "user_action_watermark_sha256": { "$ref": "#/$defs/sha256" },
+    "candidate_id": { "type": "string", "pattern": "^cand_[0-9a-f]{24}$" },
+    "candidate_sha256": { "$ref": "#/$defs/sha256" },
+    "terminal_status": { "enum": ["committed", "stopped", "returned", "no_change", "conflict"] },
+    "committed_refs": { "type": "array", "maxItems": 128, "uniqueItems": true, "items": { "$ref": "#/$defs/objectRef" } },
+    "usage": { "$ref": "#/$defs/usage" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "finished_at": { "type": "string", "format": "date-time" }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "objectRef": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "id", "revision", "revision_sha256"],
+      "properties": {
+        "kind": { "enum": ["source_record", "capture_decision", "resource_card", "read_later_intent", "record_interpretation", "memory_atom", "relation", "theme", "self_insight"] },
+        "id": { "type": "string", "pattern": "^(?:rec|cap|res|rli|int|mat|rel|thm|sin)_[0-9a-f]{24}$" },
+        "revision": { "type": "integer", "minimum": 1 },
+        "revision_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "usage": {
+      "type": "object", "additionalProperties": false,
+      "required": ["mode", "provider", "model", "attempt_status", "prompt_tokens", "completion_tokens", "total_tokens", "estimated_cost_usd", "latency_ms"],
+      "properties": {
+        "mode": { "enum": ["deterministic", "provider"] },
+        "provider": { "oneOf": [{ "type": "null" }, { "type": "string", "minLength": 1, "maxLength": 80 }] },
+        "model": { "oneOf": [{ "type": "null" }, { "type": "string", "minLength": 1, "maxLength": 160 }] },
+        "attempt_status": { "enum": ["not_started", "succeeded", "failed", "unknown"] },
+        "prompt_tokens": { "type": "integer", "minimum": 0 },
+        "completion_tokens": { "type": "integer", "minimum": 0 },
+        "total_tokens": { "type": "integer", "minimum": 0 },
+        "estimated_cost_usd": { "type": "number", "minimum": 0 },
+        "latency_ms": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

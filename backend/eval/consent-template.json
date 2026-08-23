@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0",
+  "kind": "memento_shadow_consent_draft",
+  "status": "pending_user_confirmation",
+  "note": "请确认数据范围、阈值、Gate、敏感策略、Agent 频率、Provider 与预算后，再由 build_shadow_consent 生成带确定性 consent_id 的正式文件",
+  "dataset_scope": {
+    "source_label": "请填写要授权的本地 Memento Vault 标识",
+    "source_root": "/请填写真实 Vault 的规范绝对路径",
+    "snapshot_kind": "real_vault_snapshot",
+    "allowed_suffixes": [".json", ".md", ".txt"],
+    "read_only_only": true
+  },
+  "thresholds": {
+    "false_link_rate_max": 0.1,
+    "missed_link_rate_max": 0.1,
+    "over_inference_rate_max": 0.05,
+    "stop_f1_min": 0.9,
+    "stop_case_count_min": 3,
+    "source_reference_valid_rate_min": 1.0,
+    "self_traceability_rate_min": 1.0,
+    "resource_as_user_false_rate_max": 0.0,
+    "stale_resurrection_count_max": 0,
+    "adapter_pass_rate_min": 1.0,
+    "source_hash_stability_rate_min": 1.0,
+    "estimated_cost_usd_max": 0.5,
+    "latency_p95_ms_max": 12000
+  },
+  "material_gates": {
+    "theme": {"min_active_atoms": 2, "min_distinct_days": 2, "require_formal_relation": true, "dormant_after_days": 30},
+    "self": {"min_distinct_themes": 2, "min_evidence_per_theme": 2}
+  },
+  "sensitivity_policy": {
+    "sensitive_inference_action": "stop_for_user_confirmation",
+    "external_context_default": "exclude_unconfirmed",
+    "user_override_priority": true
+  },
+  "agent_schedule": {
+    "capture_understanding": {"frequency": "event_driven", "local_time": null, "weekday": null},
+    "record_interpreter": {"frequency": "event_driven", "local_time": null, "weekday": null},
+    "daily_integrator": {"frequency": "daily", "local_time": "22:00", "weekday": null},
+    "theme_synthesizer": {"frequency": "weekly", "local_time": "08:00", "weekday": 0},
+    "self_understanding": {"frequency": "weekly", "local_time": "09:00", "weekday": 6},
+    "context_router": {"frequency": "event_driven", "local_time": null, "weekday": null}
+  },
+  "provider": {
+    "provider": "请填写 Provider",
+    "model": "请填写产品运行模型",
+    "prompt_versions": ["capture-understanding-v1", "record-interpreter-v1", "daily-integrator-v1", "theme-synthesizer-v1", "self-understanding-v1"],
+    "policy_versions": ["capture-policy-v1", "interpretation-policy-v1", "daily-integration-policy-v1", "theme-material-policy-v1", "self-understanding-policy-v1", "context-policy-v1"],
+    "budget": {"max_prompt_tokens": 100000, "max_completion_tokens": 30000, "max_cost_usd": 0.5, "max_latency_ms": 12000}
+  },
+  "confirmed_at": "确认时填写带时区的 ISO-8601 时间"
+}

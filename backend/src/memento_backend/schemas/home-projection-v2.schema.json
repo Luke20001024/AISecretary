@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/home-projection-v2.schema.json",
+  "title": "HomeProjection V2",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "kind", "projection_version", "projection_id", "bundle_id", "generated_at", "as_of", "input_sha256", "landscape_ref", "self_ref", "timeline_ref", "today_status", "recent_changes", "resource_entries", "warnings", "schedule"],
+  "properties": {
+    "schema_version": {"const": "2.0"}, "kind": {"const": "memento_home_projection"},
+    "projection_version": {"const": "memento-home-v2"},
+    "projection_id": {"type": "string", "pattern": "^home_[0-9a-f]{24}$"},
+    "bundle_id": {"$ref": "#/$defs/bundleId"}, "generated_at": {"type": "string", "format": "date-time"},
+    "as_of": {"type": "string", "format": "date"}, "input_sha256": {"$ref": "#/$defs/sha256"},
+    "landscape_ref": {"$ref": "#/$defs/landscapeRef"}, "self_ref": {"$ref": "#/$defs/selfRef"}, "timeline_ref": {"$ref": "#/$defs/timelineRef"},
+    "today_status": {
+      "type": "object", "additionalProperties": false,
+      "required": ["saved", "interpreted", "connected", "needs_review", "run_status"],
+      "properties": {
+        "saved": {"type": "integer", "minimum": 0}, "interpreted": {"type": "integer", "minimum": 0},
+        "connected": {"type": "integer", "minimum": 0}, "needs_review": {"type": "integer", "minimum": 0},
+        "run_status": {"enum": ["not_started", "running", "committed", "committed_with_warnings", "no_change", "stale", "conflict", "failed_preserved"]}
+      }
+    },
+    "recent_changes": {"type": "array", "maxItems": 24, "items": {"$ref": "#/$defs/change"}},
+    "resource_entries": {"type": "array", "maxItems": 24, "items": {"$ref": "#/$defs/resourceEntry"}},
+    "warnings": {"type": "array", "maxItems": 12, "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 300}},
+    "schedule": {
+      "type": "object", "additionalProperties": false, "required": ["enabled", "hour", "minute", "next_due_at", "last_run_status"],
+      "properties": {"enabled": {"type": "boolean"}, "hour": {"type": "integer", "minimum": 0, "maximum": 23}, "minute": {"type": "integer", "minimum": 0, "maximum": 59}, "next_due_at": {"type": "string", "format": "date-time"}, "last_run_status": {"enum": ["not_started", "committed", "committed_with_warnings", "no_change", "stale", "failed_preserved"]}}
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "bundleId": {"type": "string", "pattern": "^prjb_[0-9a-f]{24}$"},
+    "landscapeRef": {"type": "object", "additionalProperties": false, "required": ["projection_id", "sha256"], "properties": {"projection_id": {"type": "string", "pattern": "^lnd_[0-9a-f]{24}$"}, "sha256": {"$ref": "#/$defs/sha256"}}},
+    "selfRef": {"type": "object", "additionalProperties": false, "required": ["projection_id", "sha256"], "properties": {"projection_id": {"type": "string", "pattern": "^self_[0-9a-f]{24}$"}, "sha256": {"$ref": "#/$defs/sha256"}}},
+    "timelineRef": {"type": "object", "additionalProperties": false, "required": ["projection_id", "sha256"], "properties": {"projection_id": {"type": "string", "pattern": "^tln_[0-9a-f]{24}$"}, "sha256": {"$ref": "#/$defs/sha256"}}},
+    "objectRef": {"type": "object", "additionalProperties": false, "required": ["kind", "id", "revision", "revision_sha256"], "properties": {"kind": {"enum": ["source_record", "resource_card", "theme", "self_insight"]}, "id": {"type": "string", "pattern": "^(rec|res|thm|sin)_[0-9a-f]{24}$"}, "revision": {"type": "integer", "minimum": 1}, "revision_sha256": {"$ref": "#/$defs/sha256"}}, "allOf": [{"if": {"properties": {"kind": {"const": "source_record"}}}, "then": {"properties": {"id": {"pattern": "^rec_"}}}}, {"if": {"properties": {"kind": {"const": "resource_card"}}}, "then": {"properties": {"id": {"pattern": "^res_"}}}}, {"if": {"properties": {"kind": {"const": "theme"}}}, "then": {"properties": {"id": {"pattern": "^thm_"}}}}, {"if": {"properties": {"kind": {"const": "self_insight"}}}, "then": {"properties": {"id": {"pattern": "^sin_"}}}}]},
+    "change": {"type": "object", "additionalProperties": false, "required": ["date", "subject_ref", "summary", "detail_projection_id"], "properties": {"date": {"type": "string", "format": "date"}, "subject_ref": {"$ref": "#/$defs/objectRef"}, "summary": {"type": "string", "minLength": 1, "maxLength": 600}, "detail_projection_id": {"type": "string", "pattern": "^(tdt|sdt)_[0-9a-f]{24}$"}}},
+    "resourceEntry": {"type": "object", "additionalProperties": false, "required": ["resource_ref", "title", "processing_route", "intent_status", "detail_projection_id"], "properties": {"resource_ref": {"$ref": "#/$defs/objectRef"}, "title": {"type": "string", "minLength": 1, "maxLength": 600}, "processing_route": {"type": "string", "minLength": 1, "maxLength": 80}, "intent_status": {"oneOf": [{"type": "null"}, {"enum": ["open", "in_progress", "completed", "archived"]}]}, "detail_projection_id": {"type": "string", "pattern": "^rsd_[0-9a-f]{24}$"}}}
+  }
+}

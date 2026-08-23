@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/action-watermark-v1.schema.json",
+  "title": "User Action Watermark V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "kind", "action_count", "updated_at", "user_action_watermark_sha256", "actions"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "kind": {"const": "memento_user_action_watermark"},
+    "action_count": {"type": "integer", "minimum": 0},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "user_action_watermark_sha256": {"$ref": "#/$defs/sha256"},
+    "actions": {
+      "type": "array",
+      "maxItems": 1000000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["action_id", "sha256"],
+        "properties": {
+          "action_id": {"type": "string", "pattern": "^uact_[0-9a-f]{24}$"},
+          "sha256": {"$ref": "#/$defs/sha256"}
+        }
+      }
+    }
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

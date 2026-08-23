@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/resource-detail-projection-v1.schema.json",
+  "title": "ResourceDetailProjection V1",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "kind", "projection_version", "projection_id", "bundle_id", "generated_at", "as_of", "input_sha256", "resource_ref", "source_record_ref", "resource_type", "url", "title", "local_asset_refs", "user_selected_spans", "user_note", "processing_route", "read_later_intents"],
+  "properties": {
+    "schema_version": {"const": "1.0"}, "kind": {"const": "memento_resource_detail_projection"}, "projection_version": {"const": "memento-resource-detail-v1"},
+    "projection_id": {"type": "string", "pattern": "^rsd_[0-9a-f]{24}$"}, "bundle_id": {"type": "string", "pattern": "^prjb_[0-9a-f]{24}$"},
+    "generated_at": {"type": "string", "format": "date-time"}, "as_of": {"type": "string", "format": "date"}, "input_sha256": {"$ref": "#/$defs/sha256"},
+    "resource_ref": {"$ref": "#/$defs/resourceRef"}, "source_record_ref": {"$ref": "#/$defs/sourceRecordRef"},
+    "resource_type": {"type": "string", "minLength": 1, "maxLength": 80}, "url": {"oneOf": [{"type": "null"}, {"type": "string", "minLength": 1, "maxLength": 4096}]},
+    "title": {"type": "string", "minLength": 1, "maxLength": 600}, "local_asset_refs": {"type": "array", "maxItems": 64, "items": {"type": "string", "minLength": 1, "maxLength": 500}},
+    "user_selected_spans": {"type": "array", "maxItems": 64, "items": {"$ref": "#/$defs/sourceSpan"}}, "user_note": {"oneOf": [{"type": "null"}, {"type": "string", "maxLength": 2000}]},
+    "processing_route": {"type": "string", "minLength": 1, "maxLength": 80}, "read_later_intents": {"type": "array", "maxItems": 32, "items": {"$ref": "#/$defs/readLaterIntent"}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "ref": {"type": "object", "additionalProperties": false, "required": ["kind", "id", "revision", "revision_sha256"], "properties": {"kind": {"enum": ["resource_card", "source_record", "read_later_intent"]}, "id": {"type": "string", "pattern": "^(res|rec|rli)_[0-9a-f]{24}$"}, "revision": {"type": "integer", "minimum": 1}, "revision_sha256": {"$ref": "#/$defs/sha256"}}},
+    "resourceRef": {"allOf": [{"$ref": "#/$defs/ref"}, {"properties": {"kind": {"const": "resource_card"}, "id": {"pattern": "^res_"}}}]},
+    "sourceRecordRef": {"allOf": [{"$ref": "#/$defs/ref"}, {"properties": {"kind": {"const": "source_record"}, "id": {"pattern": "^rec_"}}}]},
+    "readLaterRef": {"allOf": [{"$ref": "#/$defs/ref"}, {"properties": {"kind": {"const": "read_later_intent"}, "id": {"pattern": "^rli_"}}}]},
+    "sourceSpan": {"type": "object", "additionalProperties": false, "required": ["record_id", "record_revision", "record_revision_sha256", "source_file", "line_start", "line_end", "quote", "quote_sha256"], "properties": {"record_id": {"type": "string", "pattern": "^rec_[0-9a-f]{24}$"}, "record_revision": {"type": "integer", "minimum": 1}, "record_revision_sha256": {"$ref": "#/$defs/sha256"}, "source_file": {"type": "string", "minLength": 1, "maxLength": 500}, "line_start": {"type": "integer", "minimum": 1}, "line_end": {"type": "integer", "minimum": 1}, "quote": {"type": "string", "minLength": 1, "maxLength": 2000}, "quote_sha256": {"$ref": "#/$defs/sha256"}}},
+    "readLaterIntent": {"type": "object", "additionalProperties": false, "required": ["intent_ref", "status", "intent_type", "user_note", "created_at"], "properties": {"intent_ref": {"$ref": "#/$defs/readLaterRef"}, "status": {"enum": ["open", "in_progress", "completed", "archived"]}, "intent_type": {"type": "string", "minLength": 1, "maxLength": 80}, "user_note": {"oneOf": [{"type": "null"}, {"type": "string", "maxLength": 2000}]}, "created_at": {"type": "string", "format": "date-time"}}}
+  }
+}

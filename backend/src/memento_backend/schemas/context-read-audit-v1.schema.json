@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/context-read-audit-v1.schema.json",
+  "title": "ContextReadAuditRevision V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "kind", "audit_id", "revision", "previous_revision_sha256",
+    "operation", "requested_grant_id", "requested_session_id", "grant_ref", "session_ref",
+    "client_id", "request_sha256", "status", "reason_code", "pack_id", "pack_sha256",
+    "accessed_refs", "requested_at", "completed_at", "created_at", "committed_by"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "kind": {"const": "memento_context_read_audit_revision"},
+    "audit_id": {"type": "string", "pattern": "^aud_[0-9a-f]{24}$"},
+    "revision": {"const": 1},
+    "previous_revision_sha256": {"type": "null"},
+    "operation": {"enum": ["read", "writeback"]},
+    "requested_grant_id": {"type": "string", "pattern": "^grt_[0-9a-f]{24}$"},
+    "requested_session_id": {"type": "string", "pattern": "^ses_[0-9a-f]{24}$"},
+    "grant_ref": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/grantRef"}]},
+    "session_ref": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/sessionRef"}]},
+    "client_id": {"type": "string", "minLength": 1, "maxLength": 240},
+    "request_sha256": {"$ref": "#/$defs/sha256"},
+    "status": {"enum": ["allowed", "denied"]},
+    "reason_code": {"type": "string", "minLength": 1, "maxLength": 120},
+    "pack_id": {"oneOf": [{"type": "null"}, {"type": "string", "pattern": "^ctxp_[0-9a-f]{24}$"}]},
+    "pack_sha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]},
+    "accessed_refs": {"type": "array", "maxItems": 512, "uniqueItems": true, "items": {"$ref": "#/$defs/objectRef"}},
+    "requested_at": {"type": "string", "format": "date-time"},
+    "completed_at": {"type": "string", "format": "date-time"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "committed_by": {"const": "workflow"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "denied"}}},
+      "then": {"properties": {"pack_id": {"type": "null"}, "pack_sha256": {"type": "null"}, "accessed_refs": {"maxItems": 0}}}
+    },
+    {
+      "if": {"properties": {"status": {"const": "allowed"}}},
+      "then": {"properties": {"grant_ref": {"$ref": "#/$defs/grantRef"}, "session_ref": {"$ref": "#/$defs/sessionRef"}, "pack_id": {"type": "string", "pattern": "^ctxp_[0-9a-f]{24}$"}, "pack_sha256": {"$ref": "#/$defs/sha256"}}}
+    }
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "grantRef": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "id", "revision", "revision_sha256"],
+      "properties": {"kind": {"const": "context_grant"}, "id": {"type": "string", "pattern": "^grt_[0-9a-f]{24}$"}, "revision": {"type": "integer", "minimum": 1}, "revision_sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "sessionRef": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "id", "revision", "revision_sha256"],
+      "properties": {"kind": {"const": "external_session"}, "id": {"type": "string", "pattern": "^ses_[0-9a-f]{24}$"}, "revision": {"type": "integer", "minimum": 1}, "revision_sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "objectRef": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "id", "revision", "revision_sha256"],
+      "properties": {
+        "kind": {"enum": ["source_record", "memory_atom", "theme", "self_insight", "context_grant", "external_session", "external_trace"]},
+        "id": {"type": "string", "pattern": "^(rec|mat|thm|sin|grt|ses|xtr)_[0-9a-f]{24}$"},
+        "revision": {"type": "integer", "minimum": 1}, "revision_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "oneOf": [
+        {"properties": {"kind": {"const": "source_record"}, "id": {"pattern": "^rec_[0-9a-f]{24}$"}}},
+        {"properties": {"kind": {"const": "memory_atom"}, "id": {"pattern": "^mat_[0-9a-f]{24}$"}}},
+        {"properties": {"kind": {"const": "theme"}, "id": {"pattern": "^thm_[0-9a-f]{24}$"}}},
+        {"properties": {"kind": {"const": "self_insight"}, "id": {"pattern": "^sin_[0-9a-f]{24}$"}}},
+        {"properties": {"kind": {"const": "context_grant"}, "id": {"pattern": "^grt_[0-9a-f]{24}$"}}},
+        {"properties": {"kind": {"const": "external_session"}, "id": {"pattern": "^ses_[0-9a-f]{24}$"}}},
+        {"properties": {"kind": {"const": "external_trace"}, "id": {"pattern": "^xtr_[0-9a-f]{24}$"}}}
+      ]
+    }
+  }
+}

@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="memento-standalone-preview" content="2026-08-24">
+  <meta name="memento-source-sha256" content="7266938860765ac87725081f1fd33af42ce4f83d9645476913315cf7018b90b1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-9Jyg0qnZpRXyIrqH9U3MlsAyWXvNyTbH3kxp5t/QfzU=' 'sha256-tqqWIYL+50RiG+orb1hnqR3KKr6ocZqGForgYIU8DyM='; style-src 'unsafe-inline'; img-src data: blob:; media-src data: blob:; font-src data:; connect-src 'none'; object-src 'none'; frame-src 'none'; worker-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Memento · 认知地景预览</title>
+  <style data-memento-source="dashboard.css">
+:root { --paper:#fbfaf6; --warm:#f5f0e6; --ink:#1e262c; --muted:#69757a; --line:#d5e0e2; --water:#3b6892; --water-soft:#a8c1d4; --accent:#a65d42; }
+* { box-sizing:border-box; }
+body { margin:0; background:linear-gradient(125deg,#fff 0%,var(--paper) 48%,#f5f6f3 100%); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Noto Sans SC",sans-serif; }
+.page-shell { max-width:1580px; min-height:100vh; margin:auto; border-inline:1px solid #e4e2db; background:rgba(255,255,255,.42); }
+.masthead { min-height:92px; display:flex; align-items:center; padding:0 48px; border-bottom:1px solid #e6e2da; gap:28px; }
+.brand { display:flex; align-items:center; gap:12px; color:var(--ink); text-decoration:none; font-family:Georgia,"Songti SC",serif; font-size:31px; font-weight:700; }
+.brand-mark { width:20px; height:20px; border-radius:50%; background:#172127; box-shadow:10px 9px 0 -4px #c9dceb, 10px 9px 0 -3px #5683aa; }
+.masthead-meta { margin-left:auto; color:var(--muted); font-size:14px; letter-spacing:.04em; white-space:nowrap; }
+.masthead-meta strong { color:var(--ink); font-size:17px; }.masthead-meta i { border-left:1px solid #d8d8d2; margin:0 15px; }
+.preview-chip { font-size:12px; letter-spacing:.08em; color:#4c6f83; border:1px solid #bdd0d7; padding:8px 11px; border-radius:999px; }
+.intro { text-align:center; padding:54px 24px 50px; border-bottom:1px solid #e6e2da; }.eyebrow { margin:0 0 13px; color:var(--water); letter-spacing:.16em; font-size:10px; font-weight:700; }
+h1,h2 { font-family:Georgia,"Songti SC",serif; font-weight:600; } h1 { margin:0; font-size:clamp(31px,4vw,56px); line-height:1.15; letter-spacing:.02em; }.intro > p:last-child { margin:17px auto 0; max-width:650px; color:var(--muted); font-size:14px; line-height:1.8; }
+.timeline { border-bottom:1px solid #dedbd2; }.section-heading { min-height:72px; display:flex; align-items:center; gap:12px; padding:0 34px; border-bottom:1px solid #e7e2d8; }.section-heading h2 { margin:0; font-size:25px; }.section-heading p { margin-left:auto; font-size:13px; color:var(--muted); }.icon { width:27px; height:27px; display:grid; place-items:center; color:var(--water); font-family:Georgia,serif; font-size:25px; line-height:1; }.eye-icon { color:#9b705e; }.river-icon { color:#5485ad; transform:translateY(-1px); }
+.river { position:relative; display:grid; grid-template-columns:repeat(6,minmax(210px,1fr)); gap:0; min-height:206px; overflow-x:auto; padding:62px 28px 20px; background:linear-gradient(180deg,rgba(240,246,246,.57),rgba(255,255,255,.3)); }.river::before,.river::after { content:""; position:absolute; left:0; right:0; height:3px; top:45px; background:var(--water-soft); opacity:.75; border-radius:50%; transform:skewY(-.3deg); }.river::after { top:51px; opacity:.32; transform:skewY(.4deg); }
+.record { min-width:210px; position:relative; padding:18px 25px 8px; border-right:1px solid #e6e1d8; }.record::before { content:""; position:absolute; width:10px; height:10px; border:2px solid var(--water); border-radius:50%; background:var(--paper); top:-23px; left:24px; }.record time { color:#2d6593; font-family:ui-monospace,SFMono-Regular,monospace; font-size:13px; }.record span { display:block; margin-top:5px; color:var(--muted); font-size:12px; }.record h3 { margin:15px 0 12px; font-size:15px; line-height:1.55; font-weight:600; }.record a { color:#2d6593; text-decoration:none; font-size:12px; }
+.atlas-grid { display:grid; grid-template-columns:minmax(0,2.2fr) minmax(390px,1fr); }.map-panel { border-right:1px solid #d9d9d4; }.map-canvas { position:relative; min-height:600px; overflow:hidden; background:radial-gradient(circle at 48% 54%,#fffdf7 0%,#f5f7f4 48%,#eef5f3 100%); }.map-grid { position:absolute; inset:0; opacity:.55; background-image:linear-gradient(to right,rgba(70,120,151,.12) 1px,transparent 1px),linear-gradient(to bottom,rgba(70,120,151,.12) 1px,transparent 1px); background-size:80px 80px; mask-image:linear-gradient(to bottom,transparent,black 16%,black 84%,transparent); }.map-legend { position:absolute; z-index:2; left:20px; top:18px; border:1px solid #c7d9df; background:rgba(255,255,255,.78); color:#426b86; font-family:ui-monospace,SFMono-Regular,monospace; font-size:9px; line-height:1.6; padding:9px 11px; }.map-legend small { color:#7e949f; }.north { position:absolute; z-index:2; right:24px; bottom:19px; width:37px; height:54px; border:1px solid #b9cbd1; border-radius:20px; display:grid; place-items:center; font:10px ui-monospace; color:#375e7a; background:rgba(255,255,255,.75); }.north span { color:var(--accent); font-size:13px; margin-top:-8px; }.scale { position:absolute; z-index:2; bottom:24px; left:50%; transform:translateX(-50%); display:flex; align-items:end; gap:0; color:#52748b; font:9px ui-monospace; }.scale i { width:28px; height:7px; border:1px solid #7294a8; }.scale i:nth-child(2) { background:#7294a8; }.scale span { position:absolute; left:0; top:11px; width:84px; text-align:center; }
+.theme-map { position:absolute; inset:0; }.theme { position:absolute; transform:translate(-50%,-50%); border:0; padding:0; background:none; color:var(--ink); cursor:pointer; text-align:center; }.theme:focus-visible { outline:2px solid var(--accent); outline-offset:6px; }.contours { width:clamp(132px,15vw,210px); height:clamp(92px,10vw,138px); display:grid; place-items:center; border:1px solid rgba(71,121,158,.27); border-radius:50% 46% 54% 43%; background:repeating-radial-gradient(ellipse at 45% 52%,transparent 0 10px,rgba(68,111,145,.19) 11px 12px,transparent 13px 19px); box-shadow:inset -10px -8px 16px rgba(45,93,125,.06); }.summit { position:absolute; top:13%; left:50%; transform:translateX(-50%); color:var(--accent); font-size:15px; text-shadow:0 1px #fff; }.theme h3 { position:absolute; margin:0; left:50%; top:50%; transform:translate(-50%,-34%); width:max-content; max-width:180px; padding:3px 8px; background:rgba(255,254,248,.8); font-size:clamp(17px,2.2vw,29px); line-height:1.1; white-space:nowrap; text-shadow:0 1px #fff; }.theme p { position:absolute; left:50%; top:calc(50% + 25px); transform:translateX(-50%); white-space:nowrap; margin:0; padding:2px 5px; color:#6e7774; background:rgba(255,254,248,.72); font-size:12px; }
+.self-panel { min-height:672px; background:linear-gradient(130deg,#fffdfa,#f7f0e5); }.self-panel .section-heading { background:rgba(255,253,249,.55); }.understanding-list { list-style:none; margin:0; padding:10px 26px 18px; }.understanding-list li { display:grid; grid-template-columns:42px 1fr auto; align-items:center; min-height:108px; gap:12px; border-bottom:1px solid #e2dcd1; }.understanding-no { width:34px; height:34px; display:grid; place-items:center; border-radius:50%; border:1px solid #ddc4b4; color:#9b705e; font:11px ui-monospace; }.understanding-list h3 { margin:0 0 7px; font-size:17px; font-family:Georgia,"Songti SC",serif; font-weight:600; }.understanding-list p { margin:0; color:#7f7a70; font-size:12px; line-height:1.45; }.understanding-state { font-size:11px; color:#967158; }.understanding-state.stable { color:#4775a0; }
+.detail-drawer { position:fixed; z-index:10; top:0; right:0; width:min(390px,100vw); height:100dvh; padding:42px; background:#fffefa; box-shadow:-16px 0 44px rgba(25,43,54,.17); transform:translateX(105%); transition:transform .28s ease; }.detail-drawer.open { transform:translateX(0); }.drawer-close { position:absolute; right:22px; top:18px; border:0; background:none; color:#637076; font-size:30px; cursor:pointer; }.detail-drawer h2 { font-size:38px; margin:0 0 22px; }.detail-drawer > p:not(.eyebrow) { color:#53626a; line-height:1.9; }.detail-drawer dl { margin-top:38px; }.detail-drawer dl div { padding:15px 0; border-top:1px solid #dde4e3; }.detail-drawer dt { color:#78878b; font-size:12px; }.detail-drawer dd { margin:6px 0 0; font-size:17px; }
+@media (max-width:980px) { .masthead{padding:0 24px}.masthead-meta{display:none}.atlas-grid{grid-template-columns:1fr}.map-panel{border-right:0;border-bottom:1px solid #d9d9d4}.map-canvas{min-height:540px}.self-panel{min-height:0}.intro{padding-block:40px}.section-heading{padding-inline:22px} }
+
+</style>
+</head>
+<body>
+  <!-- Standalone preview: all runtime assets and the 20-day fixture are embedded below. No local server is required. -->
+  <main class="page-shell">
+    <header class="masthead">
+      <a class="brand" href="#top" aria-label="Memento 预览首页"><span class="brand-mark"></span><span>Memento</span></a>
+      <p class="masthead-meta"><strong>6</strong> 个聚合主题 <i></i> <strong>3</strong> 项近期变化 <i></i> <strong>261</strong> 条记录</p>
+      <span class="preview-chip">固定数据预览</span>
+    </header>
+
+    <section class="intro" id="top">
+      <p class="eyebrow">MEMENTO / COGNITIVE ATLAS</p>
+      <h1>从一次记录，到一份持续形成的理解</h1>
+      <p>基于 20 天、261 条固定汇总与 6 条代表记录的可操作产品预览。此页面不读取真实目录、不连接模型，也不创建定时任务。</p>
+    </section>
+
+    <section class="timeline" aria-labelledby="timeline-title">
+      <div class="section-heading"><span class="icon river-icon">≈</span><h2 id="timeline-title">今天的时间河</h2><p>6 条代表记录</p></div>
+      <div class="river" id="record-river" aria-label="固定记录时间河"></div>
+    </section>
+
+    <section class="atlas-grid">
+      <section class="map-panel" aria-labelledby="map-title">
+        <div class="section-heading"><span class="icon terrain-icon">△</span><h2 id="map-title">认知地景</h2><p>主题由记录聚合形成</p></div>
+        <div class="map-canvas">
+          <div class="map-legend">MEMENTO / COGNITIVE ATLAS<br><small>20 DAY · 26551 × 11241</small></div>
+          <div class="map-grid" aria-hidden="true"></div>
+          <div class="north" aria-hidden="true">N<br><span>▲</span></div>
+          <div class="scale" aria-hidden="true"><i></i><i></i><i></i><span>100 u</span></div>
+          <div id="theme-map" class="theme-map" aria-label="认知主题地形图"></div>
+        </div>
+      </section>
+
+      <aside class="self-panel" aria-labelledby="self-title">
+        <div class="section-heading"><span class="icon eye-icon">◉</span><h2 id="self-title">她理解的我</h2><p>4 条理解 · 6 主题</p></div>
+        <ol id="understanding-list" class="understanding-list"></ol>
+      </aside>
+    </section>
+  </main>
+
+  <aside class="detail-drawer" id="detail-drawer" aria-live="polite" aria-label="主题详情">
+    <button id="drawer-close" class="drawer-close" aria-label="关闭详情">×</button>
+    <p class="eyebrow">THEME DETAIL</p>
+    <h2 id="drawer-title">主题详情</h2>
+    <p id="drawer-copy"></p>
+    <dl><div><dt>形成依据</dt><dd id="drawer-evidence"></dd></div><div><dt>可检验边界</dt><dd id="drawer-edge"></dd></div></dl>
+  </aside>
+
+  <script data-memento-source="cognitive-demo-fixture.js">
+(() => {
+  'use strict';
+
+  window.MementoDemoFixture = Object.freeze({
+    window: '2026-08-01 — 2026-08-20',
+    recordCount: 261,
+    themes: Object.freeze([
+      { id: 'product', label: '产品决策', evidence: 26, edge: 1, x: 22, y: 40, summary: '把决策留在可验证的边界内，让后续讨论有可回到的依据。' },
+      { id: 'evidence', label: '证据优先', evidence: 28, edge: 2, x: 47, y: 30, summary: '优先保留能被复核的判断条件，也为反例留下入口。' },
+      { id: 'accumulation', label: '长期积累', evidence: 30, edge: 1, x: 76, y: 40, summary: '每次记录都保留形成原因，累积成以后能调用的理解。' },
+      { id: 'iteration', label: '迭代节奏', evidence: 28, edge: 2, x: 23, y: 72, summary: '在一次次小范围验证中调整问题与方法，而不急于定型。' },
+      { id: 'method', label: '研究方法', evidence: 26, edge: 1, x: 52, y: 78, summary: '把个案经验写成可检验范围，分清结论、样本与假设。' },
+      { id: 'collaboration', label: '协作边界', evidence: 32, edge: 2, x: 78, y: 69, summary: '同步信息时明确谁决策、谁推进，以及哪些内容需要被检查。' }
+    ]),
+    understandings: Object.freeze([
+      { no: '01', state: '形成中', title: '从完成任务走向定义方法', links: '产品决策 · 长期积累' },
+      { no: '02', state: '已稳定', title: '可验证比漂亮结论更重要', links: '证据优先 · 研究方法' },
+      { no: '03', state: '已稳定', title: '允许理解随证据修订', links: '证据优先 · 研究方法 · 迭代节奏' },
+      { no: '04', state: '形成中', title: '成果应当可以被接手', links: '长期积累 · 协作边界 · 迭代节奏' }
+    ]),
+    records: Object.freeze([
+      { time: '08:02', source: '会议记录', title: '长期积累：记录结论之外，也要留下当时为什么这样取舍。', theme: '长期积累' },
+      { time: '08:20', source: '语音备忘', title: '协作边界：方案文档里补一段不做什么，让协作边界可以被检查。', theme: '协作边界' },
+      { time: '08:44', source: 'Memento', title: '研究方法：命名城市只作为来源案例，不把单个案例扩写成研究范围。', theme: '研究方法' },
+      { time: '09:12', source: 'Chrome', title: '迭代节奏：这一轮只验证从主题到依据再到理解的三层路径。', theme: '迭代节奏' },
+      { time: '10:00', source: '会议记录', title: '产品决策：本次评审只决定是否继续投入，不把实现细节一起锁死。', theme: '产品决策' },
+      { time: '10:24', source: 'Figma', title: '证据优先：同一指标出现两个版本，先核对数据时间窗与过滤条件。', theme: '证据优先' }
+    ])
+  });
+})();
+
+</script>
+  <script data-memento-source="dashboard.js">
+(() => {
+  'use strict';
+
+  const fixture = window.MementoDemoFixture;
+  const byId = (id) => document.getElementById(id);
+  const themeMap = byId('theme-map');
+  const river = byId('record-river');
+  const list = byId('understanding-list');
+  const drawer = byId('detail-drawer');
+
+  fixture.records.forEach((record) => {
+    const article = document.createElement('article');
+    article.className = 'record';
+    article.innerHTML = `<time>${record.time}</time><span>${record.source}</span><h3>${record.title}</h3><a href="#map-title">${record.theme} · 进入主题地景</a>`;
+    river.append(article);
+  });
+
+  fixture.understandings.forEach((item) => {
+    const li = document.createElement('li');
+    const stateClass = item.state === '已稳定' ? 'stable' : '';
+    li.innerHTML = `<span class="understanding-no">${item.no}</span><div><h3>${item.title}</h3><p>${item.links}</p></div><span class="understanding-state ${stateClass}">${item.state}</span>`;
+    list.append(li);
+  });
+
+  fixture.themes.forEach((theme) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'theme';
+    button.style.left = `${theme.x}%`;
+    button.style.top = `${theme.y}%`;
+    button.setAttribute('aria-label', `查看 ${theme.label} 详情`);
+    button.innerHTML = `<span class="contours"></span><span class="summit">▲</span><h3>${theme.label}</h3><p>依据 ${theme.evidence} · 边界 ${theme.edge}</p>`;
+    button.addEventListener('click', () => openDrawer(theme));
+    themeMap.append(button);
+  });
+
+  function openDrawer(theme) {
+    byId('drawer-title').textContent = theme.label;
+    byId('drawer-copy').textContent = theme.summary;
+    byId('drawer-evidence').textContent = `${theme.evidence} 条固定汇总依据`;
+    byId('drawer-edge').textContent = `${theme.edge} 条演示性边界提示`;
+    drawer.classList.add('open');
+    byId('drawer-close').focus();
+  }
+  function closeDrawer() { drawer.classList.remove('open'); }
+  byId('drawer-close').addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', (event) => { if (event.key === 'Escape') closeDrawer(); });
+})();
+
+</script>
+</body>
+</html>

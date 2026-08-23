@@ -1,0 +1,968 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Memento Re:member Agent V1 产品需求文档：从固定 Self Reflection Workflow 演进为有边界、可审计的长期理解 Agent。">
+  <title>Memento Re:member · Agent V1 PRD</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f7f5ef;
+      --surface: #fbfaf6;
+      --surface-2: #f0ece3;
+      --ink: #191816;
+      --muted: #716d65;
+      --line: #d8d3c8;
+      --line-strong: #afa89b;
+      --accent: #8b2f12;
+      --accent-soft: #f1ddd4;
+      --green: #315f4d;
+      --green-soft: #e0ebe4;
+      --amber: #805b1b;
+      --amber-soft: #eee3cc;
+      --blue: #365d73;
+      --blue-soft: #dfe9ee;
+      --max: 1160px;
+      --sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      --serif: Iowan Old Style, "Songti SC", STSong, Georgia, serif;
+      --mono: "SFMono-Regular", "SF Mono", Menlo, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--paper); }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.72;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration-color: #aaa398; text-underline-offset: 0.2em; }
+    a:hover { color: var(--accent); }
+    code {
+      font-family: var(--mono);
+      font-size: 0.88em;
+      overflow-wrap: anywhere;
+    }
+    .page { width: min(calc(100% - 40px), var(--max)); margin: 0 auto; }
+    .site-head {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid var(--line);
+      background: rgba(247, 245, 239, 0.96);
+    }
+    .nav {
+      min-height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .brand {
+      font-size: 13px;
+      font-weight: 760;
+      letter-spacing: 0.08em;
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+    .nav-links { display: flex; flex-wrap: wrap; gap: 4px; }
+    .nav-links a {
+      padding: 7px 10px;
+      color: var(--muted);
+      font-size: 12px;
+      text-decoration: none;
+    }
+    .nav-links a:hover { color: var(--ink); background: var(--surface-2); }
+
+    main { padding-bottom: 96px; }
+    .hero {
+      min-height: 72vh;
+      display: grid;
+      align-content: center;
+      padding: 92px 0 76px;
+      border-bottom: 1px solid var(--line);
+    }
+    .eyebrow, .section-index, .micro {
+      margin: 0;
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 760;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    h1 {
+      max-width: 920px;
+      margin: 22px 0 28px;
+      font-family: var(--serif);
+      font-size: clamp(48px, 7.8vw, 94px);
+      font-weight: 520;
+      letter-spacing: -0.055em;
+      line-height: 1.02;
+    }
+    .lead {
+      max-width: 800px;
+      margin: 0;
+      color: #45413b;
+      font-size: clamp(20px, 2.4vw, 27px);
+      line-height: 1.52;
+    }
+    .hero-meta {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-top: 52px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+    }
+    .meta-item { min-height: 132px; padding: 22px; border-right: 1px solid var(--line); }
+    .meta-item:last-child { border-right: 0; }
+    .meta-item strong { display: block; margin-top: 18px; font-size: 18px; }
+    .meta-item span { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; }
+
+    section { padding: 86px 0; border-bottom: 1px solid var(--line); scroll-margin-top: 72px; }
+    .section-head {
+      display: grid;
+      grid-template-columns: 170px minmax(0, 1fr);
+      gap: 32px;
+      margin-bottom: 38px;
+    }
+    h2 {
+      max-width: 820px;
+      margin: 0;
+      font-family: var(--serif);
+      font-size: clamp(31px, 4.5vw, 52px);
+      font-weight: 540;
+      letter-spacing: -0.04em;
+      line-height: 1.16;
+    }
+    h3 { margin: 0 0 9px; font-size: 18px; line-height: 1.38; }
+    h4 { margin: 0 0 8px; font-size: 15px; }
+    p { margin: 0; }
+    .section-lead { max-width: 780px; margin: -12px 0 34px 202px; color: var(--muted); }
+
+    .callout {
+      margin: 22px 0;
+      padding: 22px 24px;
+      border-left: 3px solid var(--accent);
+      background: var(--accent-soft);
+      color: #552617;
+    }
+    .callout.fact { border-left-color: var(--blue); background: var(--blue-soft); color: #284452; }
+    .callout.warn { border-left-color: var(--amber); background: var(--amber-soft); color: #5c4217; }
+    .callout strong { display: block; margin-bottom: 5px; }
+
+    .decision {
+      padding: 34px;
+      border: 1px solid var(--line-strong);
+      background: var(--surface);
+      font-family: var(--serif);
+      font-size: clamp(24px, 3.2vw, 38px);
+      letter-spacing: -0.025em;
+      line-height: 1.42;
+    }
+    .decision small {
+      display: block;
+      margin-top: 18px;
+      color: var(--muted);
+      font-family: var(--sans);
+      font-size: 13px;
+      letter-spacing: 0;
+    }
+
+    .split { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); }
+    .split article { padding: 30px; background: var(--surface); }
+    .split article + article { border-left: 1px solid var(--line); }
+    .split .label { display: inline-block; margin-bottom: 36px; color: var(--muted); font-family: var(--mono); font-size: 11px; }
+    .split strong { display: block; margin-bottom: 12px; font-size: 23px; line-height: 1.35; }
+    .split p { color: var(--muted); }
+    .split ul { margin: 18px 0 0; padding-left: 18px; color: var(--muted); }
+
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .card { padding: 25px; border: 1px solid var(--line); background: var(--surface); }
+    .card .num { display: block; margin-bottom: 38px; color: var(--accent); font-family: var(--mono); font-size: 11px; }
+    .card p { color: var(--muted); font-size: 14px; }
+    .card ul { margin: 15px 0 0; padding-left: 18px; color: var(--muted); font-size: 14px; }
+
+    .loop { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--line); }
+    .loop-step { position: relative; min-height: 218px; padding: 24px; border-right: 1px solid var(--line); background: var(--surface); }
+    .loop-step:nth-child(4n) { border-right: 0; }
+    .loop-step:nth-child(n+5) { border-top: 1px solid var(--line); }
+    .loop-step .num { color: var(--accent); font-family: var(--mono); font-size: 11px; }
+    .loop-step h3 { margin-top: 38px; }
+    .loop-step p { color: var(--muted); font-size: 13px; }
+    .loop-step .why { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); color: #45413b; }
+
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); background: var(--surface); }
+    table { width: 100%; min-width: 850px; border-collapse: collapse; text-align: left; }
+    th, td { padding: 16px 17px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    tr:last-child td { border-bottom: 0; }
+    th { background: var(--surface-2); color: var(--muted); font-family: var(--mono); font-size: 11px; letter-spacing: 0.03em; }
+    td { font-size: 14px; }
+    td p + p { margin-top: 8px; }
+    .status-chip {
+      display: inline-block;
+      padding: 3px 8px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 10px;
+      white-space: nowrap;
+    }
+    .status-chip.current { border-color: #8fa799; background: var(--green-soft); color: var(--green); }
+    .status-chip.target { border-color: #c88f7d; background: var(--accent-soft); color: var(--accent); }
+
+    .tool-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .tool {
+      min-height: 225px;
+      padding: 26px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+    }
+    .tool code { display: block; margin-bottom: 28px; color: var(--accent); font-weight: 700; }
+    .tool p { color: var(--muted); font-size: 14px; }
+    .tool .guard { margin-top: 16px; padding-top: 13px; border-top: 1px solid var(--line); color: var(--ink); }
+
+    .browser {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+      border: 1px solid var(--line-strong);
+      background: var(--surface);
+    }
+    .browser-copy { padding: 34px; border-right: 1px solid var(--line); }
+    .browser-copy .title { color: var(--muted); font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; }
+    .browser-copy h3 { margin-top: 9px; font-family: var(--serif); font-size: 31px; font-weight: 520; }
+    .insight { padding: 24px 0; border-top: 1px solid var(--line); }
+    .insight:first-of-type { margin-top: 22px; }
+    .insight p { font-size: 17px; line-height: 1.75; }
+    .insight small { display: block; margin-top: 12px; color: var(--muted); }
+    .actions { display: flex; gap: 14px; margin-top: 10px; color: var(--muted); font-size: 12px; }
+    .browser-side { padding: 28px; background: var(--surface-2); }
+    .run-box { margin-top: 20px; padding: 18px; border: 1px solid var(--line); background: var(--surface); }
+    .run-box strong { display: block; }
+    .run-box ol { margin: 13px 0 0; padding-left: 20px; color: var(--muted); font-size: 13px; }
+    .run-box li + li { margin-top: 5px; }
+    .text-button { margin-top: 18px; padding: 9px 12px; border: 1px solid var(--line-strong); background: transparent; color: var(--ink); font: inherit; font-size: 13px; }
+
+    .memory-model { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: 14px; }
+    .memory-shape { padding: 28px; background: var(--ink); color: #f7f3ea; font-family: var(--mono); font-size: 12px; line-height: 1.8; overflow-x: auto; }
+    .memory-rules { border: 1px solid var(--line); background: var(--surface); }
+    .rule { padding: 20px 22px; border-bottom: 1px solid var(--line); }
+    .rule:last-child { border-bottom: 0; }
+    .rule p { color: var(--muted); font-size: 14px; }
+
+    .state-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 20px 0; }
+    .state { padding: 8px 10px; border: 1px solid var(--line); background: var(--surface); font-family: var(--mono); font-size: 11px; }
+    .arrow { color: var(--accent); }
+
+    .metrics { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 14px; }
+    .metric-main { padding: 30px; border: 1px solid var(--line-strong); background: var(--ink); color: #f7f3ea; }
+    .metric-main strong { display: block; margin: 22px 0 6px; font-family: var(--serif); font-size: 40px; font-weight: 500; }
+    .metric-main p { color: #c8c0b5; }
+    .metric-side { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); }
+    .metric-side div { padding: 20px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--surface); }
+    .metric-side div:nth-child(2n) { border-right: 0; }
+    .metric-side div:nth-last-child(-n+2) { border-bottom: 0; }
+    .metric-side strong { display: block; font-size: 16px; }
+    .metric-side span { color: var(--muted); font-size: 12px; }
+
+    .phases { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--line); }
+    .phase { min-height: 285px; padding: 25px; border-right: 1px solid var(--line); background: var(--surface); }
+    .phase:last-child { border-right: 0; }
+    .phase h3 { margin-top: 38px; }
+    .phase p, .phase ul { color: var(--muted); font-size: 14px; }
+    .phase ul { padding-left: 18px; }
+
+    .checklists { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .checklist { padding: 27px; border: 1px solid var(--line); background: var(--surface); }
+    .checklist ul { display: grid; gap: 11px; margin: 18px 0 0; padding: 0; list-style: none; }
+    .checklist li { display: grid; grid-template-columns: 20px 1fr; gap: 9px; color: #45413b; font-size: 14px; }
+    .checklist li::before { content: "□"; color: var(--accent); font-size: 16px; line-height: 1.35; }
+
+    footer { display: flex; justify-content: space-between; gap: 28px; padding: 32px 0 52px; color: var(--muted); font-size: 12px; }
+    @media (max-width: 920px) {
+      .hero-meta, .grid-3, .phases { grid-template-columns: 1fr; }
+      .meta-item, .phase { min-height: auto; border-right: 0; border-bottom: 1px solid var(--line); }
+      .meta-item:last-child, .phase:last-child { border-bottom: 0; }
+      .loop { grid-template-columns: 1fr 1fr; }
+      .loop-step:nth-child(2n) { border-right: 0; }
+      .loop-step:nth-child(n+3) { border-top: 1px solid var(--line); }
+      .browser, .memory-model, .metrics { grid-template-columns: 1fr; }
+      .browser-copy { border-right: 0; border-bottom: 1px solid var(--line); }
+    }
+    @media (max-width: 700px) {
+      .page { width: min(calc(100% - 24px), var(--max)); }
+      .nav-links { display: none; }
+      .hero { min-height: auto; padding: 76px 0 60px; }
+      section { padding: 62px 0; }
+      .section-head { grid-template-columns: 1fr; gap: 12px; }
+      .section-lead { margin-left: 0; }
+      .split, .tool-grid, .checklists { grid-template-columns: 1fr; }
+      .split article + article { border-left: 0; border-top: 1px solid var(--line); }
+      .loop { grid-template-columns: 1fr; }
+      .loop-step { min-height: auto; border-right: 0; border-top: 1px solid var(--line); }
+      .loop-step:first-child { border-top: 0; }
+      .metric-side { grid-template-columns: 1fr; }
+      .metric-side div { border-right: 0; }
+      .metric-side div:nth-last-child(-n+2) { border-bottom: 1px solid var(--line); }
+      .metric-side div:last-child { border-bottom: 0; }
+      footer { flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    @media print {
+      .site-head { position: static; }
+      section { break-inside: avoid; }
+      body { background: white; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-head">
+    <nav class="page nav" aria-label="PRD 章节">
+      <a class="brand" href="#top">Memento · Agent V1</a>
+      <div class="nav-links">
+        <a href="#baseline">现状</a>
+        <a href="#experience">体验</a>
+        <a href="#loop">Agent 循环</a>
+        <a href="#memory">记忆</a>
+        <a href="#evaluation">评测</a>
+        <a href="#dod">验收</a>
+      </div>
+    </nav>
+  </header>
+
+  <main id="top" class="page">
+    <section class="hero">
+      <p class="eyebrow">Product requirements · Agentic Workflow + Daily automation · Worktree candidate</p>
+      <h1>Re:member Agent V1</h1>
+      <p class="lead">把“按固定步骤总结近 14 天”升级为一个有明确目标、能够自主取证、根据中间结果继续或停止，并且始终受本地规则约束的长期理解 Agent。</p>
+      <div class="hero-meta" aria-label="文档状态">
+        <article class="meta-item">
+          <p class="micro">Current</p>
+          <strong>自动整理与人物窗口已在工作区实现</strong>
+          <span>Prompt v1.22 / Workflow v1.13 / stable-new identity v1.1 / terminal gate v1.0；认知日流程只在存在实质长期材料时进入同一受控 Agentic Workflow。</span>
+        </article>
+        <article class="meta-item">
+          <p class="micro">Target</p>
+          <strong>Workflow + Agent 组合 MVP</strong>
+          <span>Agent V1 兼容入口保留“现在整理”；v0.9.0 认知主页以逐条整理、“归并今天”与每日计划为主流程。</span>
+        </article>
+        <article class="meta-item">
+          <p class="micro">V1 Boundary</p>
+          <strong>默认关闭、无 backlog、受控提交</strong>
+          <span>fresh install 无 Agent 总 gate 也无 schedule；不做聊天、虚拟形象、多 Agent 或完整人格判断。</span>
+        </article>
+      </div>
+    </section>
+
+    <section id="decision">
+      <div class="section-head">
+        <p class="section-index">00 / 产品决定</p>
+        <h2>第一版做“会调查的理解 Agent”，不做换名字的固定流程。</h2>
+      </div>
+      <div class="decision">
+        Agent 的长期目标只有一个：维护一份有证据、能变化、由用户最终定义的“她眼中的我”。它可以决定本轮要核对什么、是否回看更早历史、是否寻找反例，以及证据不足时主动停止；但不能自由读取全部电脑、直接改原始记录、绕过用户删除，或不经本地校验写入长期理解。
+        <small>这是一套有边界的自主性：模型负责调查策略，确定性代码负责权限、证据、预算、并发和落盘。模型只返回枚举 reason_code，不保存自由文本推理理由。</small>
+      </div>
+      <div class="callout warn">
+        <strong>成功标准不是“用了 Agent 框架”。</strong>
+        同一批材料上，Agent 必须真的表现出不同的取证路径和停止决定，并在长期理解质量或不必要调用上优于固定工具链；否则应诚实保留为 Workflow。
+      </div>
+    </section>
+
+    <section id="baseline">
+      <div class="section-head">
+        <p class="section-index">01 / 当前与目标</p>
+        <h2>先把当前 Workflow 与 Agent V1 分开。</h2>
+      </div>
+      <div class="split">
+        <article>
+          <span class="label">COMPATIBILITY · RETAINED WORKFLOW</span>
+          <strong>当前仍保留固定 Self Reflection Workflow 作为兼容路径。</strong>
+          <p>Dashboard 创建 request；本地 Worker 固定收集目标日向前 14 个自然日的日记、有效 Confirmed Context 和最近有效校准；一次 DeepSeek 调用返回 1–3 条结构化 insight；确定性代码校验证据、来源 hash 与边界，再由 reducer 形成累计 profile。</p>
+          <ul>
+            <li>模型不能选择是否查看历史或调用什么工具；</li>
+            <li>没有“观察—行动—再观察”的多步闭环；</li>
+            <li>长期洞察前端是一段对应一个 active projected tag；</li>
+            <li>旧 Self Reflection 本身没有每日调度；v0.9.0 的 21:00 / 08:00 job 进入统一认知日流程。</li>
+          </ul>
+        </article>
+        <article>
+          <span class="label">TARGET · V1 CONTRACT · WORKTREE IMPLEMENTED</span>
+          <strong>Agent V1 已接入认知日流程；旧“现在整理”只保留为诊断/兼容入口。</strong>
+          <p>Candidate Scout 先判断材料是否真的描述用户稳定偏好、判断/工作方式及其变化与张力，再提出调查计划；确定性 Workflow 读取目标、执行有界检索、物化证据；Terminal Judge 决定提交 patch 或停止；本地规则负责来源、CAS、tombstone 与最终写入。</p>
+          <ul>
+            <li>最多使用四个白名单工具；</li>
+            <li>只能提出结构化 patch，不能直接写长期记忆；</li>
+            <li>每一步都记录可见的行动轨迹，不暴露隐藏 CoT；</li>
+            <li>仍通过当前“她眼中的我”阅读窗口呈现结果。</li>
+          </ul>
+        </article>
+      </div>
+      <div class="callout fact">
+        <strong>复用原则</strong>
+        现有 DeepSeek Provider、Keychain 读取、usage 日志、来源 hash、逐字证据校验、反馈绑定与文章前端都继续使用。Agent V1 新增的是任务控制器、四个工具、稳定记忆版本、运行轨迹和对照评测，不重写整个 Context Agent。
+      </div>
+      <div class="table-wrap" style="margin-top: 16px;">
+        <table>
+          <thead><tr><th>完成层级</th><th>2026-08-18 当前状态</th><th>现在不能声称</th></tr></thead>
+          <tbody>
+            <tr><td>工作区实现</td><td>Prompt v1.22 / Workflow v1.13、stable-new identity v1.1、terminal gate v1.0 与认知日流程已实现；fresh install 无总 gate 和 schedule。</td><td>当前版本已安装、已开启或 21:00 已实跑</td></tr>
+            <tr><td>离线验证</td><td>当前状态机、schedule、跨端 policy、人物页和安装安全合同有定向回归。</td><td>已在真实用户数据上稳定泛化</td></tr>
+            <tr><td>当前隔离合成 API</td><td>v4 两案 <code>all_passed</code>：17 calls / 38,453 Token / $0.009711375，<code>invalid_action=0</code>，临时目录清理且来源 hash 不变。</td><td>真实用户 Vault、安装副本、Chrome、日历或 20 日纵向已通过</td></tr>
+            <tr><td>历史真实 API</td><td>v1.19 / v1.9 冻结四案全部通过：7 calls、16,973 Token、$0.001238851；usage 完整、临时合成来源不变。</td><td>当前人物相关性 policy 已通过真实模型质量门</td></tr>
+            <tr><td>历史安装与 Chrome</td><td>v1.19 / v1.9 commit <code>e116d4b8…b00e</code> 当时完成 69 / 69 受管文件、36 / 36 原始内容、no_change、edit / delete / tombstone 验收。</td><td>当前自动整理版已安装或人物窗口已人工验收</td></tr>
+            <tr><td>当前 job 边界</td><td>事件 plist 仅 requests / user-actions WatchPaths；日历 plist 仅每日 21:00 StartCalendarInterval。配置缺失时 fail closed。</td><td>仅凭 plist 存在声称计划已开启或已实际执行</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="goals">
+      <div class="section-head">
+        <p class="section-index">02 / 目标与边界</p>
+        <h2>V1 只证明一件事：自主调查是否产生更可信的长期理解。</h2>
+      </div>
+      <div class="grid-3">
+        <article class="card">
+          <span class="num">G1</span>
+          <h3>相关性</h3>
+          <p>新记录出现时，Agent 能先定位受影响的既有理解，而不是重新概括用户全部记录。</p>
+        </article>
+        <article class="card">
+          <span class="num">G2</span>
+          <h3>变化识别</h3>
+          <p>Agent 能区分强化、新理解、范围修订、张力和证据不足，并允许不同方向并存。</p>
+        </article>
+        <article class="card">
+          <span class="num">G3</span>
+          <h3>主动停止</h3>
+          <p>一次性事件、噪音或证据不足时，Agent 能结束本轮而不是为了填满页面制造理解。</p>
+        </article>
+        <article class="card">
+          <span class="num">G4</span>
+          <h3>可审计</h3>
+          <p>用户能知道它查看了哪些范围、调用了什么工具、依据是什么、为什么没有更新。</p>
+        </article>
+        <article class="card">
+          <span class="num">G5</span>
+          <h3>用户定义权</h3>
+          <p>用户修改先以不可变 action 立即改变投影，再由 Worker 物化为新版本；用户删除后，同一 memory_id 与同一 exact semantic key 不能静默复活。</p>
+        </article>
+        <article class="card">
+          <span class="num">G6</span>
+          <h3>可比较</h3>
+          <p>与当前单次 Workflow 和固定工具链使用相同数据、合同与模型，单独测量 Agent 增益。</p>
+        </article>
+      </div>
+      <div class="table-wrap" style="margin-top: 16px;">
+        <table>
+          <thead><tr><th>V1 包含</th><th>V1 不包含</th><th>原因</th></tr></thead>
+          <tbody>
+            <tr><td>产品判断、工作方式、明确约束、低风险兴趣线索</td><td>健康、心理、情绪、身份、关系、能力评级与动机归因</td><td>越接近“我是谁”，证据与确认要求越高；V1 先验证低风险工作理解。</td></tr>
+            <tr><td>日级文本与已校准理解</td><td>照片、音频、持续屏幕、传感器或其他 Vault 文件</td><td>保持现有授权范围，避免把多模态扩张与 Agent 能力验证混在一起。</td></tr>
+            <tr><td>单 Agent、四个工具、有限回合</td><td>多 Agent、长期后台自治、开放网页或任意本地工具</td><td>先证明最小闭环，同时控制成本、隐私与失败面。</td></tr>
+            <tr><td>既有“她眼中的我”文章</td><td>聊天输入框、虚拟形象、标签墙、多人对话</td><td>产品核心是查看累积理解，不是增加一套对话产品。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="experience">
+      <div class="section-head">
+        <p class="section-index">03 / 用户体验</p>
+        <h2>首屏先回答“她现在怎样理解我”，触发和运行细节收在第二层。</h2>
+      </div>
+      <div class="callout fact">
+        <strong>v0.9.0 入口边界</strong>
+        下方是独立 Agent V1 的兼容界面示意，不是当前认知主页的主流程。当前主页在原文保存后逐条整理，再由“归并今天”或 21:00 计划进入统一日流程；不把“现在整理 / 检查最近 14 天”当作主页主入口。
+      </div>
+      <div class="browser" aria-label="Re:member Agent V1 兼容前端示意">
+        <div class="browser-copy">
+          <p class="title">关于我 · RE:MEMBER</p>
+          <h3>她眼中的我</h3>
+          <p style="color: var(--muted);">从累计记录中形成、仍可被你修订的理解。页面按“反复出现的我 / 最近正在变化 / 仍在权衡”分组，空组不显示。</p>
+          <article class="insight">
+            <p>你通常会先明确产品要改善什么、怎样验证，再决定功能与 Agent 节点；但在低风险探索里，你也接受先试一个小版本。</p>
+            <small>适用于：产品方案与 Agent 设计 · 最近修订为 v3</small>
+            <div class="actions"><span>查看依据</span><span>改一句</span><span>删除这段</span></div>
+          </article>
+          <article class="insight">
+            <p>你对本地可控与用户修改权的重视，仍保留为另一条累计理解。</p>
+            <small>既有理解 · 本轮没有修改</small>
+            <div class="actions"><span>查看依据</span><span>查看版本</span><span>改一句</span><span>删除这段</span></div>
+          </article>
+        </div>
+        <aside class="browser-side">
+          <p class="micro">Agent status</p>
+          <h3 style="margin-top: 10px;">上次核对已完成</h3>
+          <p style="color: var(--muted); font-size: 14px;">正文始终可读。运行中不清空旧理解，失败也不会覆盖现有内容。</p>
+          <div class="run-box">
+            <strong>本次 Agent 做了什么</strong>
+            <ol>
+              <li>读取最近 14 个自然日中的授权记录；</li>
+              <li>查看 2 条相关既有理解；</li>
+              <li>检索 1 次更早历史并寻找反例；</li>
+              <li>修订 1 条后主动停止。</li>
+            </ol>
+          </div>
+          <button class="text-button" type="button">现在整理 · 检查最近 14 天</button>
+          <p style="margin-top: 10px; color: var(--muted); font-size: 11px;">21:00 自动计划可在同一首屏开关中保存。“已保存”只证明配置写入，不证明调度已实际执行。</p>
+        </aside>
+      </div>
+      <div class="grid-3" style="margin-top: 14px;">
+        <article class="card">
+          <span class="num">ENTRY</span>
+          <h3>手动随时启动</h3>
+          <p>“现在整理”创建一条固定 14 日 request，不提供自由对话问题。</p>
+        </article>
+        <article class="card">
+          <span class="num">DAILY</span>
+          <h3>每日 21:00 可开关</h3>
+          <p>计划与 Agent 总开关都开启时才生效；睡眠后只补最近已到期时段，不回填 backlog。</p>
+        </article>
+        <article class="card">
+          <span class="num">RESULT</span>
+          <h3>先呈现结果</h3>
+          <p>通过校验的低风险理解直接更新文章；用户认为不对时再修改或删除，不新增逐条审批队列。</p>
+        </article>
+      </div>
+      <div class="callout">
+        <strong>轨迹不是 CoT。</strong>
+        前端只展示可验证的行动事实，例如“查看了哪些日期范围、调用了哪个工具、返回多少条结果、最终选择了什么结果”。模型隐藏推理过程和自由文本理由都不保存、不展示；文案由本地 reason_code 模板生成。
+      </div>
+    </section>
+
+    <section id="loop">
+      <div class="section-head">
+        <p class="section-index">04 / Agent 循环</p>
+        <h2>每个节点都对应一种不能交给模型自由发挥的风险。</h2>
+      </div>
+      <div class="loop" aria-label="Agent V1 八个节点">
+        <article class="loop-step">
+          <span class="num">01 · START</span>
+          <h3>建立任务</h3>
+          <p>记录用户触发、目标日期、授权范围和运行预算。</p>
+          <p class="why"><strong>必要性：</strong>让一次运行有明确边界，并可幂等重试。</p>
+        </article>
+        <article class="loop-step">
+          <span class="num">02 · SNAPSHOT</span>
+          <h3>冻结输入快照</h3>
+          <p>收集最近 14 个自然日的授权记录、来源 hash、相关反馈与当前记忆版本。</p>
+          <p class="why"><strong>必要性：</strong>避免调查过程中材料变化后仍提交旧结论。</p>
+        </article>
+        <article class="loop-step">
+          <span class="num">03 · OBSERVE</span>
+          <h3>识别值得核对的侧面</h3>
+          <p>Agent 先判断本轮是否存在可能影响长期理解的信号。</p>
+          <p class="why"><strong>必要性：</strong>不把每条新记录都提升成长期特征。</p>
+        </article>
+        <article class="loop-step">
+          <span class="num">04 · PLAN</span>
+          <h3>选择下一步</h3>
+          <p>查看画像、检索历史、提交建议或结束，一次只选一个动作。</p>
+          <p class="why"><strong>必要性：</strong>这里形成不同于固定工具顺序的真实自主性。</p>
+        </article>
+        <article class="loop-step">
+          <span class="num">05 · ACT</span>
+          <h3>调用白名单工具</h3>
+          <p>本地控制器执行只读检索，并将结构化结果返回 Agent。</p>
+          <p class="why"><strong>必要性：</strong>模型不能自行打开文件或扩大授权范围。</p>
+        </article>
+        <article class="loop-step">
+          <span class="num">06 · REFLECT</span>
+          <h3>判断证据是否足够</h3>
+          <p>根据工具结果继续调查、寻找反例或主动停止。</p>
+          <p class="why"><strong>必要性：</strong>让“证据不足”成为合法结果，而不是失败。</p>
+        </article>
+        <article class="loop-step">
+          <span class="num">07 · VALIDATE</span>
+          <h3>校验建议</h3>
+          <p>代码核对 JSON、逐字证据、来源 hash、版本、隐私和预算。</p>
+          <p class="why"><strong>必要性：</strong>模型建议不能等同于可写入事实。</p>
+        </article>
+        <article class="loop-step">
+          <span class="num">08 · COMMIT</span>
+          <h3>生成新版本并投影</h3>
+          <p>通过 CAS 写入不可变 revision，再重建“她眼中的我”。</p>
+          <p class="why"><strong>必要性：</strong>保证并发时不覆盖用户刚做的修改。</p>
+        </article>
+      </div>
+
+      <div class="section-head" style="margin-top: 64px;">
+        <p class="section-index">04.1 / 四个工具</p>
+        <h2>工具越少，越容易证明每一次自主选择都有意义。</h2>
+      </div>
+      <div class="tool-grid">
+        <article class="tool">
+          <code>read_memory</code>
+          <h3>查看当前已经怎样理解用户</h3>
+          <p>按一个 memory_id 返回当前 active revision、适用范围、证据、反例与用户校准。</p>
+          <p class="guard"><strong>边界：</strong>只读；不能返回已撤回正文，也不能修改 profile。</p>
+        </article>
+        <article class="tool">
+          <code>search_history</code>
+          <h3>有目的地回看更早历史</h3>
+          <p>Agent 提供查询、时间范围和目的；本地检索只返回授权日级文本中的有限逐字结果及来源 hash。</p>
+          <p class="guard"><strong>边界：</strong>不浏览任意 Vault、不联网；缺失日期不当作反例。</p>
+        </article>
+        <article class="tool">
+          <code>finalize_patch</code>
+          <h3>提交结构化修改建议</h3>
+          <p>单次提交只允许 new、reinforce、revise 或 tension，并绑定证据、目标 memory_id 和 expected revision。</p>
+          <p class="guard"><strong>边界：</strong>非 new 操作必须先成功 read_memory，这由代码门检查；本地验证器通过后才可能落盘，Agent 不能删除或撤回记忆。</p>
+        </article>
+        <article class="tool">
+          <code>finish</code>
+          <h3>明确结束本轮调查</h3>
+          <p>模型可返回 no_change 或 insufficient_evidence；达到预算时由本地控制器写 budget_exhausted。三者都不制造内容更新。</p>
+          <p class="guard"><strong>边界：</strong>结束不修改 profile，也不能伪装成本轮已经更新。</p>
+        </article>
+      </div>
+
+      <div class="section-head" style="margin-top: 64px;">
+        <p class="section-index">04.2 / 决策权</p>
+        <h2>Agent 自主决定调查；程序决定权限与落盘。</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>问题</th><th>Agent 决定</th><th>确定性程序决定</th><th>用户决定</th></tr></thead>
+          <tbody>
+            <tr><td>本轮关注什么</td><td>先判断材料是否描述用户稳定偏好、判断/工作方式或变化张力，再选择候选；纯系统规格/运行状态应停止。</td><td>只提供授权范围内材料，限制敏感主题。</td><td>通过“现在整理”或 21:00 计划决定是否启动。</td></tr>
+            <tr><td>还要查什么</td><td>选择查看既有理解、检索历史、寻找支持或反例。</td><td>执行工具、限制范围与返回数量、记录工具轨迹。</td><td>决定每日 21:00 计划是否开启；历史 backlog 不由 schedule 自动回填。</td></tr>
+            <tr><td>如何解释</td><td>提出 new / reinforce / revise / tension 或停止。</td><td>验证证据、Schema、版本、重复、敏感边界与来源一致性。</td><td>可以随时修改表述、范围或删除整条理解。</td></tr>
+            <tr><td>写入什么</td><td>只能提交 patch 建议。</td><td>Worker 独占 revision 写权限，在锁内重算当前版本后写下一不可变 revision；失败则不写新版本。</td><td>Dashboard 只写不可变 edit / delete action；投影立即生效，用户删除形成终态抑制约束。</td></tr>
+            <tr><td>花费多少</td><td>在预算内决定是否继续调查。</td><td>硬性限制回合、工具、字符、超时和调用次数并记录 usage；material gate 可 0 调用结束。</td><td>决定手动触发与每日计划开关。</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout warn">
+        <strong>V1 首版预算合同；阈值合理性仍为 [猜测]</strong>
+        生产 Agent CLI 与 Worker 当前默认最多 5 次模型回合、5 次工具调用、40,000 total tokens、180,000 prompt 字符与 1 次 patch 提交。阈值在 Provider 返回后才能核对；如累计超额，该 completion 不继续执行工具或写 memory，也不再调用 Provider，终态为 <code>budget_exhausted</code>。通用 <code>AgentBudget</code> 和历史 preflight 仍有 3 回合 / 12,000 Token 的独立默认；不用当前生产 CLI 预算改写历史评测数字。
+      </div>
+    </section>
+
+    <section id="memory">
+      <div class="section-head">
+        <p class="section-index">05 / 长期记忆</p>
+        <h2>从“文案相同才合并”升级为稳定 memory_id 与不可变 revision。</h2>
+      </div>
+      <div class="memory-model">
+        <div class="memory-shape" aria-label="目标记忆对象示意">
+memory_id: mem_&lt;24 hex&gt;
+revision: 3
+status: active
+
+revision 3:
+  operation: revise
+  previous_revision_sha256: "..."
+  run_id: arun_&lt;24 hex&gt;
+  request_id: arq_&lt;24 hex&gt;
+  user_action_id: null
+  statement: "当前表述"
+  scope: "适用范围"
+  evidence: [...]
+  counterevidence: [...]
+  created_at: "..."
+
+user_action:
+  id: uact_&lt;24 hex&gt;
+  action: edit | delete
+  base_revision: 3
+  base_revision_sha256: "..."
+        </div>
+        <div class="memory-rules">
+          <article class="rule">
+            <h3>身份不随改写变化</h3>
+            <p><code>memory_id</code> 表示同一个局部理解；Agent 或用户修改表述、范围和依据时递增 revision，不重新生成一个同义标签。</p>
+          </article>
+          <article class="rule">
+            <h3>历史版本不可覆盖</h3>
+            <p>每个 revision 文件不可变；当前版本从连续 revision 链确定性派生，前端可以解释“什么时候、因为什么发生修订”。</p>
+          </article>
+          <article class="rule">
+            <h3>用户操作优先</h3>
+            <p>Dashboard 的 edit / delete 只写不可变 user action，不直接写 revision。投影立即叠加 action；Worker 在锁内把它物化为 user_edit 或 tombstone revision。</p>
+          </article>
+          <article class="rule">
+            <h3>Agent 不自动销毁理解</h3>
+            <p>发现反例时只能 revise 或 tension；撤回、删除与恢复权属于用户，来源失效由本地状态机处理。</p>
+          </article>
+        </div>
+      </div>
+      <div class="callout fact">
+        <strong>迁移边界</strong>
+        当前 profile 的 <code>ptag_*</code> 仍是 exact statement + scope 的派生身份。Agent V1 不能就地把它冒充稳定记忆；需要显式迁移：为现有 active tag 建立初始 <code>memory_id</code>、保留原 response / feedback provenance，并在语义不确定时保持为两个独立对象。
+      </div>
+      <div class="callout warn">
+        <strong>近义复活仍是已知边界</strong>
+        稳定 <code>memory_id</code> 与 tombstone 只能确定性阻止同一对象和同一 exact semantic key 复活。换一种近义表述仍可能形成新的 key；V1 只能通过 <code>read_memory</code>、本地重复检索和评测降低风险，不能承诺完全拦截。
+      </div>
+      <div class="callout fact">
+        <strong>v1.6 stable-new 命名边界</strong>
+        <code>new</code> 只在唯一合格完整句跨至少两个不同日期文件逐字重复时派生；<code>statement</code> 逐字复制该句，<code>scope</code> 只能来自版本化 canonical trigger 映射。候选或映射不唯一、缺少 scope、命中排除语义或不安全文本时必须 <code>finish</code>，不得同义改写。这是稳定命名合同，不是语义去重或人格判定。
+      </div>
+    </section>
+
+    <section id="states">
+      <div class="section-head">
+        <p class="section-index">06 / 运行状态</p>
+        <h2>每一轮都有清楚的中间态、终态和失败恢复。</h2>
+      </div>
+      <div class="state-line" aria-label="主要状态流转">
+        <span class="state">request: pending</span><span class="arrow">→</span>
+        <span class="state">run: running</span><span class="arrow">→</span>
+        <span class="state">updated | no_change | insufficient_evidence | budget_exhausted | stale | error</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>终态</th><th>含义</th><th>对文章的影响</th><th>是否计入成功更新</th></tr></thead>
+          <tbody>
+            <tr><td><code>updated</code></td><td>一个 patch 通过验证并提交新 revision。</td><td>重新投影受影响段落。</td><td>是</td></tr>
+            <tr><td><code>no_change</code></td><td>Agent 主动判断没有长期变化。</td><td>保持原文，只更新最近核对时间与轨迹。</td><td>成功运行，但不是内容更新</td></tr>
+            <tr><td><code>insufficient_evidence</code></td><td>调查后证据仍不足。</td><td>保持原文，不生成占位理解。</td><td>成功停止，不是内容更新</td></tr>
+            <tr><td><code>budget_exhausted</code></td><td>达到模型回合、工具调用或 Token 硬预算。</td><td>保持原文，记录预算停止。</td><td>否</td></tr>
+            <tr><td><code>stale</code></td><td>来源、目标 revision 或用户反馈在运行中变化。</td><td>保持原文；允许按新快照重试。</td><td>否</td></tr>
+            <tr><td><code>error</code></td><td>Provider、解析、I/O 或本地校验失败。</td><td>保持原文并给出安全错误。</td><td>否</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        <strong>不可伪造成功</strong>
+        只有不可变 revision 已经原子提交，任务才能进入 <code>updated</code>。模型说“已更新”、生成 patch 或通过部分校验都不算完成。
+      </div>
+    </section>
+
+    <section id="privacy">
+      <div class="section-head">
+        <p class="section-index">07 / 隐私、成本与失败</p>
+        <h2>Agent 增加的是选择能力，不是无限权限。</h2>
+      </div>
+      <div class="grid-3">
+        <article class="card">
+          <span class="num">PRIVACY</span>
+          <h3>出站最小化</h3>
+          <p>Dashboard 不持 Key、不直连 Provider。只有本地控制器选定的近期增量、工具结果和必要记忆版本进入模型；密钥形状与敏感行先移除。</p>
+        </article>
+        <article class="card">
+          <span class="num">COST</span>
+          <h3>每回合独立计费</h3>
+          <p>本地快照、检索、hash 与投影不产生 API 成本；每次模型回合写 usage，任务汇总调用数、Token、缓存与计算成本。</p>
+        </article>
+        <article class="card">
+          <span class="num">FAILURE</span>
+          <h3>失败不改当前理解</h3>
+          <p>Provider 超时、非法动作、证据失效、CAS 冲突或预算耗尽都不会修改原始日记，也不会覆盖当前 active revision。</p>
+        </article>
+      </div>
+      <div class="table-wrap" style="margin-top: 16px;">
+        <table>
+          <thead><tr><th>失败场景</th><th>确定性处理</th><th>前端反馈</th></tr></thead>
+          <tbody>
+            <tr><td>模型返回未知工具或越权参数</td><td>拒绝执行并记录 <code>invalid_action</code>；可在剩余预算内要求修正。</td><td>不展示原始 Provider 内容；失败时保留旧文章。</td></tr>
+            <tr><td>Provider 调用中断，只留下调用前 checkpoint</td><td>未知结果标记 <code>unknown_attempt</code>；若 Provider 或本地错误已明确，先写内部 resolved checkpoint 再写 response。两种情况都不对同一 request 自动付费重试。</td><td>保留旧文章；内部 attempt marker 不作为用户工具轨迹展示。</td></tr>
+            <tr><td>证据 quote、行号或 hash 不匹配</td><td>patch 校验失败；不写 revision。</td><td>显示“来源已变化，需要重新核对”。</td></tr>
+            <tr><td>用户运行中修改或删除目标理解</td><td>不可变 user action 立即改变投影；action watermark 或 target revision 校验失败，任务进入 stale。</td><td>用户操作立即生效，Agent 结果不覆盖。</td></tr>
+            <tr><td>历史检索没有结果</td><td>返回空结果而非补写背景；Agent 继续或 finish。</td><td>轨迹可显示“未找到更早依据”。</td></tr>
+            <tr><td>达到预算</td><td>调用前已达到阈值时停止新的 Provider 调用；若 Provider 返回后累计超额，则解析并公开审计 completion，但不执行 action、不写 memory、不再调用 Provider，终态为 <code>budget_exhausted</code>。已解析且未执行的工具动作以 <code>budget_blocked</code> 记录，不计为工具调用。</td><td>保留旧文章并显示本次未形成更新。</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout warn">
+        <strong>成本结论边界</strong>
+        计入四次手动 gate 与 thinking probe 后，已知真实 API 账本累计为 101 次调用、277,551 Token 和 $0.039353928；另有 1 次 attempt 的 usage / cost 未知，整体不能声称 <code>cost_complete=true</code>。其中 v1.9 manual gate 为 4 次 / 12,096 Token / $0.001351458，thinking probe 为 5 次 / 15,002 Token / $0.002868506。单个历史成功、四个失败 gate 和一组 <code>neither_pass</code> 配对都不能外推 Agent 更便宜或月度稳态账单。
+      </div>
+      <div class="callout fact">
+        <strong>Material gate 已有离线 0-call 证据</strong>
+        当新 request 只是 14 日窗口自然滑动，或与已完成结果相比没有记录、历史、画像、反馈、user action 或 policy 的实质变化时，本地门直接返回 <code>no_change</code>，离线回归中为 0 Provider call。真实 Provider 配对账单尚未核对。
+      </div>
+    </section>
+
+    <section id="evaluation">
+      <div class="section-head">
+        <p class="section-index">08 / W0 · W1 · A1</p>
+        <h2>用消融对照证明 Agent 增益，而不是证明模型会写总结。</h2>
+      </div>
+      <div class="metrics">
+        <article class="metric-main">
+          <p class="micro" style="color: #d99b86;">Primary decision metric</p>
+          <strong>每条有效长期更新的总成本</strong>
+          <p>同时受质量、停止能力与调用效率影响。低价但制造错误理解，或高质量但每次无意义回看全部历史，都不算更好的 Agent。</p>
+        </article>
+        <div class="metric-side">
+          <div><strong>证据有效率</strong><span>逐字证据与来源 hash 通过率</span></div>
+          <div><strong>理解准确率</strong><span>人工标注可接受的 new / revise 比例</span></div>
+          <div><strong>停止准确率</strong><span>噪音、偶发行为与证据不足时正确停止</span></div>
+          <div><strong>用户修正率</strong><span>上线后 edit / delete 比例及原因</span></div>
+        </div>
+      </div>
+      <div class="table-wrap" style="margin-top: 16px;">
+        <table>
+          <thead><tr><th>实验组</th><th>执行方式</th><th>要隔离的变量</th><th>Agent 证据</th></tr></thead>
+          <tbody>
+            <tr><td><strong>W0</strong><br>当前基线</td><td>固定组装近 14 日、Context 与 feedback，一次模型调用，一次输出。</td><td>当前 Self Reflection 能达到的质量与成本。</td><td>无；它是 Workflow 基线。</td></tr>
+            <tr><td><strong>W1</strong><br>固定工具链</td><td>每次都按同样顺序 read_memory → search_history → finalize_patch / finish。</td><td>仅增加历史材料和工具结构本身带来的收益。</td><td>无；工具存在但路径不自主。</td></tr>
+            <tr><td><strong>A1</strong><br>Agent V1</td><td>模型根据近期增量和每次工具结果自主选择下一动作，在预算内停止。</td><td>自主规划、条件检索、反例搜索和停止决策的额外价值。</td><td>不同场景产生不同工具路径，并在质量或效率上显著优于 W1。</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout fact">
+        <strong>首批离线材料</strong>
+        当前仓库已有 20 个连续自然日、每天 10 条、共 200 条的产品经理合成场景、ground truth、按日 W0 / W1 / A1 mock runner 与机器可读报告。Prompt v1.19 / Workflow v1.9、Prompt v1.20 / Workflow v1.11、Prompt v1.21 / Workflow v1.12、旧 Prompt v1.9、v1.6 及更早的 108 / 114 / 136 都是历史快照，不作为当前 v1.22 / v1.13 整体验收计数。
+      </div>
+      <div class="callout fact">
+        <strong>历史 v1.20 / v1.11 人物相关性的两个隔离真模型探针</strong>
+        纯系统说明负例最终为 <code>no_change</code>，但途中出现 4 次 invalid action，共 5 calls / 7,087 Token / $0.000979475；它验证了未写记忆的边界，也暴露了停止效率不足。显式个人偏好正例首跑因 Terminal Judge <code>required_identity</code> 合同错位而 0 写入；修复并将 Workflow policy 升为 v1.11 后只重跑该正例一次，结果为 <code>updated / new</code>，轨迹 <code>investigate → finalize_patch</code>，2 model calls / 2 tool calls / 2,879 Token（2,608 prompt + 271 completion）/ $0.00137025；生成 revision 1、active、low uncertainty，两日各 1 条证据，隔离来源 SHA 不变。两次探针都没有触碰真实 Vault；它们只证明这两个合同样例，不外推真实用户的长期准确性。正式 <code>deepseek-agentic-workflow</code> / <code>deepseek-v4-pro</code>、默认 5 / 5 / 40,000 / 180,000 预算对应的 policy SHA-256 为 <code>2173475b4f96dc4751f4a0ca173b036be9313835f810df4ded319c6d7a35cce0</code>。
+      </div>
+      <div class="callout warn">
+        <strong>历史 v1.21 / v1.12：两日 v3 失败继续保留</strong>
+        8 月 17 日与 18 日的两日隔离合成 DeepSeek v3 都在 Judge parse 阶段以 <code>budget_exhausted</code> 结束，分别有 2 / 4 次 invalid action，合计 15 calls / 32,285 Token / $0.003552094。这组失败继续作为回归账本。
+      </div>
+      <div class="callout fact">
+        <strong>当前 v1.22 / v1.13：两个冻结合成 case 的真实 DeepSeek v4 有限验收通过</strong>
+        两日长期沉淀案为 11 calls / 26,602 Token / $0.007166364；<code>original_only</code> 撤回案为 6 calls / 11,851 Token / $0.002545011；合计 17 calls / 38,453 Token / $0.009711375，<code>invalid_action=0</code>。临时目录已清理，合成来源 hash 前后不变。该结果没有使用真实用户 Vault，也不覆盖发行包安装、Chrome、真实日历或 20 日纵向稳定。
+      </div>
+      <div class="callout warn">
+        <strong>历史 v1.19 / v1.9 真实证据：四案合成、打包安装与 Chrome request / edit / delete / reload 闭环均已通过</strong>
+        Prompt v1.19 / Workflow v1.9 四案全部通过；commit <code>e116d4b8a3ff78f608f26d4a2f76186dca37b00e</code> 已打包、安全安装并完成真实 request、两次 edit、fresh delete、r2 tombstone、Worker 幂等与刷新后不复活验收，交付时 gate 已关闭。旧 v1.6–v1.9 manual gate 与 thinking probe 仍是历史失败账本，不追认。20 日 live E2 未执行，纵向证据仍缺失。详见 <a href="REMEMBER_AGENT_V1_EVALUATION_RESULT_2026-08-12.md">《2026-08-12 隔离真实模型评测结果》</a>。
+      </div>
+      <div class="callout fact">
+        <strong>A1 语义工具验收</strong>
+        W0 / W1 仍对冻结 action、target、query / date / limit、<code>result_kind</code> 和 <code>result_count</code> 做 exact 验收。A1 可自主选择 <code>search_history</code> query 与日期范围，但必须读取正确 target，返回 1–5 条，且 response / run 的完整 <code>source_hashes</code> 必须与该 case 授权 source 集精确相等，最终 evidence / counterevidence 仍需逐字命中。这不是放宽来源或 patch 合同。
+      </div>
+      <div class="callout fact">
+        <strong>手动启用前的两案 A1 gate</strong>
+        工作区已有仅处理 <code>history_search_revise</code> 和 <code>revision_conflict</code> 的 runner；默认 plan-only 为 0 次 Provider 调用。v1.6 plan <code>06b518611a263a3514e1a4451802b5dfc5c605ec13112973d8c0b47c32626265</code> 实际为 1 次 / 2,062 Token / $0.00036482，v1.7 plan <code>c4f41a34b48f2781a656c6366912d0785b5f0f1af6e71c004fb4e197f42bebf3</code> 实际为 1 次 / 2,307 Token / $0.001023555；两次第一案均为 <code>finish / no_change</code>。v1.8 plan <code>8c2aecab9caeec3d9f38434c6f7d20b2b1c592b238c00844c4594f4749705323</code> 的第一案为 <code>no_change</code>，轨迹 <code>finish → read_memory → finish</code>，质量 4 / 14，3 次 / 8,077 Token / $0.001467922。2026-08-15，v1.9 历史 plan <code>aced8fc17de4e7c15de3c33c578ad02b6e2e6fdf4e95e6dc1862f803b2a37110</code> 与 policy <code>5a24b5e01b32815d5aa881dccd300ed2be1a61abc38469c95061a02831dc2575</code> 的第一案为 <code>scaffolded</code>、<code>status=budget_exhausted</code>、原始公开 <code>error_code=agent_error</code>，已解析轨迹 <code>finish → read_memory → finish</code>，2 次复核，质量 3 / 14，4 次 / 12,096 Token / $0.001351458。第四次 action 因累计 Token 上限在解析前触发而未知，不能猜测；usage 完整且 source clone 不变。四次第二案均未运行。该历史分支当时调查能力未通过，保持禁用且未重试、未安装；后续结果不反向追认。
+      </div>
+      <div class="callout warn">
+        <strong>Thinking probe 完成配对，但两臂均未通过</strong>
+        冻结 plan <code>923ebb14d8e1dd2fc314153946f89c98a6f06a25629aa4826d7d2696836fde88</code> 下，<code>disabled</code> 轨迹为 <code>finish → read_memory → finish</code>，bounded finish=<code>true</code>，8 / 19，3 次 / 8,077 Token / $0.00025317；<code>thinking_high</code> 轨迹为 <code>read_memory → finish</code>，bounded finish=<code>false</code>，9 / 19，2 次 / 6,925 Token / $0.002615336，reasoning tokens=1,405。paired 完整执行但结果为 <code>neither_pass</code>，合计 5 次 / 15,002 Token / $0.002868506；安全、usage 和 source clone 检查均通过。该历史分支当时保持 disabled、未重试、未安装；后续结果不反向追认。
+      </div>
+      <div class="grid-3">
+        <article class="card">
+          <span class="num">CASE A</span>
+          <h3>无需工具</h3>
+          <p>近期只有噪音；A1 应直接 finish，而 W1 会固定检索。验证停止与节省调用。</p>
+        </article>
+        <article class="card">
+          <span class="num">CASE B</span>
+          <h3>只看当前理解</h3>
+          <p>近期重复支持已有理解；A1 应 read_memory 后 reinforce，不做不必要历史搜索。</p>
+        </article>
+        <article class="card">
+          <span class="num">CASE C</span>
+          <h3>需要历史反例</h3>
+          <p>近期出现方向变化；A1 应检索较早记录，形成 revise 或 tension，并保留范围。</p>
+        </article>
+      </div>
+      <div class="callout warn">
+        <strong>[猜测] 首轮通过门槛</strong>
+        A1 的证据有效率必须保持 100%；相对 W1，在人工可接受理解不下降的前提下，不必要历史检索或模型调用至少下降 20%；相对 W0，变化 / 张力召回至少提高 15%。这些是待实验校准的候选阈值，不是现有结果。
+      </div>
+    </section>
+
+    <section id="rollout">
+      <div class="section-head">
+        <p class="section-index">09 / 实施顺序</p>
+        <h2>手动链路已经进入每日自动化层；每一层仍要分开验收。</h2>
+      </div>
+      <div class="phases">
+        <article class="phase">
+          <p class="micro">V1.0–V1.2 · Historical manual baseline</p>
+          <h3>手动 Agent 任务</h3>
+          <p>任务控制器、四工具、stable memory revision、运行轨迹与手动 gate 已实现。</p>
+          <ul><li>保留现有 DeepSeek Provider；</li><li>历史 commit <code>e116d4b8…b00e</code> 的 v1.19 / v1.9 完成过安装与 Chrome 闭环；</li><li>该证据不替代当前版本的重新验收。</li></ul>
+        </article>
+        <article class="phase">
+          <p class="micro">V1.1 · Historical evaluation boundary</p>
+          <h3>W0 / W1 / A1 影子评测</h3>
+          <p>离线按天回放已存在；旧 focused 成功、6-case preflight、四次 manual gate 与 thinking probe 都保留为历史边界。当前四案与安装验收不反向改变这些历史结果；20 日 live E2 仍未执行。</p>
+          <ul><li>盲评理解质量；</li><li>核对 Agent 路径差异；</li><li>统计任务级 Token 与成本。</li></ul>
+        </article>
+        <article class="phase">
+          <p class="micro">V1.3 · Current worktree</p>
+          <h3>自动整理与人物窗口</h3>
+          <p>独立 21:00 calendar job、页面开关、manual / scheduled 共享 Workflow、sleep/wake 最近时段补跑和人物相关性边界已接线。</p>
+          <ul><li>fresh install 无总 gate 也无 schedule；</li><li>自动检查与 Provider 调用分离，Worker 负责真正执行；</li><li>历史 backlog 不由 schedule 批量回填。</li></ul>
+        </article>
+      </div>
+    </section>
+
+    <section id="dod">
+      <div class="section-head">
+        <p class="section-index">10 / Definition of Done</p>
+        <h2>完成的不是“能跑”，而是可控、可证明、可恢复。</h2>
+      </div>
+      <div class="checklists">
+        <article class="checklist">
+          <h3>工程完成</h3>
+          <ul>
+            <li>新增“现在整理”与每日 21:00 计划入口，当前固定 Self Reflection 保持只读兼容。</li>
+            <li>四个工具均有严格输入 / 输出 Schema、权限和字符上限。</li>
+            <li>Agent 每次只返回一个合法 next_action；未知动作不会被执行。</li>
+            <li>任务有完整状态机、request 复用、material gate、Provider attempt checkpoint、工具轨迹和逐回合 usage。</li>
+            <li>stable memory_id 不因改写变化，revision 不可变且通过 CAS 更新。</li>
+            <li>所有 new / reinforce / revise / tension 均可回到当前有效逐字证据。</li>
+            <li>Dashboard 只写不可变 user action；只有 Worker / Committer 能写 memory revision。</li>
+            <li>投影立即叠加 edit / delete action，Agent commit 通过 action watermark 避免覆盖用户操作。</li>
+            <li>用户 edit / delete 在运行并发中优先；同一 memory_id 与 exact semantic key 不会复活。</li>
+            <li>近义新表述作为已知边界被单独评测，不宣称能够完全拦截。</li>
+            <li>来源变化、超时、Provider 错误和预算耗尽均不修改当前文章。</li>
+            <li>Dashboard 不持 Key、不直连 Provider，不展示模型隐藏 CoT。</li>
+            <li>scheduled request 同日确定且幂等，存在 pending 时不新建，不回填历史 backlog。</li>
+            <li>手动与 scheduled request 共用同一模型上下文、全局 mission lock 与入库合同。</li>
+            <li>Candidate Scout 只将用户偏好、判断/工作方式与变化张力当候选；纯系统事实应停止。</li>
+          </ul>
+        </article>
+        <article class="checklist">
+          <h3>产品与评测完成</h3>
+          <ul>
+            <li>打开“她眼中的我”仍为 0 次模型调用，正文在运行中持续可读。</li>
+            <li>前端不新增聊天、头像、标签墙、多 Agent 或每日审批队列。</li>
+            <li>用户能展开看到本次工具路径、日期范围、依据数量、结果与成本。</li>
+            <li>至少覆盖直接停止、只看 profile、历史检索、反例检索和 revision 冲突五类路径。</li>
+            <li>W0、W1、A1 在同一数据、模型、输入预算和评分标准下完成对照。</li>
+            <li>A1 不只“看起来像 Agent”，而是在路径和结果指标上满足预先登记门槛。</li>
+            <li>20 日合成数据按天回放不写入真实 Vault，来源与测试标识可审计。</li>
+            <li>6-case live preflight 全绿；当前三次均未全绿，case 5 / 6 A1 未完成。</li>
+            <li>真实小样本先影子运行；未经明确验收，不宣称长期价值或成本已验证。</li>
+            <li>当前版本完成打包、本机安装、schedule 开启与真实 21:00 触发的分层验收。</li>
+          </ul>
+        </article>
+      </div>
+      <div class="callout">
+        <strong>发布表述</strong>
+        当前可以说“Prompt v1.22 / Workflow v1.13、stable-new identity v1.1、terminal gate v1.0 的两个冻结合成 case 已完成真实 DeepSeek v4 有限验收”。当前不能说“自动整理已在本机 21:00 实跑”、“真实用户 Vault 已通过”、“Agent 普遍优于 Workflow”、“20 日纵向稳定”、“真实用户价值与成本已稳定”或“production-ready”。
+      </div>
+    </section>
+
+    <section id="open">
+      <div class="section-head">
+        <p class="section-index">11 / 待验证问题</p>
+        <h2>第一版不提前假装知道这些答案。</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>未知项</th><th>如何得到答案</th><th>影响的决定</th></tr></thead>
+          <tbody>
+            <tr><td>三个模型回合是否足够</td><td>统计 A1 达到停止或有效 patch 的回合分布。</td><td>调整任务预算与模型组合。</td></tr>
+            <tr><td>本地关键词检索能否找到足够历史依据</td><td>对变化 / 张力样例做检索召回评测。</td><td>是否需要后续增加本地向量索引。</td></tr>
+            <tr><td>Agent 是否真的优于固定工具链</td><td>W1 与 A1 盲评和成本对照。</td><td>保留 Agent，还是回退成更简单 Workflow。</td></tr>
+            <tr><td>低风险理解直接呈现是否仍会造成负担</td><td>观察 edit / delete 原因、打开轨迹比例和用户访谈。</td><td>是否增加局部确认或降低更新频率。</td></tr>
+            <tr><td>便宜模型能否承担规划或最终判断</td><td>分别替换 planner / final judge，保持工具结果相同做 challenger 评测。</td><td>模型路由与成本上界。</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>
+      <span>Memento Re:member · Agent V1 PRD · 2026-08-18</span>
+      <span>Prompt v1.22 / Workflow v1.13 工作区候选；两个冻结合成 case 的真实 DeepSeek v4 有限验收已通过，每日 21:00 计划默认关闭，安装、Chrome、真实用户 Vault 与实际触发须分层报告。</span>
+    </footer>
+  </main>
+</body>
+</html>

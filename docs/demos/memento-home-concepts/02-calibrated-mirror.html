@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Memento 首页 Demo · 可校准回望</title>
+  <style>
+    :root{
+      --paper:#fafaf7;--paper-2:#f2efe8;--ink:#1b1b19;--muted:#7b776f;
+      --faint:#a19c93;--line:rgba(27,27,25,.11);--accent:#c73e1d;
+      --accent-dark:#8b2f12;--accent-soft:#f8e5de;--green:#486b58;
+      --shadow:0 28px 80px rgba(35,30,22,.13);--r:18px;
+      --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","SF Pro Text","Helvetica Neue",sans-serif;
+      --serif:"Songti SC","STSong","Noto Serif CJK SC",serif;
+    }
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:#e7e5df;color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+    button,input,textarea,select{font:inherit}button{color:inherit}button:focus-visible,a:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:3px}.page{width:min(1180px,calc(100% - 32px));min-height:100vh;margin:0 auto;background:var(--paper);box-shadow:var(--shadow)}
+    .topbar{height:74px;padding:0 48px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:rgba(250,250,247,.94);backdrop-filter:blur(18px);z-index:20}
+    .brand{display:flex;align-items:baseline;gap:14px}.brand strong{font-size:15px;letter-spacing:.18em}.brand span{font:11px/1 var(--sans);letter-spacing:.12em;color:var(--muted)}
+    .top-actions{display:flex;align-items:center;gap:8px}.ghost,.icon-btn,.pill,.action{border:1px solid var(--line);background:transparent;border-radius:999px;cursor:pointer;transition:.18s ease}
+    .ghost{padding:9px 15px;color:var(--muted)}.ghost:hover,.icon-btn:hover,.pill:hover{border-color:rgba(27,27,25,.3);color:var(--ink)}
+    .variant-links{display:flex;gap:3px;padding:4px;background:var(--paper-2);border-radius:999px}.variant-links a{padding:6px 10px;border-radius:999px;text-decoration:none;color:var(--muted);font-size:12px}.variant-links a[aria-current="page"]{background:var(--ink);color:var(--paper)}
+    main{padding:54px 64px 80px}.demo-note{font-size:11px;letter-spacing:.12em;color:var(--faint);margin-bottom:16px;text-transform:uppercase}
+    .mirror{border-top:3px solid var(--ink);padding:27px 0 36px;display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:48px;border-bottom:1px solid var(--line)}
+    .eyebrow{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;letter-spacing:.13em}.state-dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+    h1{font:500 clamp(36px,5vw,64px)/1.05 var(--serif);letter-spacing:-.055em;margin:17px 0 24px}.understanding{max-width:760px;font:400 clamp(22px,3vw,34px)/1.55 var(--serif);letter-spacing:-.015em;text-wrap:balance}
+    .meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-top:22px;color:var(--muted);font-size:12px}.meta .scope{padding:4px 9px;background:var(--paper-2);border-radius:999px}.evidence-link{border:0;background:transparent;padding:3px 0;color:var(--accent-dark);cursor:pointer;border-bottom:1px solid rgba(139,47,18,.25)}.evidence-link:disabled{color:var(--faint);cursor:not-allowed;border-bottom-color:transparent}
+    .calibrate{display:flex;flex-wrap:wrap;gap:9px;margin-top:27px}.action{padding:10px 15px;background:var(--paper)}.action:hover{transform:translateY(-1px);box-shadow:0 7px 20px rgba(27,27,25,.08)}.action.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}.action.danger{color:var(--accent-dark)}
+    .edit-box{display:none;margin-top:18px;max-width:720px}.edit-box.is-open{display:block}.edit-box textarea{width:100%;min-height:104px;padding:14px;border:1px solid var(--line);background:white;border-radius:12px;resize:vertical;line-height:1.7}.edit-tools{display:flex;gap:8px;margin-top:8px}
+    .control-card{align-self:start;background:var(--paper-2);border-radius:16px;padding:20px}.control-card h2{font-size:13px;margin:0 0 16px}.control-row{padding:13px 0;border-top:1px solid var(--line)}.control-row:first-of-type{border:0;padding-top:0}.control-label{display:flex;justify-content:space-between;gap:12px;font-size:12px;color:var(--muted)}.control-value{font-size:14px;margin-top:5px}.switch{display:inline-flex;width:36px;height:21px;border:0;border-radius:99px;background:var(--ink);padding:3px;cursor:pointer;justify-content:flex-end}.switch i{display:block;width:15px;height:15px;border-radius:50%;background:white}.switch.off{background:#c9c5bc;justify-content:flex-start}.mini-link{font-size:12px;color:var(--accent-dark);border:0;background:transparent;padding:8px 0 0;cursor:pointer}.mini-link:disabled{color:var(--faint);cursor:not-allowed;border:0}
+    .records{padding-top:42px}.records-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px}.records h2{font:500 clamp(27px,4vw,42px)/1.1 var(--serif);letter-spacing:-.04em;margin:0}.records h2 em{font-style:normal;color:var(--accent)}.records-sub{color:var(--muted);font-size:12px;margin-top:9px}.filters{display:flex;gap:7px;flex-wrap:wrap}.pill{padding:7px 12px;color:var(--muted)}.pill.active{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+    .heat{display:grid;grid-template-columns:repeat(45,1fr);gap:4px;margin:28px 0 10px}.heat i{height:18px;border-radius:3px;background:#ebe8e0}.heat i:nth-child(n+32){background:#efd2c6}.heat i:nth-child(35),.heat i:nth-child(39),.heat i:nth-child(44){background:#c86444}.heat i:last-child{outline:2px solid var(--accent);outline-offset:2px;background:transparent}.heat-labels{display:flex;justify-content:space-between;color:var(--faint);font-size:11px}
+    .timeline{margin-top:25px;border-top:1px solid var(--line)}.entry{display:grid;grid-template-columns:72px 1fr auto;gap:22px;padding:26px 0;border-bottom:1px solid var(--line)}.entry[hidden]{display:none}.entry-time{font-size:15px}.entry-source{color:var(--muted);font-size:11px;margin-top:2px}.entry p{margin:0;font-size:16px;line-height:1.75}.tag{font-size:11px;color:var(--muted);white-space:nowrap;padding-top:4px}.today-review{margin-top:30px;padding:20px 22px;border:1px dashed rgba(27,27,25,.2);display:flex;justify-content:space-between;gap:22px;align-items:center}.today-review strong{font-family:var(--serif);font-size:17px}.today-review p{margin:5px 0 0;color:var(--muted);font-size:12px}
+    .demo-states{position:fixed;left:18px;bottom:18px;z-index:35;background:#232321;color:white;border-radius:14px;padding:10px;box-shadow:0 12px 34px rgba(0,0,0,.2)}.demo-states label{display:block;font-size:9px;letter-spacing:.12em;color:#bbb8b1;margin:0 0 6px 4px}.demo-states select{border:0;border-radius:8px;background:#353531;color:white;padding:7px 28px 7px 9px;font-size:12px}
+    .scrim{position:fixed;inset:0;background:rgba(20,19,17,.35);opacity:0;pointer-events:none;transition:.2s;z-index:40}.scrim.open{opacity:1;pointer-events:auto}.sheet{position:fixed;right:0;top:0;width:min(520px,100%);height:100%;background:var(--paper);z-index:45;transform:translateX(102%);transition:.28s cubic-bezier(.2,.8,.2,1);padding:0 34px 42px;overflow:auto;box-shadow:-24px 0 70px rgba(0,0,0,.13)}.sheet.open{transform:none}.sheet-head{position:sticky;top:0;background:rgba(250,250,247,.96);padding:25px 0 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);z-index:2}.sheet-head h2{font:500 22px/1.2 var(--serif);margin:0}.icon-btn{width:36px;height:36px;font-size:18px}.sheet-intro{margin:25px 0;color:var(--muted);line-height:1.7}.evidence{padding:18px 0;border-top:1px solid var(--line)}.evidence time{display:block;color:var(--accent-dark);font-size:11px;margin-bottom:7px}.evidence blockquote{margin:0;font:16px/1.7 var(--serif)}.evidence p{font-size:12px;color:var(--muted);margin:10px 0 0}.export-option{display:flex;align-items:flex-start;gap:10px;padding:14px 0;border-top:1px solid var(--line)}.export-option input{accent-color:var(--accent);margin-top:3px}.export-option span{display:block;font-size:13px}.export-option small{display:block;color:var(--muted);margin-top:3px}.preview{white-space:pre-wrap;background:var(--paper-2);border-radius:12px;padding:16px;font:12px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace;margin:18px 0}.export-cta{width:100%;border:0;border-radius:10px;background:var(--ink);color:var(--paper);padding:12px;cursor:pointer}
+    .toast{position:fixed;left:50%;bottom:24px;z-index:70;transform:translate(-50%,20px);background:var(--ink);color:white;padding:10px 15px;border-radius:999px;font-size:12px;opacity:0;pointer-events:none;transition:.2s}.toast.show{opacity:1;transform:translate(-50%,0)}
+    .mirror-stage{position:relative;overflow:hidden;border-top:3px solid var(--ink);border-bottom:1px solid var(--line);padding:34px 0 0;display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:44px;isolation:isolate}
+    .mirror-watermark{position:absolute;top:70px;left:-12px;z-index:-1;font:600 clamp(70px,11vw,150px)/.8 var(--serif);letter-spacing:-.08em;color:rgba(27,27,25,.028);white-space:nowrap;pointer-events:none;user-select:none}
+    .mirror-main{padding:0 0 36px}.mirror-kicker{display:flex;align-items:center;justify-content:space-between;gap:18px}.mirror-kicker .eyebrow{min-width:0}.current-badge{border:1px solid var(--line);border-radius:999px;padding:5px 9px;color:var(--muted);font-size:10px;letter-spacing:.06em;white-space:nowrap}
+    .mirror-stage h1{font-size:clamp(48px,7vw,82px);margin:20px 0 5px}.mirror-subtitle{margin:0 0 34px;color:var(--muted);font:400 clamp(17px,2vw,23px)/1.5 var(--serif)}
+    .understanding-frame{position:relative;padding:24px 0 0;border-top:1px solid var(--line)}.ai-label{display:inline-flex;align-items:center;gap:7px;color:var(--accent-dark);font-size:10px;letter-spacing:.13em;text-transform:uppercase}.ai-label::before{content:"";width:22px;height:1px;background:var(--accent)}
+    .mirror-stage .understanding{margin:12px 0 0;min-height:3.05em;font-size:clamp(25px,3.3vw,39px);transition:opacity .18s ease,transform .18s ease}.mirror-stage.is-switching .understanding{opacity:.15;transform:translateY(7px)}
+    .change-summary{display:flex;gap:10px;align-items:flex-start;max-width:760px;margin:18px 0 0;padding:12px 14px;border-left:2px solid var(--accent);background:linear-gradient(90deg,rgba(199,62,29,.07),transparent 85%);font-size:12px;line-height:1.65;color:var(--muted)}.change-summary strong{color:var(--ink);white-space:nowrap}.change-summary mark{background:rgba(199,62,29,.11);color:var(--accent-dark);padding:1px 3px}
+    .return-current{display:none;margin-top:15px;border:0;background:transparent;color:var(--accent-dark);padding:0;cursor:pointer;font-size:12px;border-bottom:1px solid rgba(139,47,18,.28)}.return-current.visible{display:inline-block}
+    .memory-lens{align-self:start;position:relative;background:linear-gradient(145deg,#f4f0e8,#ebe6dc);border:1px solid rgba(27,27,25,.08);border-radius:28px;padding:20px;box-shadow:0 24px 70px rgba(61,48,29,.1);transform-style:preserve-3d;transition:transform .18s ease}
+    .lens-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.lens-head strong{font-size:13px}.lens-head button{border:0;background:transparent;color:var(--accent-dark);padding:4px 0;cursor:pointer;font-size:11px}
+    .orbit{position:relative;height:330px;margin:9px 0 5px;border-radius:50%;background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.92) 0 23%,rgba(255,255,255,.3) 24% 39%,rgba(199,62,29,.045) 40% 41%,transparent 42% 58%,rgba(27,27,25,.07) 59% 59.5%,transparent 60%);overflow:visible}
+    .orbit::before,.orbit::after{content:"";position:absolute;inset:12%;border:1px solid rgba(27,27,25,.08);border-radius:50%}.orbit::after{inset:30%;border-style:dashed;animation:orbit-spin 28s linear infinite}
+    .orbit-core{position:absolute;left:50%;top:50%;width:128px;height:128px;transform:translate(-50%,-50%);border-radius:50%;background:var(--ink);color:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;z-index:3;box-shadow:0 14px 35px rgba(27,27,25,.22)}.orbit-core small{color:#bbb7ae;font-size:9px;letter-spacing:.16em}.orbit-core strong{font:500 19px/1.3 var(--serif);margin-top:5px}.orbit-core span{font-size:9px;color:#ddd9cf;margin-top:5px}
+    .orbit-ray{position:absolute;left:50%;top:50%;height:1px;background:rgba(27,27,25,.18);transform-origin:left center;z-index:1}.orbit-ray.support{width:112px;transform:rotate(-128deg)}.orbit-ray.reinforce{width:124px;transform:rotate(-36deg)}.orbit-ray.counter{width:112px;border-top:1px dashed var(--accent);background:none;transform:rotate(43deg)}.orbit-ray.revision{width:116px;background:var(--accent);transform:rotate(135deg)}
+    .orbit-node{position:absolute;z-index:4;width:96px;border:1px solid rgba(27,27,25,.13);background:rgba(250,250,247,.92);border-radius:13px;padding:9px;text-align:left;cursor:pointer;box-shadow:0 8px 24px rgba(27,27,25,.07);transition:.2s ease}.orbit-node:hover,.orbit-node.active{transform:translateY(-3px);border-color:var(--accent);box-shadow:0 12px 30px rgba(139,47,18,.13)}.orbit-node::before{content:"";display:block;width:7px;height:7px;border-radius:50%;background:var(--ink);margin-bottom:6px}.orbit-node[data-relation="counter"]::before{background:transparent;border:1px dashed var(--accent)}.orbit-node[data-relation="revision"]::before{background:var(--accent);box-shadow:0 0 0 0 rgba(199,62,29,.28);animation:node-pulse 2s ease-out infinite}.orbit-node time{display:block;font-size:9px;color:var(--faint);letter-spacing:.06em}.orbit-node span{display:block;margin-top:3px;font-size:10px;line-height:1.35}.orbit-node.n1{left:2px;top:39px}.orbit-node.n2{right:0;top:52px}.orbit-node.n3{right:2px;bottom:32px}.orbit-node.n4{left:0;bottom:33px}
+    .lens-legend{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:13px 0 0;border-top:1px solid var(--line);color:var(--muted);font-size:9px}.lens-legend span{display:flex;align-items:center;gap:5px}.legend-dot{width:12px;height:1px;background:var(--ink)}.legend-dot.counter{border-top:1px dashed var(--accent);background:none}.legend-dot.boundary{height:7px;width:7px;border:1px solid var(--muted);border-radius:50%;background:none}
+    .run-status{grid-column:1/-1;border-top:1px solid var(--line);display:grid;grid-template-columns:1.2fr 1fr 1fr;min-height:82px}.status-cell{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 22px;border-right:1px solid var(--line)}.status-cell:last-child{border:0}.status-cell small{display:block;color:var(--faint);font-size:9px;letter-spacing:.1em;margin-bottom:5px}.status-cell strong{font-size:12px;font-weight:500}.status-cell .mini-link{padding:0}.status-cell .switch{flex:0 0 auto}
+    .retrospect{padding:50px 0 46px;border-bottom:1px solid var(--line)}.retrospect-head{display:flex;align-items:end;justify-content:space-between;gap:24px}.section-kicker{margin:0 0 9px;color:var(--accent-dark);font-size:10px;letter-spacing:.16em}.retrospect h2{margin:0;font:500 clamp(28px,4vw,46px)/1.15 var(--serif);letter-spacing:-.04em}.retrospect-intro{max-width:480px;margin:8px 0 0;color:var(--muted);font-size:12px;line-height:1.65}.play-review{display:flex;align-items:center;gap:9px;border:1px solid var(--ink);border-radius:999px;background:var(--ink);color:var(--paper);padding:10px 15px;cursor:pointer}.play-review i{display:block;width:0;height:0;border-top:4px solid transparent;border-bottom:4px solid transparent;border-left:7px solid currentColor}.play-review.playing i{width:7px;height:8px;border:0;border-left:2px solid currentColor;border-right:2px solid currentColor}
+    .memory-rail{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:34px}.memory-rail::before{content:"";position:absolute;left:8%;right:8%;top:13px;height:1px;background:linear-gradient(90deg,var(--ink),var(--ink) 57%,var(--accent) 58%,var(--accent));opacity:.25}.moment-tab{position:relative;border:0;background:transparent;padding:0 10px 17px;text-align:left;cursor:pointer;color:var(--muted)}.moment-tab::before{content:"";display:block;position:relative;z-index:1;width:10px;height:10px;margin:8px 0 13px;border:3px solid var(--paper);border-radius:50%;background:#98938a;box-shadow:0 0 0 1px rgba(27,27,25,.18);transition:.18s}.moment-tab[data-relation="counter"]::before{background:var(--paper);border:2px dashed var(--accent);box-shadow:none}.moment-tab[data-relation="revision"]::before{background:var(--accent)}.moment-tab.active{color:var(--ink)}.moment-tab.active::before{transform:scale(1.5);background:var(--accent);box-shadow:0 0 0 5px rgba(199,62,29,.09)}.moment-tab time{display:block;font-size:10px;letter-spacing:.08em}.moment-tab span{display:block;font:15px/1.35 var(--serif);margin-top:4px}
+    .moment-view{position:relative;overflow:hidden;display:grid;grid-template-columns:.8fr 1fr 1fr;margin-top:6px;background:var(--paper-2);border-radius:22px;min-height:254px}.moment-panel{padding:25px 24px;border-right:1px solid var(--line)}.moment-panel:last-child{border:0}.moment-panel small{display:block;color:var(--faint);font-size:9px;letter-spacing:.13em;margin-bottom:13px}.moment-date{color:var(--accent-dark);font:500 24px/1 var(--serif)}.moment-kind{display:inline-block;margin-top:10px;border:1px solid var(--line);border-radius:999px;padding:4px 8px;font-size:9px;color:var(--muted)}.moment-quote{margin:0;font:17px/1.65 var(--serif)}.moment-explain{margin:0;color:var(--muted);font-size:12px;line-height:1.7}.moment-explain strong{display:block;color:var(--ink);font:500 17px/1.5 var(--serif);margin-bottom:8px}.moment-actions{display:flex;gap:12px;align-items:center;margin-top:17px}.moment-actions button{border:0;background:transparent;padding:0;color:var(--accent-dark);font-size:11px;cursor:pointer;border-bottom:1px solid rgba(139,47,18,.25)}
+    .revision-compare{margin-top:28px;display:grid;grid-template-columns:1fr 38px 1fr;gap:12px;align-items:center}.revision-card{min-height:128px;border:1px solid var(--line);border-radius:14px;padding:15px;background:rgba(255,255,255,.42)}.revision-card small{display:block;color:var(--faint);font-size:9px;letter-spacing:.1em;margin-bottom:9px}.revision-card p{margin:0;font:16px/1.55 var(--serif)}.revision-card.current{border-color:rgba(199,62,29,.3);background:linear-gradient(145deg,rgba(248,229,222,.65),rgba(255,255,255,.65))}.revision-arrow{text-align:center;color:var(--accent);font-size:21px}.revision-note{grid-column:1/-1;margin:0;color:var(--muted);font-size:11px}.revision-note mark{background:rgba(199,62,29,.1);color:var(--accent-dark);padding:2px 4px}
+    .relation-chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 8px;font-size:9px;margin-bottom:8px;background:var(--paper-2);color:var(--muted)}.relation-chip::before{content:"";width:12px;height:1px;background:var(--ink)}.relation-chip.counter::before{background:none;border-top:1px dashed var(--accent)}.relation-chip.boundary::before{width:7px;height:7px;border:1px solid var(--muted);border-radius:50%;background:none}.evidence.counter{background:linear-gradient(90deg,rgba(199,62,29,.045),transparent)}.evidence.boundary{border:1px dashed rgba(27,27,25,.18);padding:16px;margin-top:16px}.evidence-map-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:18px 0 24px}.evidence-map-summary div{padding:12px;background:var(--paper-2);border-radius:10px}.evidence-map-summary strong{display:block;font:500 20px/1 var(--serif)}.evidence-map-summary span{display:block;color:var(--muted);font-size:9px;margin-top:5px}
+    @keyframes orbit-spin{to{transform:rotate(360deg)}}@keyframes node-pulse{70%{box-shadow:0 0 0 9px rgba(199,62,29,0)}100%{box-shadow:0 0 0 0 rgba(199,62,29,0)}}
+    @media(max-width:980px){.mirror-stage{grid-template-columns:1fr 340px;gap:28px}.orbit{height:300px}.moment-view{grid-template-columns:1fr 1fr}.moment-panel:first-child{grid-column:1/-1;border-right:0;border-bottom:1px solid var(--line)}.run-status{grid-template-columns:1fr 1fr}.status-cell:first-child{grid-column:1/-1;border-right:0;border-bottom:1px solid var(--line)}}
+    @media(max-width:760px){.page{width:100%;box-shadow:none}.topbar{height:64px;padding:0 18px}.brand span,.variant-links{display:none}main{padding:32px 20px 72px}.mirror{grid-template-columns:1fr;gap:26px;padding-top:18px}.control-card{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}.control-card h2{grid-column:1/-1}.understanding{font-size:24px}.mirror-stage{grid-template-columns:1fr;gap:18px;padding-top:22px}.mirror-stage h1{font-size:52px}.mirror-subtitle{margin-bottom:25px}.mirror-main{padding-bottom:20px}.mirror-stage .understanding{font-size:25px;min-height:auto}.memory-lens{max-width:420px;width:100%;margin:0 auto 24px}.run-status{grid-template-columns:1fr}.status-cell,.status-cell:first-child{grid-column:auto;border-right:0;border-bottom:1px solid var(--line);padding:15px 0}.status-cell:last-child{border-bottom:0}.retrospect{padding-top:38px}.retrospect-head{align-items:flex-start;flex-direction:column}.memory-rail{grid-template-columns:repeat(4,150px);overflow-x:auto;padding-bottom:5px;scroll-snap-type:x proximity}.moment-tab{scroll-snap-align:start}.memory-rail::before{left:20px;right:20px}.moment-view{grid-template-columns:1fr}.moment-panel,.moment-panel:first-child{grid-column:auto;border-right:0;border-bottom:1px solid var(--line);padding:21px}.moment-panel:last-child{border-bottom:0}.revision-compare{grid-template-columns:1fr}.revision-arrow{transform:rotate(90deg)}.revision-note{grid-column:auto}.records-head{align-items:flex-start;flex-direction:column}.heat{grid-template-columns:repeat(30,1fr)}.heat i:nth-child(-n+15){display:none}.entry{grid-template-columns:54px 1fr;gap:14px}.entry .tag{grid-column:2}.today-review{align-items:flex-start;flex-direction:column}.demo-states{left:10px;bottom:10px}.sheet{padding-left:22px;padding-right:22px}}
+    @media(max-width:460px){.mirror-stage h1{font-size:46px}.mirror-kicker{align-items:flex-start;flex-direction:column;gap:8px}.orbit{height:290px}.orbit-node{width:88px}.lens-legend{grid-template-columns:1fr}.change-summary{flex-direction:column}.evidence-map-summary{grid-template-columns:1fr}.revision-card p{font-size:15px}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="topbar">
+      <div class="brand"><strong>MEMENTO</strong><span>可校准回望 · 离线演示</span></div>
+      <div class="top-actions">
+        <nav class="variant-links" aria-label="切换演示版本">
+          <a href="index.html">对照</a><a href="01-quiet-record.html">安静记录</a><a href="02-calibrated-mirror.html" aria-current="page">可校准</a><a href="03-time-stream.html">时间中的我</a><a href="04-suprematist-mirror.html">至上主义</a>
+        </nav>
+        <button class="ghost" data-open="export">导出</button>
+      </div>
+    </header>
+    <main>
+      <p class="demo-note">完全离线 · 虚构数据 · 所有操作仅在当前页面模拟</p>
+      <section id="mirror-stage" class="mirror-stage" aria-labelledby="mirror-title">
+        <div class="mirror-watermark" aria-hidden="true">Re:member</div>
+        <div class="mirror-main">
+          <div class="mirror-kicker">
+            <div class="eyebrow"><i class="state-dot"></i><span id="state-eyebrow">待你判断 · 尚未写入长期理解</span></div>
+            <span class="current-badge">关于我 · 工作中的理解</span>
+          </div>
+          <h1 id="mirror-title">她眼中的我</h1>
+          <p class="mirror-subtitle">许多天的选择，慢慢显出一个人。</p>
+          <div class="understanding-frame">
+            <span class="ai-label">AI 暂时理解</span>
+            <p id="understanding" class="understanding">在评审方案时，你近期更常先检查反例和失败条件，再评估完整方案。</p>
+            <div id="change-summary" class="change-summary"><strong>这次触碰了什么</strong><span>两天出现了相似的判断顺序；先作为候选，等你决定它是否真的像你。</span></div>
+            <div class="meta"><span id="state-label">仍在观察</span><span>近 14 天</span><button id="evidence-count" class="evidence-link" data-open="evidence">3 条支持 · 1 条反例</button><span id="scope" class="scope">适用于：工作方式</span></div>
+            <button id="return-current" class="return-current">退出回望，回到当前理解</button>
+            <div id="calibrate" class="calibrate">
+              <button class="action primary" data-decision="agree">这很像我</button>
+              <button class="action" data-decision="limit">只在这个范围</button>
+              <button class="action" data-decision="edit">换成我的说法</button>
+              <button class="action danger" data-decision="reject">这不像我</button>
+            </div>
+            <div id="edit-box" class="edit-box">
+              <textarea id="edit-text" aria-label="修改这条理解">在评审方案时，我通常会先检查反例和失败条件，再评估完整方案。</textarea>
+              <div class="edit-tools"><button class="action primary" id="save-edit">保留我的版本</button><button class="action" id="cancel-edit">取消</button></div>
+            </div>
+          </div>
+        </div>
+
+        <aside id="memory-lens" class="memory-lens" aria-label="这条理解的证据关系">
+          <div class="lens-head"><strong>理解的来路</strong><button id="play-orbit">播放回望 ↗</button></div>
+          <div class="orbit">
+            <i class="orbit-ray support" aria-hidden="true"></i><i class="orbit-ray reinforce" aria-hidden="true"></i><i class="orbit-ray counter" aria-hidden="true"></i><i class="orbit-ray revision" aria-hidden="true"></i>
+            <div class="orbit-core"><small>她暂时理解</small><strong id="orbit-core-title">先看反例</strong><span id="orbit-core-scope">适用于产品评审</span></div>
+            <button class="orbit-node n1" data-moment="first" data-relation="support"><time>07 / 19</time><span>第一次明确说出</span></button>
+            <button class="orbit-node n2" data-moment="reinforce" data-relation="support"><time>07 / 26</time><span>另一场评审再次出现</span></button>
+            <button class="orbit-node n3" data-moment="counter" data-relation="counter"><time>08 / 05</time><span>探索讨论中的反例</span></button>
+            <button class="orbit-node n4 active" data-moment="revision" data-relation="revision"><time id="revision-node-date">08 / 16</time><span id="revision-node-label">今天建议缩小范围</span></button>
+          </div>
+          <div class="lens-legend"><span><i class="legend-dot"></i>支持</span><span><i class="legend-dot counter"></i>反例</span><span><i class="legend-dot boundary"></i>适用边界</span></div>
+        </aside>
+
+        <div class="run-status" aria-label="整理设置">
+          <div class="status-cell"><div><small>立即回看</small><strong>从最近 14 天寻找变化</strong></div><button class="mini-link" id="organize-now">开始一次核对 →</button></div>
+          <div class="status-cell"><div><small>自动回看</small><strong id="schedule-text">每天 21:00 已开启</strong></div><button id="schedule" class="switch" aria-label="关闭每天 21:00 自动回看" aria-pressed="true"><i></i></button></div>
+          <div class="status-cell"><div><small>当前保留</small><strong id="retained-count">3 条工作中的理解 · 本地</strong></div><button id="status-evidence" class="mini-link" data-open="evidence">查看来路</button></div>
+        </div>
+      </section>
+
+      <section id="retrospect" class="retrospect" aria-labelledby="retrospect-title">
+        <div class="retrospect-head">
+          <div><p class="section-kicker">RECALL → RE:MEMBER</p><h2 id="retrospect-title">回到那些改变理解的日子</h2><p class="retrospect-intro">原始记录先保留；跨日线索、反例和你的修正，才让一条理解慢慢成形。点击节点可回看当时版本。</p></div>
+          <button id="play-retrospect" class="play-review"><i></i><span>播放 4 次变化</span></button>
+        </div>
+        <div class="memory-rail" role="tablist" aria-label="理解版本时间轨">
+          <button class="moment-tab" role="tab" aria-selected="false" data-moment="first" data-relation="support"><time>2026.07.19</time><span>首次出现</span></button>
+          <button class="moment-tab" role="tab" aria-selected="false" data-moment="reinforce" data-relation="support"><time>2026.07.26</time><span>再次支持</span></button>
+          <button class="moment-tab" role="tab" aria-selected="false" data-moment="counter" data-relation="counter"><time>2026.08.05</time><span>出现反例</span></button>
+          <button class="moment-tab active" role="tab" aria-selected="true" data-moment="revision" data-relation="revision"><time id="revision-tab-date">2026.08.16</time><span id="revision-tab-label">今天建议修订</span></button>
+        </div>
+        <article class="moment-view" aria-live="polite">
+          <div class="moment-panel"><small>回望时刻</small><div id="moment-date" class="moment-date">08 月 16 日</div><span id="moment-kind" class="moment-kind">建议修订</span><div class="moment-actions"><button id="jump-record">回到当天的原始记录</button></div></div>
+          <div class="moment-panel"><small>当天留下的事实</small><blockquote id="moment-quote" class="moment-quote">“我希望先把产品价值主次重新排清楚，再进入视觉实现。”</blockquote></div>
+          <div class="moment-panel"><small>它怎样改变理解</small><p id="moment-explain" class="moment-explain"><strong>范围被缩小，而不是把你定义得更满。</strong>它与此前反例一起说明，这种判断顺序主要发生在产品方案评审中。</p></div>
+        </article>
+        <div class="revision-compare" aria-label="理解修订前后">
+          <div class="revision-card"><small>最初版本 · 07 月 19 日</small><p>在工作中，你会先审查风险，再推进方案。</p></div>
+          <div class="revision-arrow" aria-hidden="true">→</div>
+          <div class="revision-card current"><small id="revision-card-label">建议版本 · 等你判断</small><p id="revision-current-text">在产品方案评审中，你通常先检查反例和失败条件，再评估完整方案。</p></div>
+          <p class="revision-note">这一版本只改变一个被新证据触碰的侧面：<mark>“工作中”缩小为“产品方案评审中”</mark>。原始记录与旧版本仍然保留。</p>
+        </div>
+      </section>
+
+      <section class="records" aria-labelledby="records-title">
+        <div class="records-head">
+          <div><h2 id="records-title">今天留下了 <em>5</em> 条记录</h2><p class="records-sub">2026 年 8 月 16 日 · 周日 · 这些原始记录不会因理解变化而被改写</p></div>
+          <div class="filters" role="group" aria-label="筛选记录"><button class="pill active" data-filter="all">全部 · 5</button><button class="pill" data-filter="insight">灵感 · 2</button><button class="pill" data-filter="later">下次再读 · 1</button><button class="pill" data-filter="todo">TODO · 1</button></div>
+        </div>
+        <div class="heat" aria-label="过去 45 天记录轨迹"></div><div class="heat-labels"><span>45 天前</span><span>今天</span></div>
+        <div class="timeline">
+          <article class="entry" data-kind="insight"><div><div class="entry-time">10:50</div><div class="entry-source">语音</div></div><p>感觉长期来看，我需要对整个 UI 做一次重构，把记录和理解的关系表达得更清楚。</p><span class="tag">#灵感</span></article>
+          <article class="entry" data-kind="later"><div><div class="entry-time">10:20</div><div class="entry-source">Chrome</div></div><p>最近总觉得自己少了一些秩序感，想找回一种更安静的节奏。</p><span class="tag">#下次再读</span></article>
+          <article class="entry" data-kind="todo"><div><div class="entry-time">09:42</div><div class="entry-source">键入</div></div><p>整理首页的三个方案，用同一份内容比较，而不是只比较视觉风格。</p><span class="tag">#TODO</span></article>
+          <article id="record-0855" class="entry" data-kind="insight"><div><div class="entry-time">08:55</div><div class="entry-source">语音</div></div><p>在评审方案时，我会先检查反例和失败条件，再评估完整方案。</p><span class="tag">#灵感</span></article>
+          <article class="entry" data-kind="all"><div><div class="entry-time">07:30</div><div class="entry-source">Chrome</div></div><p>把记录保留下来，也让这些记录慢慢形成一份可以被我修正的理解。</p><span class="tag">记录</span></article>
+        </div>
+        <div class="today-review"><div><strong>今日回望</strong><p>当天结束后，这里会放一段可展开的日级回望；它不会直接成为长期理解。</p></div><button id="view-past" class="ghost">查看过去 →</button></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="demo-states"><label for="demo-state">演示状态</label><select id="demo-state"><option value="candidate">待确认候选</option><option value="updated">已更新理解</option><option value="nochange">没有变化</option><option value="processing">正在整理</option><option value="failed">整理未完成</option><option value="empty">初次使用</option></select></div>
+  <div id="scrim" class="scrim"></div>
+  <aside id="evidence-sheet" class="sheet" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="evidence-title">
+    <div class="sheet-head"><h2 id="evidence-title">这条理解从哪里来</h2><button class="icon-btn" data-close aria-label="关闭">×</button></div>
+    <p class="sheet-intro">事实、反例与边界会一起留下。你的修正只改变理解，不会改写它们。</p>
+    <div class="evidence-map-summary"><div><strong>3</strong><span>支持片段</span></div><div><strong>1</strong><span>反例</span></div><div><strong>1</strong><span>适用边界</span></div></div>
+    <div class="evidence"><span class="relation-chip">支持</span><time>2026-07-19 · 产品方案评审</time><blockquote>“在评审方案时，我会先检查反例和失败条件，再评估完整方案。”</blockquote><p>第一次明确说出了这套判断顺序。</p></div>
+    <div class="evidence"><span class="relation-chip">再次支持</span><time>2026-07-26 · 方案复盘</time><blockquote>“先把失败条件和护栏列出来，再讨论方案是不是完整。”</blockquote><p>相似顺序在另一天重新出现，开始形成跨日线索。</p></div>
+    <div class="evidence counter"><span class="relation-chip counter">同时存在 · 反例</span><time>2026-08-05 · 探索型讨论</time><blockquote>“这轮先把想法放开，不急着设失败条件。”</blockquote><p>说明这条理解不适用于所有工作场景，不能扩展为人格判断。</p></div>
+    <div class="evidence"><span class="relation-chip">支持修订</span><time>2026-08-16 · 今日记录</time><blockquote>“我希望先把产品价值主次重新排清楚，再进入视觉实现。”</blockquote><p>与反例一起推动范围从“工作方式”缩小到“产品方案评审”。</p></div>
+    <div class="evidence boundary"><span class="relation-chip boundary">理解边界</span><blockquote>目前只适用于产品方案评审；它不能推导为你的性格，也不能代表所有生活选择。</blockquote></div>
+  </aside>
+  <aside id="export-sheet" class="sheet" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="export-title"><div class="sheet-head"><h2 id="export-title">带走这些 Context</h2><button class="icon-btn" data-close aria-label="关闭">×</button></div><p class="sheet-intro">导出是独立工具能力。这里的选项只在演示页面中切换，不读取任何真实文件。</p><label class="export-option"><input type="checkbox" checked><span>今天的 5 条原始记录<small>保留时间、来源和原文</small></span></label><label class="export-option"><input type="checkbox" checked><span>2 条已确认的长期理解<small>不包含仍待确认的候选</small></span></label><label class="export-option"><input type="checkbox" checked><span>排除敏感与未确认内容<small>发送前仍可预览</small></span></label><div id="export-preview" class="preview"># Context Pack · 2026-08-16\n\n## 今日记录\n- 10:50 重新设计记录与理解的关系\n- 08:55 评审方案时先检查反例与失败条件\n\n## 当前理解\n- 在产品方案评审中，你通常会先检查反例和失败条件，再评估完整方案。</div><button id="copy-demo" class="export-cta">模拟复制 Context Pack</button></aside>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const stableUnderstanding='在产品方案评审中，你通常会先检查反例和失败条件，再评估完整方案。';
+    const stateData={
+      candidate:{eye:'待你判断 · 尚未写入长期理解',text:'在评审方案时，你近期更常先检查反例和失败条件，再评估完整方案。',label:'仍在观察',scope:'适用于：工作方式',actions:'candidate',dot:'#c73e1d',ai:'AI 暂时理解',deltaTitle:'这次触碰了什么',delta:'两天出现了相似的判断顺序；先作为候选，等你决定它是否真的像你。'},
+      updated:{eye:'已写入 · 你仍可继续修正或删除',text:stableUnderstanding,label:'今天刚刚更新',scope:'适用于：产品方案评审',actions:'saved',dot:'#486b58',ai:'当前保留的理解',deltaTitle:'这次改变了什么',delta:'范围从“工作方式”缩小到“产品方案评审”，旧版本和反例仍然保留。'},
+      nochange:{eye:'今天核对 · 没有发现实质变化',text:stableUnderstanding,label:'理解保持不变',scope:'适用于：产品方案评审',actions:'saved',dot:'#8f8a81',ai:'当前保留的理解',deltaTitle:'这次核对',delta:'没有新证据足以改变它；这里继续显示上一版，不用运行状态替换你已经拥有的理解。'},
+      processing:{eye:'正在核对近期记录 · 完成前沿用上一版',text:stableUnderstanding,label:'读取最近 14 天',scope:'适用于：产品方案评审',actions:false,dot:'#c73e1d',ai:'当前保留的理解',deltaTitle:'正在发生',delta:'事实会先被查证；新版本通过证据、反例与本地校验之前，当前理解保持不变。'},
+      failed:{eye:'本次整理没有完成 · 没有产生写入',text:stableUnderstanding,label:'安全停止',scope:'适用于：产品方案评审',actions:'saved',dot:'#8b2f12',ai:'当前保留的理解',deltaTitle:'这次没有改变',delta:'本次整理停在写入之前；原始记录和上一版理解都保持不变，你可以稍后重试。'},
+      empty:{eye:'她还在认识你',text:'记录中尚未出现足够稳定、可以被核对的长期理解。',label:'0 条理解',scope:'不会为了填满页面而生成',actions:false,dot:'#8f8a81',ai:'仍在形成',deltaTitle:'为什么这里是空的',delta:'零散片段还不足以形成可追溯的理解；继续记录即可，不需要为了得到答案而迎合系统。'}
+    };
+    const momentData={
+      first:{date:'07 月 19 日',kind:'首次出现',quote:'“在评审方案时，我会先检查反例和失败条件，再评估完整方案。”',heading:'一个可核对的判断顺序第一次出现。',explain:'当时只把它保留为单日线索，还不足以写成长期理解。',then:'在工作中，你会先审查风险，再推进方案。',scope:'当时范围：工作方式',later:'后来另一场评审再次出现了相似顺序。'},
+      reinforce:{date:'07 月 26 日',kind:'再次支持',quote:'“先把失败条件和护栏列出来，再讨论方案是不是完整。”',heading:'同一倾向跨越了两个日期。',explain:'它从单日片段变成了跨日线索，但适用范围仍然偏宽。',then:'在工作决策中，你倾向先看失败条件，再判断方案。',scope:'当时范围：工作决策',later:'随后出现的反例提醒：它并不适用于所有讨论。'},
+      counter:{date:'08 月 05 日',kind:'出现反例',quote:'“这轮先把想法放开，不急着设失败条件。”',heading:'一个反例阻止了过度概括。',explain:'探索型讨论里，你会主动延后风险审查。这条理解需要缩小范围。',then:'在正式评审中，你更常先看失败条件；探索阶段未必如此。',scope:'待缩小适用范围',later:'今天的新记录让“产品方案评审”成为更准确的边界。'},
+      revision:{date:'08 月 16 日',kind:'建议修订',quote:'“我希望先把产品价值主次重新排清楚，再进入视觉实现。”',heading:'范围被缩小，而没有把你定义得更满。',explain:'它与此前反例一起说明，这种判断顺序主要发生在产品方案评审中。',then:stableUnderstanding,scope:'建议范围：产品方案评审',later:'这是待你判断的版本；确认、限定、改写或拒绝都由你决定。'}
+    };
+    const revisionViews={
+      candidate:{nodeDate:'08 / 16',tabDate:'2026.08.16',nodeLabel:'今天建议缩小范围',tabLabel:'今天建议修订',cardLabel:'建议版本 · 等你判断',date:'08 月 16 日',kind:'建议修订',quote:'“我希望先把产品价值主次重新排清楚，再进入视觉实现。”',heading:'范围被缩小，而没有把你定义得更满。',explain:'它与此前反例一起说明，这种判断顺序主要发生在产品方案评审中。',scope:'建议范围：产品方案评审',later:'这是待你判断的版本；确认、限定、改写或拒绝都由你决定。'},
+      updated:{nodeDate:'08 / 16',tabDate:'2026.08.16',nodeLabel:'今天缩小了范围',tabLabel:'今天完成修订',cardLabel:'当前版本 · 08 月 16 日',date:'08 月 16 日',kind:'发生修订',quote:'“我希望先把产品价值主次重新排清楚，再进入视觉实现。”',heading:'范围被缩小，而没有把你定义得更满。',explain:'它与此前反例一起说明，这种判断顺序主要发生在产品方案评审中。',scope:'当前范围：产品方案评审',later:'这是当前版本；未来的新证据仍可以继续修正它。'},
+      stable:{nodeDate:'08 / 11',tabDate:'2026.08.11',nodeLabel:'最近一次完成修订',tabLabel:'最近一次修订',cardLabel:'当前版本 · 08 月 11 日',date:'08 月 11 日',kind:'最近一次修订',quote:'“在评审方案前，先把反例和失败条件列出来。”',heading:'这是一条已经通过校验的上一版理解。',explain:'今天的运行没有改变它；系统继续保留此前已经形成的版本。',scope:'当前范围：产品方案评审',later:'这是运行开始前就存在的版本；今天没有新版本覆盖它。'}
+    };
+    const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+    let currentState='candidate',currentUnderstanding=stableUnderstanding,playbackTimer=null,playbackIndex=0,organizeTimer=null,lastFocused=null;
+    const toast=msg=>{const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>el.classList.remove('show'),1800)};
+    const setChangeSummary=(title,text)=>{$('#change-summary').innerHTML='';const strong=document.createElement('strong');strong.textContent=title;const span=document.createElement('span');span.textContent=text;$('#change-summary').append(strong,span)};
+    function syncCurrentUnderstanding(text){
+      currentUnderstanding=text;momentData.revision.then=text;$('#revision-current-text').textContent=text;$('#orbit-core-title').textContent=text===stableUnderstanding?'先看反例':text.slice(0,8)+(text.length>8?'…':'');$('#orbit-core-scope').textContent='适用于产品评审';
+      $('#export-preview').textContent='# Context Pack · 2026-08-16\n\n## 今日记录\n- 10:50 重新设计记录与理解的关系\n- 08:55 评审方案时先检查反例与失败条件\n\n## 当前理解\n- '+text;
+    }
+    function setRevisionView(stateKey){
+      const mode=stateKey==='candidate'?'candidate':stateKey==='updated'?'updated':'stable',view=revisionViews[mode];
+      Object.assign(momentData.revision,{date:view.date,kind:view.kind,quote:view.quote,heading:view.heading,explain:view.explain,then:currentUnderstanding,scope:view.scope,later:view.later});
+      $('#revision-node-date').textContent=view.nodeDate;$('#revision-node-label').textContent=view.nodeLabel;$('#revision-tab-date').textContent=view.tabDate;$('#revision-tab-label').textContent=view.tabLabel;$('#revision-card-label').textContent=view.cardLabel;
+    }
+    function setActionMode(mode){
+      const buttons={agree:$('[data-decision="agree"]'),limit:$('[data-decision="limit"]'),edit:$('[data-decision="edit"]'),reject:$('[data-decision="reject"]')};
+      $('#calibrate').style.display=mode?'flex':'none';Object.values(buttons).forEach(button=>button.hidden=true);
+      if(mode==='candidate'){Object.values(buttons).forEach(button=>button.hidden=false);buttons.reject.textContent='这不像我'}
+      if(mode==='saved'){buttons.edit.hidden=false;buttons.reject.hidden=false;buttons.edit.textContent='换成我的说法';buttons.reject.textContent='删除这条理解'}
+    }
+    for(let i=0;i<45;i++){const cell=document.createElement('i');$('.heat').appendChild(cell)}
+    function setState(key){
+      currentState=key;const d=stateData[key],empty=key==='empty',ownsUnderstanding=!['candidate','empty'].includes(key);
+      setRevisionView(key);$('#state-eyebrow').textContent=d.eye;$('#understanding').textContent=ownsUnderstanding?currentUnderstanding:d.text;$('#state-label').textContent=d.label;$('#scope').textContent=d.scope;$('.ai-label').textContent=d.ai;
+      $('#memory-lens').hidden=empty;$('#retrospect').hidden=empty;$('#retained-count').textContent=empty?'0 条理解 · 本地':'3 条工作中的理解 · 本地';$('#status-evidence').disabled=empty;$('#evidence-count').disabled=empty;$('#evidence-count').textContent=empty?'0 条依据':'3 条支持 · 1 条反例';
+      setChangeSummary(d.deltaTitle,d.delta);setActionMode(d.actions);$('.state-dot').style.background=d.dot;$('#edit-box').classList.remove('is-open');$('#return-current').classList.remove('visible');
+      if($('.moment-tab.active')?.dataset.moment==='revision')showMoment('revision',false);
+    }
+    function showMoment(key,enterHistory=true){
+      const d=momentData[key];
+      $$('[data-moment]').forEach(el=>{const active=el.dataset.moment===key;el.classList.toggle('active',active);if(el.getAttribute('role')==='tab')el.setAttribute('aria-selected',String(active))});
+      $('#moment-date').textContent=d.date;$('#moment-kind').textContent=d.kind;$('#moment-quote').textContent=d.quote;$('#moment-explain').innerHTML='';const strong=document.createElement('strong');strong.textContent=d.heading;$('#moment-explain').append(strong,document.createTextNode(d.explain));
+      if(!enterHistory)return;
+      const stage=$('#mirror-stage');stage.classList.add('is-switching');window.setTimeout(()=>{stage.classList.remove('is-switching');$('#state-eyebrow').textContent='正在回望 · '+d.date+' 的理解版本';$('.ai-label').textContent='当时的理解版本';$('#understanding').textContent=d.then;$('#state-label').textContent=d.kind;$('#scope').textContent=d.scope;setChangeSummary('后来发生了什么',d.later);$('#calibrate').style.display='none';$('#return-current').classList.add('visible')},140);
+    }
+    function stopPlayback(){window.clearInterval(playbackTimer);playbackTimer=null;playbackIndex=0;$('#play-retrospect').classList.remove('playing');$('#play-retrospect span').textContent='播放 4 次变化';$('#play-orbit').textContent='播放回望 ↗'}
+    function startPlayback(){
+      stopPlayback();const order=['first','reinforce','counter','revision'];$('#play-retrospect').classList.add('playing');$('#play-retrospect span').textContent='正在回望';$('#play-orbit').textContent='正在回望…';
+      showMoment(order[0]);playbackIndex=1;playbackTimer=window.setInterval(()=>{if(playbackIndex>=order.length){stopPlayback();return}showMoment(order[playbackIndex]);playbackIndex+=1},1250);
+    }
+    $('#demo-state').addEventListener('change',e=>{stopPlayback();setState(e.target.value)});
+    $$('[data-moment]').forEach(btn=>btn.addEventListener('click',()=>{stopPlayback();showMoment(btn.dataset.moment)}));
+    $('#play-retrospect').addEventListener('click',()=>playbackTimer?stopPlayback():startPlayback());$('#play-orbit').addEventListener('click',()=>{startPlayback();$('#retrospect').scrollIntoView({behavior:'smooth',block:'start'})});
+    $('#return-current').addEventListener('click',()=>{stopPlayback();setState(currentState);showMoment('revision',false)});
+    $('#jump-record').addEventListener('click',()=>{const selected=$('.moment-tab.active').dataset.moment;if(selected==='revision'){$('#record-0855').scrollIntoView({behavior:'smooth',block:'center'});$('#record-0855').animate([{background:'rgba(199,62,29,.1)'},{background:'transparent'}],{duration:1200});return}toast('演示：这一天的原始记录会在时间页中展开')});
+    $$('[data-filter]').forEach(btn=>btn.addEventListener('click',()=>{$$('[data-filter]').forEach(x=>x.classList.remove('active'));btn.classList.add('active');$$('.entry').forEach(entry=>entry.hidden=btn.dataset.filter!=='all'&&entry.dataset.kind!==btn.dataset.filter)}));
+    function openSheet(name){lastFocused=document.activeElement;$('#scrim').classList.add('open');const sheet=$('#'+name+'-sheet');sheet.classList.add('open');sheet.setAttribute('aria-hidden','false');sheet.querySelector('button').focus()}
+    function closeSheets(){const returnTo=lastFocused;$('#scrim').classList.remove('open');$$('.sheet').forEach(s=>{s.classList.remove('open');s.setAttribute('aria-hidden','true')});lastFocused=null;if(returnTo&&document.contains(returnTo))returnTo.focus()}
+    $$('[data-open]').forEach(b=>b.addEventListener('click',()=>{if(!b.disabled)openSheet(b.dataset.open)}));$$('[data-close]').forEach(b=>b.addEventListener('click',closeSheets));$('#scrim').addEventListener('click',closeSheets);document.addEventListener('keydown',e=>{const sheet=$('.sheet.open');if(e.key==='Escape'&&sheet){closeSheets();return}if(e.key!=='Tab'||!sheet)return;const focusable=$$('button:not([disabled]),input:not([disabled]),textarea:not([disabled]),select:not([disabled]),a[href]').filter(el=>sheet.contains(el));if(!focusable.length)return;const first=focusable[0],last=focusable[focusable.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}});
+    $$('[data-decision]').forEach(b=>b.addEventListener('click',()=>{const type=b.dataset.decision;if(type==='edit'){$('#edit-text').value=currentState==='candidate'?$('#understanding').textContent:currentUnderstanding;$('#edit-box').classList.add('is-open');$('#edit-text').focus();return}if(type==='limit'){$('#scope').textContent='适用于：产品方案评审';setChangeSummary('你校准了范围','系统只在这个场景里使用这条理解，其他工作和生活选择不受影响。');toast('已在演示中限定适用范围');return}if(type==='reject'){if(currentState==='candidate'){setState('nochange');$('#demo-state').value='nochange';toast('已标记为不像你，候选不会写入')}else{setState('empty');$('#demo-state').value='empty';toast('演示：这条理解已删除，原始记录仍保留')}return}setState('updated');$('#demo-state').value='updated';toast('演示：这条理解已被你确认')}));
+    $('#save-edit').addEventListener('click',()=>{syncCurrentUnderstanding($('#edit-text').value.trim()||stableUnderstanding);setState('updated');$('#demo-state').value='updated';$('#state-eyebrow').textContent='已写入 · 这是你自己的表述';$('#state-label').textContent='本地修改';toast('演示修改已同步到当前理解与回望终点')});$('#cancel-edit').addEventListener('click',()=>$('#edit-box').classList.remove('is-open'));
+    $('#organize-now').addEventListener('click',()=>{window.clearTimeout(organizeTimer);$('#demo-state').value='processing';setState('processing');toast('演示：开始核对最近 14 天');organizeTimer=window.setTimeout(()=>{if(currentState!=='processing')return;$('#demo-state').value='candidate';setState('candidate');showMoment('revision',false);toast('演示：发现一条待你校准的候选')},1500)});
+    $('#view-past').addEventListener('click',()=>{if($('#retrospect').hidden){toast('还没有可以回望的理解版本');return}$('#retrospect').scrollIntoView({behavior:'smooth',block:'start'})});
+    $('#schedule').addEventListener('click',e=>{const off=e.currentTarget.classList.toggle('off');e.currentTarget.setAttribute('aria-pressed',String(!off));e.currentTarget.setAttribute('aria-label',off?'开启每天 21:00 自动回看':'关闭每天 21:00 自动回看');$('#schedule-text').textContent=off?'每天 21:00 已关闭':'每天 21:00 已开启'});$('#copy-demo').addEventListener('click',()=>toast('演示完成：没有写入系统剪贴板'));
+    const lens=$('#memory-lens'),reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(!reduced&&window.matchMedia('(pointer: fine)').matches){lens.addEventListener('pointermove',event=>{const rect=lens.getBoundingClientRect(),x=(event.clientX-rect.left)/rect.width-.5,y=(event.clientY-rect.top)/rect.height-.5;lens.style.transform=`perspective(900px) rotateX(${-y*2.4}deg) rotateY(${x*3.2}deg)`});lens.addEventListener('pointerleave',()=>{lens.style.transform=''})}
+    setState('candidate');showMoment('revision',false);
+  </script>
+</body>
+</html>

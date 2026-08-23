@@ -1,0 +1,38 @@
+{
+  "name": "hallucinated quote is rejected",
+  "live_eval": false,
+  "sources": {
+    "2026-08-04.md": "# 2026-08-04\n\n## 10:00 · 项目\n\n这个版本只做本地存储。\n"
+  },
+  "mock_response": {
+    "schema_version": "1.0",
+    "status": "candidate",
+    "candidate": {
+      "statement": "当前版本只做云端存储。",
+      "scope": "Memento MVP",
+      "why_now": "作为实现约束使用。",
+      "category": "constraint",
+      "sensitive": false,
+      "uncertainty": "low",
+      "evidence": [
+        {
+          "file": "2026-08-04.md",
+          "line": 5,
+          "quote": "这个版本只做云端存储。"
+        }
+      ]
+    }
+  },
+  "expected": {
+    "contract_valid": true,
+    "evidence_valid": false,
+    "status": "candidate",
+    "category": "constraint",
+    "error_kind": "evidence"
+  },
+  "usage": {
+    "prompt_tokens": 500,
+    "completion_tokens": 100,
+    "total_tokens": 600
+  }
+}

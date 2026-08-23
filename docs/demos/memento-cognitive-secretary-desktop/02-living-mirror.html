@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Memento · 生长镜面</title>
+  <link rel="stylesheet" href="./shared/base.css">
+  <link rel="stylesheet" href="./02-living-mirror.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./index.html" aria-label="返回三版 Demo 总览">
+      <strong>MEMENTO</strong>
+      <span>认知秘书桌面</span>
+    </a>
+    <div class="topbar-context">
+      <span class="date-line"><span data-date>2026-08-17</span> · <span data-weekday>周一</span></span>
+      <span class="demo-flag" data-demo-flag>完全离线 · 演示数据 · 操作只在当前页面模拟</span>
+      <button class="utility-button" type="button" data-dialog-open="about-dialog">关于方案</button>
+      <button class="utility-button" type="button" data-dialog-open="tools-dialog">工具与导出</button>
+    </div>
+  </header>
+
+  <p class="mobile-demo-flag demo-flag" data-demo-flag>完全离线 · 演示数据 · 操作只在当前页面模拟</p>
+
+  <main class="desktop">
+    <section class="understanding-section" aria-labelledby="understanding-title">
+      <header class="section-head">
+        <div class="section-ident">
+          <span class="section-index">01 / UNDERSTANDING</span>
+          <h1 id="understanding-title">她眼中的我</h1>
+        </div>
+        <div class="run-summary" aria-live="polite">
+          <span class="run-shape" aria-hidden="true"></span>
+          <span>
+            <strong data-run-status-title>本次核对没有更新</strong>
+            <small data-run-status-detail>保留上一版理解</small>
+          </span>
+        </div>
+      </header>
+
+      <div class="understanding-grid">
+        <article class="memory-copy">
+          <nav class="memory-tabs" aria-label="切换人物理解" data-memory-content>
+            <button class="memory-tab is-active" type="button" data-memory-select="mem_review_failures" aria-pressed="true">
+              <span>01</span> 反复出现
+            </button>
+            <button class="memory-tab" type="button" data-memory-select="mem_calibration_first" aria-pressed="false">
+              <span>02</span> 最近变化
+            </button>
+            <button class="memory-tab" type="button" data-memory-select="mem_order_without_pressure" aria-pressed="false">
+              <span>03</span> 仍在权衡
+            </button>
+          </nav>
+
+          <div data-memory-content>
+            <p class="memory-statement" data-current-statement>在评审方案时，你倾向先检查反例和失败条件，再判断方案是否完整。</p>
+
+            <dl class="memory-meta">
+              <div>
+                <dt>适用范围</dt>
+                <dd data-current-scope>产品方案评审</dd>
+              </div>
+              <div>
+                <dt>最近修订</dt>
+                <dd><span data-current-updated>2026-08-16</span> · <span data-current-version>REV 03</span></dd>
+              </div>
+              <div>
+                <dt>来源状态</dt>
+                <dd>本地来源已核对</dd>
+              </div>
+            </dl>
+
+            <div class="memory-evidence-line" aria-label="当前理解的依据与反例数量">
+              <button class="evidence-link" type="button" data-dialog-open="evidence-dialog">
+                <span class="evidence-block" aria-hidden="true"></span>
+                <span data-current-evidence-count>3 条依据</span>
+              </button>
+              <button class="counter-link" type="button" data-dialog-open="evidence-dialog">
+                <span class="counter-disc" aria-hidden="true"></span>
+                <span data-current-counter-count>1 条反例</span>
+              </button>
+              <span class="boundary-note">理解是可修订假设</span>
+            </div>
+
+            <div class="memory-actions" aria-label="理解操作">
+              <button class="primary-action" type="button" data-dialog-open="evidence-dialog">查看依据</button>
+              <button class="plain-action" type="button" data-dialog-open="edit-dialog">修改理解</button>
+              <button class="plain-action" type="button" data-dialog-open="memories-dialog">全部理解</button>
+              <button class="plain-action is-danger" type="button" data-dialog-open="delete-dialog">删除这条理解</button>
+            </div>
+          </div>
+
+          <div class="memory-empty" data-memory-empty hidden>
+            <strong>这里暂时没有保留的理解。</strong>
+            <p>原始记录仍然存在。下一次整理只有在证据足够时才会形成新版本。</p>
+          </div>
+        </article>
+
+        <aside class="mirror-panel" aria-labelledby="mirror-title">
+          <div class="mirror-heading" data-memory-content>
+            <div>
+              <span class="mirror-index">LIVING MIRROR / 02</span>
+              <h2 id="mirror-title">这条理解如何成立</h2>
+            </div>
+            <span class="revision-mark" data-current-version>REV 03</span>
+          </div>
+
+          <div class="semantic-mirror" data-memory-content>
+            <div class="support-shape">
+              <span data-current-evidence-count>3 条依据</span>
+              <small>支持当前表述</small>
+            </div>
+            <div class="scope-hole">
+              <span>范围</span>
+              <small data-current-scope>产品方案评审</small>
+            </div>
+            <span class="counter-bridge" aria-hidden="true"></span>
+            <div class="counter-shape">
+              <span data-current-counter-count>1 条反例</span>
+              <small>保留冲突</small>
+            </div>
+            <div class="revision-frame">
+              <span data-current-version>REV 03</span>
+              <small>当前修订</small>
+            </div>
+          </div>
+
+          <p class="mirror-explain" data-memory-content>黑色表示已核对依据，圆孔限定适用范围，番茄红保留反例，外框表示当前修订。它们不代表人格评分。</p>
+        </aside>
+      </div>
+
+      <div class="organize-strip" aria-label="整理控制">
+        <div class="organize-status">
+          <span class="run-shape" aria-hidden="true"></span>
+          <span>
+            <strong data-run-status-title>本次核对没有更新</strong>
+            <small data-run-status-detail>保留上一版理解</small>
+          </span>
+        </div>
+        <button class="run-button" type="button" data-run-now>立即整理最近 14 天</button>
+        <button class="organize-detail-button" type="button" data-dialog-open="organize-dialog">整理详情</button>
+        <div class="schedule-control">
+          <span>
+            <strong>每日整理</strong>
+            <small data-schedule-label>21:00 计划已保存 · 尚未验证自动成功</small>
+          </span>
+          <label class="switch">
+            <span class="sr-only">每日 21:00 自动整理</span>
+            <input type="checkbox" data-schedule-toggle checked>
+            <span aria-hidden="true"></span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <section class="today-section" aria-labelledby="today-title">
+      <header class="today-head">
+        <div>
+          <span class="section-index">02 / TODAY</span>
+          <h2 id="today-title">今天留下了 <span data-record-count>5</span> 条记录</h2>
+        </div>
+        <div class="record-filters" aria-label="筛选今日记录">
+          <button class="filter-button is-active" type="button" data-record-filter="全部">全部 · 5</button>
+          <button class="filter-button" type="button" data-record-filter="想法">想法 · 2</button>
+          <button class="filter-button" type="button" data-record-filter="灵感">灵感 · 1</button>
+          <button class="filter-button" type="button" data-record-filter="产品">产品 · 1</button>
+          <button class="filter-button" type="button" data-record-filter="决定">决定 · 1</button>
+          <button class="filter-button is-detail" type="button" data-dialog-open="daily-dialog">今日详情</button>
+        </div>
+      </header>
+
+      <div class="trace-wrap">
+        <div class="trace-label">
+          <span>过去 90 天的记录数量</span>
+          <small>只表示每天留下多少条记录</small>
+        </div>
+        <div class="record-trace" data-record-trace role="list" aria-label="过去九十天每日记录数量"></div>
+        <div class="trace-legend"><span>90 天前</span><span>今天</span></div>
+      </div>
+
+      <ol class="record-list" data-record-list aria-live="polite"></ol>
+    </section>
+  </main>
+
+  <dialog class="modal mirror-modal" id="evidence-dialog" aria-labelledby="evidence-title">
+    <header class="modal-head">
+      <div>
+        <p class="modal-kicker">EVIDENCE / 原文仍可找回</p>
+        <h2 id="evidence-title" data-evidence-title>反复出现的我</h2>
+        <p>以下内容是当前理解引用的演示记录。反例与支持同时保留。</p>
+      </div>
+      <button class="modal-close" type="button" data-dialog-close aria-label="关闭依据">×</button>
+    </header>
+    <div class="modal-body">
+      <ol class="evidence-list" data-evidence-list></ol>
+    </div>
+    <footer class="modal-foot">
+      <button class="plain-modal-button" type="button" data-dialog-close>返回</button>
+      <button class="primary-modal-button" type="button" data-dialog-close>返回主页修改</button>
+    </footer>
+  </dialog>
+
+  <dialog class="modal mirror-modal" id="delete-dialog" aria-labelledby="delete-title">
+    <header class="modal-head">
+      <div>
+        <p class="modal-kicker">DELETE / 只删除这一条理解</p>
+        <h2 id="delete-title">确认删除当前理解</h2>
+        <p>原始记录不会被删除。离线 Demo 只在当前页面隐藏相同 memory_id 的理解。</p>
+      </div>
+      <button class="modal-close" type="button" data-dialog-close aria-label="关闭删除确认">×</button>
+    </header>
+    <div class="modal-body delete-explain">
+      <span class="delete-shape" aria-hidden="true"></span>
+      <div>
+        <strong data-current-group>反复出现的我</strong>
+        <p data-current-statement>在评审方案时，你倾向先检查反例和失败条件，再判断方案是否完整。</p>
+      </div>
+    </div>
+    <footer class="modal-foot">
+      <button class="plain-modal-button" type="button" data-dialog-close>取消</button>
+      <button class="primary-modal-button is-danger" type="button" data-delete-memory>删除这条理解</button>
+    </footer>
+  </dialog>
+
+  <dialog class="modal mirror-modal daily-modal" id="daily-dialog" aria-labelledby="daily-title">
+    <header class="modal-head">
+      <div>
+        <p class="modal-kicker">DAILY REVIEW / 原文优先</p>
+        <h2 id="daily-title">今天的记录与总结</h2>
+        <p><span data-date>2026-08-17</span> · <span data-record-count>5</span> 条演示记录</p>
+      </div>
+      <button class="modal-close" type="button" data-dialog-close aria-label="关闭今日详情">×</button>
+    </header>
+    <div class="modal-body">
+      <section class="daily-summary" aria-labelledby="daily-summary-title">
+        <span class="daily-summary-shape" role="img" aria-label="黑色表示五条原文，番茄红表示当前可修订摘要"></span>
+        <div>
+          <h3 id="daily-summary-title">今日总结</h3>
+          <p>从今天的记录来看，内容集中在一个问题：把“对我的理解”放到主页第一层，同时让复制能力退回工具层。</p>
+          <small>这是一条基于下方演示记录生成的可修订摘要，不覆盖原文。黑色对应 5 条原文，番茄红对应当前摘要。</small>
+        </div>
+      </section>
+      <ol class="daily-records" aria-label="今日五条完整记录">
+        <li><time>10:50</time><span>语音 · # 想法</span><p>感觉长期来看，我需要对整个 UI 做一个重构，把复制能力收进一个点，不要再占据主页。</p></li>
+        <li><time>10:20</time><span>Chrome · # 想法</span><p>好烦恼，感觉自己少了一些秩序感。</p></li>
+        <li><time>09:42</time><span>Chrome · # 灵感</span><p>首页应该先让我看见 Memento 如何理解我，同时保留今天的记录。</p></li>
+        <li><time>08:55</time><span>Chrome · # 产品</span><p>复制给 AI 的能力可以收到导出里，不再占主页第一位。</p></li>
+        <li><time>07:30</time><span>文字 · # 决定</span><p>关于我放在最上面，下面是今天留下的记录。</p></li>
+      </ol>
+    </div>
+  </dialog>
+
+  <dialog class="modal mirror-modal organize-modal" id="organize-dialog" aria-labelledby="organize-title">
+    <header class="modal-head">
+      <div>
+        <p class="modal-kicker">ORGANIZE / 计划与运行分开</p>
+        <h2 id="organize-title">整理控制与状态</h2>
+        <p>计划已保存只说明配置存在，不代表今天 21:00 已经运行成功。</p>
+      </div>
+      <button class="modal-close" type="button" data-dialog-close aria-label="关闭整理详情">×</button>
+    </header>
+    <div class="modal-body">
+      <div class="organize-detail-status" aria-live="polite">
+        <span class="run-shape" aria-hidden="true"></span>
+        <div><strong data-run-status-title>本次核对没有更新</strong><small data-run-status-detail>保留上一版理解</small></div>
+      </div>
+      <div class="tool-row organize-modal-schedule">
+        <span><strong>每日 21:00</strong><small data-schedule-label>21:00 计划已保存 · 尚未验证自动成功</small></span>
+        <label class="switch">
+          <span class="sr-only">每日 21:00 自动整理</span>
+          <input type="checkbox" data-schedule-toggle checked>
+          <span aria-hidden="true"></span>
+        </label>
+      </div>
+      <section class="state-lab" aria-labelledby="organize-state-title">
+        <h3 id="organize-state-title">五种可见状态</h3>
+        <p>切换后主页同步显示相同状态。本操作不调用真实模型。</p>
+        <div class="state-buttons">
+          <button type="button" data-state-demo="processing">整理中</button>
+          <button type="button" data-state-demo="empty">证据不足</button>
+          <button type="button" data-state-demo="no_change">无变化</button>
+          <button type="button" data-state-demo="updated">已更新</button>
+          <button type="button" data-state-demo="error">失败</button>
+        </div>
+      </section>
+    </div>
+    <footer class="modal-foot">
+      <button class="plain-modal-button" type="button" data-dialog-close>返回</button>
+      <button class="primary-modal-button" type="button" data-run-now>立即整理最近 14 天</button>
+    </footer>
+  </dialog>
+
+  <dialog class="modal mirror-modal about-modal" id="about-dialog" aria-labelledby="about-title">
+    <header class="modal-head">
+      <div>
+        <p class="modal-kicker">DESIGN INTENT / LIVING MIRROR</p>
+        <h2 id="about-title">为什么这样设计</h2>
+        <p>本说明只解释 Demo 设计判断，不描述真实用户人格。</p>
+      </div>
+      <button class="modal-close" type="button" data-dialog-close aria-label="关闭方案说明">×</button>
+    </header>
+    <div class="modal-body about-copy">
+      <section>
+        <span>01</span>
+        <div><h3>体验假设</h3><p>新标签页应让用户在几秒内同时看见当前理解、理解的来路，以及今天真实留下的内容。</p></div>
+      </section>
+      <section>
+        <span>02</span>
+        <div><h3>视觉假设</h3><p>Living Mirror 的错位、圆孔、连接和修订框用于表达“理解持续校准”；几何必须对应依据、范围、反例或版本。</p></div>
+      </section>
+      <section>
+        <span>03</span>
+        <div><h3>边界</h3><p>页面不使用了解度和人格评分。番茄红只表示冲突、变化或需要用户介入的动作。</p></div>
+      </section>
+    </div>
+  </dialog>
+
+  <dialog class="modal mirror-modal" id="memories-dialog" aria-labelledby="memories-title">
+    <header class="modal-head">
+      <div>
+        <p class="modal-kicker">ALL UNDERSTANDINGS</p>
+        <h2 id="memories-title">全部理解</h2>
+        <p>选择一条回到主页查看。删除理解不会删除原始记录。</p>
+      </div>
+      <button class="modal-close" type="button" data-dialog-close aria-label="关闭全部理解">×</button>
+    </header>
+    <div class="modal-body memory-picker" data-memory-picker></div>
+  </dialog>
+
+  <dialog class="modal mirror-modal" id="edit-dialog" aria-labelledby="edit-title">
+    <form class="edit-form" data-edit-form>
+      <header class="modal-head">
+        <div>
+          <p class="modal-kicker">CORRECT / 用户拥有最终解释权</p>
+          <h2 id="edit-title">修改这条理解</h2>
+          <p>演示修改只保存在当前页面内存中。</p>
+        </div>
+        <button class="modal-close" type="button" data-dialog-close aria-label="关闭修改">×</button>
+      </header>
+      <div class="modal-body">
+        <label for="memory-edit">新的表述</label>
+        <textarea id="memory-edit" required></textarea>
+      </div>
+      <footer class="modal-foot">
+        <button class="plain-modal-button" type="button" data-dialog-close>取消</button>
+        <button class="primary-modal-button" type="submit">保存模拟修改</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog class="modal mirror-modal tools-modal" id="tools-dialog" aria-labelledby="tools-title">
+    <header class="modal-head">
+      <div>
+        <p class="modal-kicker">TOOLS / 二级能力</p>
+        <h2 id="tools-title">工具与导出</h2>
+        <p>复制、归档和运行状态不再占据主页第一层。</p>
+      </div>
+      <button class="modal-close" type="button" data-dialog-close aria-label="关闭工具">×</button>
+    </header>
+    <div class="modal-body">
+      <div class="tool-list">
+        <div class="tool-row">
+          <span><strong>导出今天的记录</strong><small>离线 Demo 不写入文件</small></span>
+          <button class="tool-action" type="button" data-export-simulate>模拟导出</button>
+        </div>
+        <div class="tool-row">
+          <span><strong>复制给 AI</strong><small>保留为二级工具，不访问剪贴板</small></span>
+          <button class="tool-action" type="button" data-export-simulate>模拟复制</button>
+        </div>
+        <div class="tool-row">
+          <span><strong>HTML 归档</strong><small>当前 Demo 不读取本地归档</small></span>
+          <button class="tool-action" type="button" data-export-simulate>查看说明</button>
+        </div>
+        <div class="tool-row">
+          <span><strong>每日 21:00</strong><small data-schedule-label>21:00 计划已保存 · 尚未验证自动成功</small></span>
+          <label class="switch">
+            <span class="sr-only">每日 21:00 自动整理</span>
+            <input type="checkbox" data-schedule-toggle checked>
+            <span aria-hidden="true"></span>
+          </label>
+        </div>
+      </div>
+
+      <section class="state-lab" aria-labelledby="state-title">
+        <h3 id="state-title">查看五种整理状态</h3>
+        <p>这里只切换页面文案和标记，不触发真实模型。</p>
+        <div class="state-buttons">
+          <button type="button" data-state-demo="processing">整理中</button>
+          <button type="button" data-state-demo="empty">证据不足</button>
+          <button type="button" data-state-demo="no_change">无变化</button>
+          <button type="button" data-state-demo="updated">已更新</button>
+          <button type="button" data-state-demo="error">失败</button>
+        </div>
+      </section>
+    </div>
+  </dialog>
+
+  <div class="toast" data-toast role="status" aria-live="polite"></div>
+
+  <script src="./shared/demo-data.js"></script>
+  <script src="./shared/demo-core.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var scheduleToggles = Array.from(document.querySelectorAll('[data-schedule-toggle]'));
+      scheduleToggles.forEach(function (toggle) {
+        toggle.addEventListener('change', function () {
+          scheduleToggles.forEach(function (peer) { peer.checked = toggle.checked; });
+        });
+      });
+
+    });
+  </script>
+</body>
+</html>

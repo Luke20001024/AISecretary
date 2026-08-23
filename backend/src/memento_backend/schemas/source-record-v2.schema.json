@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/source-record-v2.schema.json",
+  "title": "SourceRecordRevision V2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "kind",
+    "record_id",
+    "revision",
+    "previous_revision_sha256",
+    "status",
+    "operation",
+    "created_at",
+    "captured_at",
+    "local_date",
+    "source_type",
+    "source_app",
+    "source_file",
+    "line_start",
+    "line_end",
+    "entry_sha256",
+    "source_snapshot_sha256",
+    "attachments",
+    "ingest_origin",
+    "committed_by"
+  ],
+  "properties": {
+    "schema_version": { "const": "2.0" },
+    "kind": { "const": "memento_source_record_revision" },
+    "record_id": { "type": "string", "pattern": "^rec_[0-9a-f]{24}$" },
+    "revision": { "type": "integer", "minimum": 1 },
+    "previous_revision_sha256": {
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "#/$defs/sha256" }
+      ]
+    },
+    "status": { "enum": ["active", "tombstone"] },
+    "operation": { "enum": ["ingest", "source_edit", "user_delete"] },
+    "created_at": { "type": "string", "format": "date-time" },
+    "captured_at": { "type": "string", "format": "date-time" },
+    "local_date": { "type": "string", "format": "date" },
+    "source_type": {
+      "enum": [
+        "text",
+        "url",
+        "web_page",
+        "screenshot_ocr",
+        "voice_transcript",
+        "image_note",
+        "file_note",
+        "external_trace"
+      ]
+    },
+    "source_app": { "type": "string", "minLength": 1, "maxLength": 240 },
+    "source_file": { "$ref": "#/$defs/relativePath" },
+    "line_start": { "type": "integer", "minimum": 1 },
+    "line_end": { "type": "integer", "minimum": 1 },
+    "entry_sha256": { "$ref": "#/$defs/sha256" },
+    "source_snapshot_sha256": { "$ref": "#/$defs/sha256" },
+    "attachments": {
+      "type": "array",
+      "maxItems": 128,
+      "items": { "$ref": "#/$defs/attachment" }
+    },
+    "ingest_origin": {
+      "enum": ["capture_service", "reconciler", "legacy_import", "external_context"]
+    },
+    "committed_by": { "enum": ["workflow", "user", "migration"] }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "revision": { "const": 1 } } },
+      "then": {
+        "properties": {
+          "previous_revision_sha256": { "type": "null" },
+          "operation": { "const": "ingest" }
+        }
+      },
+      "else": {
+        "properties": {
+          "previous_revision_sha256": { "$ref": "#/$defs/sha256" }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "tombstone" } } },
+      "then": { "properties": { "operation": { "const": "user_delete" } } }
+    },
+    {
+      "if": { "properties": { "operation": { "const": "user_delete" } } },
+      "then": { "properties": { "status": { "const": "tombstone" } } }
+    }
+  ],
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.?/)(?!.*\\\\)[^\\u0000]+$"
+    },
+    "attachment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "mime_type", "byte_size", "sha256"],
+      "properties": {
+        "path": { "$ref": "#/$defs/relativePath" },
+        "mime_type": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "byte_size": { "type": "integer", "minimum": 0 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  }
+}

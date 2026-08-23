@@ -1,0 +1,24 @@
+{
+  "name": "ephemeral note has no durable context",
+  "live_eval": true,
+  "sources": {
+    "2026-08-03.md": "# 2026-08-03\n\n## 12:00 · 随手记\n\n今天午饭吃了一碗面。\n"
+  },
+  "mock_response": {
+    "schema_version": "1.0",
+    "status": "no_candidate",
+    "candidate": null
+  },
+  "expected": {
+    "contract_valid": true,
+    "evidence_valid": true,
+    "status": "no_candidate"
+  },
+  "usage": {
+    "prompt_tokens": 520,
+    "completion_tokens": 30,
+    "total_tokens": 550,
+    "prompt_cache_hit_tokens": 0,
+    "prompt_cache_miss_tokens": 520
+  }
+}

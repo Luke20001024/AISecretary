@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/external-session-v1.schema.json",
+  "title": "ExternalSessionRevision V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "kind", "session_id", "revision", "previous_revision_sha256",
+    "status", "operation", "grant_ref", "client_id", "task", "topic_scope", "time_scope",
+    "opened_at", "closed_at", "created_at", "committed_by"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "kind": {"const": "memento_external_session_revision"},
+    "session_id": {"type": "string", "pattern": "^ses_[0-9a-f]{24}$"},
+    "revision": {"type": "integer", "minimum": 1},
+    "previous_revision_sha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]},
+    "status": {"enum": ["active", "closed"]},
+    "operation": {"enum": ["open", "close"]},
+    "grant_ref": {"$ref": "#/$defs/grantRef"},
+    "client_id": {"type": "string", "minLength": 1, "maxLength": 240},
+    "task": {"type": "string", "minLength": 1, "maxLength": 1000},
+    "topic_scope": {"type": "array", "minItems": 1, "maxItems": 64, "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 120}},
+    "time_scope": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/timeScope"}]},
+    "opened_at": {"type": "string", "format": "date-time"},
+    "closed_at": {"oneOf": [{"type": "null"}, {"type": "string", "format": "date-time"}]},
+    "created_at": {"type": "string", "format": "date-time"},
+    "committed_by": {"const": "workflow"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"revision": {"const": 1}}},
+      "then": {"properties": {"previous_revision_sha256": {"type": "null"}, "operation": {"const": "open"}}},
+      "else": {"properties": {"previous_revision_sha256": {"$ref": "#/$defs/sha256"}}}
+    },
+    {
+      "if": {"properties": {"status": {"const": "active"}}},
+      "then": {"properties": {"operation": {"const": "open"}, "closed_at": {"type": "null"}}},
+      "else": {"properties": {"operation": {"const": "close"}, "closed_at": {"type": "string", "format": "date-time"}}}
+    }
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "grantRef": {
+      "type": "object", "additionalProperties": false, "required": ["kind", "id", "revision", "revision_sha256"],
+      "properties": {"kind": {"const": "context_grant"}, "id": {"type": "string", "pattern": "^grt_[0-9a-f]{24}$"}, "revision": {"type": "integer", "minimum": 1}, "revision_sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "timeScope": {
+      "type": "object", "additionalProperties": false, "required": ["from", "to"],
+      "properties": {"from": {"type": "string", "format": "date"}, "to": {"type": "string", "format": "date"}}
+    }
+  }
+}

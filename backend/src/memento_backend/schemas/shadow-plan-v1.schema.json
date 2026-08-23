@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://memento.local/schemas/shadow-plan-v1.schema.json",
+  "title": "Memento Shadow Plan V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "kind", "plan_id", "snapshot_id", "case_set_ref", "dataset_kind", "execution_mode", "write_mode", "provider", "thresholds", "user_confirmation", "consent_ref", "created_at"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "kind": {"const": "memento_shadow_plan"},
+    "plan_id": {"type": "string", "pattern": "^shp_[0-9a-f]{24}$"},
+    "snapshot_id": {"type": "string", "pattern": "^snp_[0-9a-f]{24}$"},
+    "case_set_ref": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["case_set_id", "case_set_sha256"],
+          "properties": {
+            "case_set_id": {"type": "string", "pattern": "^shcs_[0-9a-f]{24}$"},
+            "case_set_sha256": {"$ref": "#/$defs/sha256"}
+          }
+        }
+      ]
+    },
+    "dataset_kind": {"enum": ["synthetic_fixture", "anonymized_samples", "real_vault_snapshot"]},
+    "execution_mode": {"enum": ["deterministic_zero", "provider_shadow"]},
+    "write_mode": {"const": "shadow_only"},
+    "provider": {
+      "type": "object", "additionalProperties": false,
+      "required": ["provider", "model", "prompt_versions", "policy_versions", "budget"],
+      "properties": {
+        "provider": {"type": ["string", "null"], "minLength": 1},
+        "model": {"type": ["string", "null"], "minLength": 1},
+        "prompt_versions": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "policy_versions": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "budget": {
+          "type": "object", "additionalProperties": false,
+          "required": ["max_prompt_tokens", "max_completion_tokens", "max_cost_usd", "max_latency_ms"],
+          "properties": {
+            "max_prompt_tokens": {"type": "integer", "minimum": 0},
+            "max_completion_tokens": {"type": "integer", "minimum": 0},
+            "max_cost_usd": {"type": "number", "minimum": 0},
+            "max_latency_ms": {"type": "integer", "minimum": 0}
+          }
+        }
+      }
+    },
+    "thresholds": {
+      "type": "object", "additionalProperties": false,
+      "required": ["false_link_rate_max", "missed_link_rate_max", "over_inference_rate_max", "stop_f1_min", "stop_case_count_min", "source_reference_valid_rate_min", "self_traceability_rate_min", "resource_as_user_false_rate_max", "stale_resurrection_count_max", "adapter_pass_rate_min", "source_hash_stability_rate_min", "estimated_cost_usd_max", "latency_p95_ms_max"],
+      "properties": {
+        "false_link_rate_max": {"$ref": "#/$defs/rate"},
+        "missed_link_rate_max": {"$ref": "#/$defs/rate"},
+        "over_inference_rate_max": {"$ref": "#/$defs/rate"},
+        "stop_f1_min": {"$ref": "#/$defs/rate"},
+        "stop_case_count_min": {"type": "integer", "minimum": 1},
+        "source_reference_valid_rate_min": {"$ref": "#/$defs/rate"},
+        "self_traceability_rate_min": {"$ref": "#/$defs/rate"},
+        "resource_as_user_false_rate_max": {"$ref": "#/$defs/rate"},
+        "stale_resurrection_count_max": {"type": "integer", "minimum": 0},
+        "adapter_pass_rate_min": {"$ref": "#/$defs/rate"},
+        "source_hash_stability_rate_min": {"$ref": "#/$defs/rate"},
+        "estimated_cost_usd_max": {"type": "number", "minimum": 0},
+        "latency_p95_ms_max": {"type": "integer", "minimum": 0}
+      }
+    },
+    "user_confirmation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "confirmation_ref"],
+      "properties": {
+        "status": {"enum": ["not_required", "pending", "confirmed"]},
+        "confirmation_ref": {"type": ["string", "null"], "minLength": 1, "maxLength": 240}
+      }
+    },
+    "consent_ref": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["consent_id", "consent_sha256"],
+          "properties": {
+            "consent_id": {"type": "string", "pattern": "^shc_[0-9a-f]{24}$"},
+            "consent_sha256": {"$ref": "#/$defs/sha256"}
+          }
+        }
+      ]
+    },
+    "created_at": {"type": "string", "format": "date-time"}
+  },
+  "$defs": {
+    "rate": {"type": "number", "minimum": 0, "maximum": 1},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

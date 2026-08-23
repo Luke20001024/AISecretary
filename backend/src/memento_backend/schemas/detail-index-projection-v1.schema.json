@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://memento.local/schemas/detail-index-projection-v1.schema.json",
+  "title": "DetailIndexProjection V1", "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "kind", "projection_version", "projection_id", "bundle_id", "generated_at", "as_of", "input_sha256", "entries"],
+  "properties": {
+    "schema_version": {"const": "1.0"}, "kind": {"const": "memento_detail_index_projection"}, "projection_version": {"const": "memento-detail-index-v1"},
+    "projection_id": {"type": "string", "pattern": "^dix_[0-9a-f]{24}$"}, "bundle_id": {"type": "string", "pattern": "^prjb_[0-9a-f]{24}$"},
+    "generated_at": {"type": "string", "format": "date-time"}, "as_of": {"type": "string", "format": "date"}, "input_sha256": {"$ref": "#/$defs/sha256"},
+    "entries": {"type": "array", "maxItems": 4096, "items": {"type": "object", "additionalProperties": false, "required": ["detail_kind", "subject_ref", "projection_id", "path", "sha256"], "properties": {"detail_kind": {"enum": ["record", "resource", "theme", "self_insight"]}, "subject_ref": {"$ref": "#/$defs/ref"}, "projection_id": {"type": "string", "pattern": "^(rdt|rsd|tdt|sdt)_[0-9a-f]{24}$"}, "path": {"type": "string", "pattern": "^projections/details/[A-Za-z0-9._/-]+\\.json$"}, "sha256": {"$ref": "#/$defs/sha256"}}}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "ref": {"type": "object", "additionalProperties": false, "required": ["kind", "id", "revision", "revision_sha256"], "properties": {"kind": {"enum": ["source_record", "resource_card", "theme", "self_insight"]}, "id": {"type": "string", "pattern": "^(rec|res|thm|sin)_[0-9a-f]{24}$"}, "revision": {"type": "integer", "minimum": 1}, "revision_sha256": {"$ref": "#/$defs/sha256"}}, "allOf": [{"if": {"properties": {"kind": {"const": "source_record"}}}, "then": {"properties": {"id": {"pattern": "^rec_"}}}}, {"if": {"properties": {"kind": {"const": "resource_card"}}}, "then": {"properties": {"id": {"pattern": "^res_"}}}}, {"if": {"properties": {"kind": {"const": "theme"}}}, "then": {"properties": {"id": {"pattern": "^thm_"}}}}, {"if": {"properties": {"kind": {"const": "self_insight"}}}, "then": {"properties": {"id": {"pattern": "^sin_"}}}}]}
+  }
+}
