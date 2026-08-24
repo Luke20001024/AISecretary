@@ -7,6 +7,7 @@
   <meta name="description" content="Memento 从一次记录开始，在时间中形成可追溯、可修订、可以被外部 AI 调用的个人记忆">
   <title>Memento · 让对你的理解保持连续</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='7' cy='7' r='5' fill='%231a1a1a'/%3E%3Ccircle cx='10' cy='10' r='4' fill='%23e8eef8' stroke='%23547ca6'/%3E%3C/svg%3E">
+  <link rel="preload" as="image" href="assets/product/memento-hero-cognitive-atlas-v1.webp" type="image/webp" fetchpriority="high">
   <style>
     :root {
       color-scheme: only light;
@@ -91,30 +92,22 @@
       overflow: hidden;
       isolation: isolate;
       color: #f2efe7;
-      background:
-        radial-gradient(ellipse at 74% 45%, rgba(84, 124, 166, .2), transparent 36%),
-        radial-gradient(circle at 13% 76%, rgba(84, 124, 166, .075), transparent 28%),
-        linear-gradient(180deg, #151b1f 0%, #0c1114 100%);
+      background: #091014 url("assets/product/memento-hero-cognitive-atlas-v1.webp") center / cover no-repeat;
     }
     .static-cover::before {
       content: "";
       position: absolute;
       inset: 0;
       z-index: 1;
-      opacity: .65;
       background:
-        linear-gradient(90deg, transparent 0 69%, rgba(142, 168, 197, .08) 69.05%, transparent 69.12%),
-        repeating-linear-gradient(0deg, rgba(255, 255, 255, .018) 0, rgba(255, 255, 255, .018) 1px, transparent 1px, transparent 6px);
+        radial-gradient(ellipse at 49% 49%, rgba(7, 13, 16, .92) 0 18%, rgba(7, 13, 16, .6) 39%, transparent 64%),
+        linear-gradient(90deg, rgba(7, 13, 16, .46), transparent 34% 70%, rgba(7, 13, 16, .13)),
+        linear-gradient(180deg, rgba(7, 13, 16, .22), transparent 20% 73%, rgba(7, 13, 16, .68)),
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, .012) 0, rgba(255, 255, 255, .012) 1px, transparent 1px, transparent 6px);
       pointer-events: none;
     }
     .cover-topography {
-      position: absolute;
-      z-index: 0;
-      inset: -3% -2%;
-      width: 104%;
-      height: 106%;
-      overflow: visible;
-      pointer-events: none;
+      display: none;
     }
     .cover-contour-field {
       fill: none;
@@ -124,8 +117,8 @@
       stroke-linejoin: round;
       vector-effect: non-scaling-stroke;
     }
-    .cover-contour-field--primary { opacity: .17; }
-    .cover-contour-field--fragment { opacity: .09; }
+    .cover-contour-field--primary { opacity: .12; }
+    .cover-contour-field--fragment { opacity: .055; }
     .cover-contour-field .is-major { stroke: #a8bfd3; stroke-width: 1.35; }
     .cover-terrain-wash { fill: rgba(84, 124, 166, .04); }
     .cover-memory-ridge {
@@ -134,14 +127,14 @@
       stroke-width: 1.15;
       stroke-dasharray: 2 9;
       stroke-linecap: round;
-      opacity: .32;
+      opacity: .24;
       vector-effect: non-scaling-stroke;
     }
     .cover-memory-branch {
       fill: none;
       stroke: #719bc2;
       stroke-width: .85;
-      opacity: .2;
+      opacity: .15;
       vector-effect: non-scaling-stroke;
     }
     .cover-memory-node {
@@ -156,11 +149,12 @@
     .static-cover-inner {
       position: relative;
       z-index: 2;
+      width: min(calc(100% - 112px), 1560px);
       min-height: 100svh;
       display: grid;
       grid-template-rows: auto 1fr auto;
-      gap: 34px;
-      padding-block: clamp(34px, 5.5vh, 64px) 28px;
+      gap: 0;
+      padding-block: 52px 34px;
     }
     .cover-film-head,
     .static-cover-foot {
@@ -169,33 +163,45 @@
       justify-content: space-between;
       gap: 28px;
       color: rgba(242, 239, 231, .52);
-      font: 600 9px/1.5 var(--mono);
+      font: 600 10px/1.5 var(--mono);
       letter-spacing: .14em;
       text-transform: uppercase;
     }
-    .cover-film-head strong { color: #a9c2dc; font-weight: 600; }
+    .cover-film-head strong { color: #f1f2ed; font: 650 28px/1 var(--display); letter-spacing: -.035em; text-transform: none; }
     .static-cover-content {
-      align-self: center;
-      display: grid;
-      grid-template-columns: minmax(0, .9fr) minmax(440px, 1.1fr);
-      gap: clamp(68px, 8vw, 124px);
-      align-items: end;
-      padding-block: clamp(42px, 8vh, 92px);
+      position: relative;
+      min-height: 0;
     }
-    .film-quote { align-self: stretch; display: flex; flex-direction: column; justify-content: space-between; min-height: 360px; padding-right: clamp(26px, 4vw, 56px); border-right: 1px solid rgba(142, 168, 197, .35); }
-    .film-title { margin: 0; color: rgba(242, 239, 231, .9); font: 500 clamp(42px, 5.4vw, 78px)/.95 var(--display); letter-spacing: -.055em; }
-    .film-quote blockquote { margin: 58px 0 0; }
-    .film-quote blockquote p { margin: 0; max-width: 540px; font: 400 clamp(25px, 2.45vw, 36px)/1.22 var(--narrative); letter-spacing: -.025em; }
-    .film-quote blockquote footer { display: block; margin-top: 24px; padding: 0; border: 0; color: rgba(242, 239, 231, .62); font: 400 12px/1.7 var(--sans); }
-    .film-quote blockquote cite { display: block; margin-top: 7px; color: #9db6cf; font: 500 9px/1.4 var(--mono); letter-spacing: .12em; text-transform: uppercase; }
-    .cover-thesis { max-width: 680px; padding-bottom: 2px; }
+    .film-quote { position: absolute; left: 0; bottom: 72px; width: min(300px, 24vw); padding-top: 16px; border-top: 1px solid rgba(153, 187, 214, .35); }
+    .film-quote blockquote { margin: 0; }
+    .film-quote blockquote p { margin: 0; color: rgba(239, 238, 230, .8); font: 400 clamp(18px, 1.35vw, 21px)/1.35 Georgia, var(--narrative); letter-spacing: -.015em; }
+    .film-quote blockquote footer { display: block; margin-top: 13px; padding: 0; border: 0; color: rgba(225, 230, 227, .46); font: 400 10px/1.6 var(--sans); }
+    .film-quote blockquote cite { display: block; margin-top: 6px; color: #90acc2; font: 500 8px/1.5 var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+    .cover-thesis {
+      position: absolute;
+      top: 50%;
+      left: 14%;
+      width: min(820px, 58vw);
+      max-width: none;
+      padding-bottom: 2px;
+      isolation: isolate;
+      transform: translateY(-53%);
+    }
+    .cover-thesis::before {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      inset: -108px -150px -96px -90px;
+      background: radial-gradient(ellipse at 44% 48%, rgba(7, 13, 16, .86) 0 31%, rgba(7, 13, 16, .52) 53%, transparent 76%);
+      pointer-events: none;
+    }
     .cover-thesis .eyebrow { color: #a9c2dc; }
-    .cover-thesis h1 { max-width: 680px; margin: 21px 0 0; color: #f6f3eb; font: 500 clamp(48px, 5.25vw, 74px)/1.07 var(--narrative); letter-spacing: -.05em; }
-    .cover-thesis-copy { display: grid; grid-template-columns: 1px minmax(0, 470px); gap: 18px; margin-top: 30px; }
+    .cover-thesis h1 { max-width: none; margin: 26px 0 0; color: #f6f3eb; font: 500 clamp(60px, 5.4vw, 92px)/1.07 var(--narrative); letter-spacing: -.055em; text-wrap: balance; text-shadow: 0 3px 28px rgba(0, 0, 0, .25); }
+    .cover-thesis-copy { display: grid; grid-template-columns: 1px minmax(0, 560px); gap: 20px; margin-top: 38px; }
     .cover-thesis-copy::before { content: ""; background: #668fb8; }
-    .cover-thesis-copy p { margin: 0; color: rgba(242, 239, 231, .61); font: 400 12px/1.75 var(--sans); }
-    .cover-thesis-copy strong { display: block; margin-bottom: 9px; color: #d7e2ee; font: 500 clamp(19px, 1.8vw, 24px)/1.45 var(--narrative); letter-spacing: -.02em; }
-    .static-cover-foot { padding: 21px 0 0; border-top: 1px solid rgba(242, 239, 231, .14); }
+    .cover-thesis-copy p { margin: 0; color: rgba(230, 235, 233, .6); font: 400 12px/1.75 var(--sans); }
+    .cover-thesis-copy strong { display: block; margin-bottom: 10px; color: #dae6ed; font: 500 clamp(21px, 1.55vw, 24px)/1.5 var(--narrative); letter-spacing: -.02em; }
+    .static-cover-foot { padding: 20px 0 0; border-top: 1px solid rgba(242, 239, 231, .14); }
     .static-cover-foot a { min-height: 32px; display: inline-flex; align-items: center; gap: 13px; color: #bdd0e2; }
     .static-cover-foot a::before { content: ""; width: 54px; height: 1px; background: #668fb8; }
 
@@ -736,9 +742,9 @@
     .self-legend { position: absolute; z-index: 7; top: 16px; left: 18px; display: flex; align-items: center; gap: 8px; color: var(--blue-deep); font: 600 7px/1 var(--mono); letter-spacing: .06em; }
     .self-legend i { width: 24px; border-top: 1px solid var(--blue-line); }
     .self-links { position: absolute; z-index: 2; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-    .self-links path { fill: none; stroke: var(--blue-deep); stroke-width: 1.05; stroke-linecap: round; opacity: .48; transition: opacity .2s ease, stroke-width .2s ease; vector-effect: non-scaling-stroke; }
+    .self-links path { fill: none; stroke: var(--blue-deep); stroke-width: 1.1; stroke-linecap: round; opacity: .55; filter: drop-shadow(0 0 1px rgba(250,250,247,.95)); transition: opacity .2s ease, stroke-width .2s ease; vector-effect: non-scaling-stroke; }
     .self-links path.is-boundary { stroke-dasharray: 4 7; opacity: .35; }
-    .self-links circle { fill: var(--surface); stroke: var(--blue-deep); stroke-width: 1.3; vector-effect: non-scaling-stroke; }
+    .self-links circle { fill: #fff; stroke: var(--blue-deep); stroke-width: 1.35; filter: drop-shadow(0 0 2px rgba(250,250,247,1)); vector-effect: non-scaling-stroke; }
     .self-stage.has-selection .self-links path { opacity: .07; }
     .self-stage.has-selection .self-links path.is-active { opacity: .9; stroke-width: 1.65; }
     .self-stage.has-selection .self-links path,
@@ -781,6 +787,10 @@
     .self-judgment-evidence { bottom: 76px; left: 20px; transform: rotate(.3deg); }
     .self-judgment-accumulation { top: 80px; right: 20px; transform: rotate(.42deg); }
     .self-judgment-direction { right: 20px; bottom: 76px; transform: rotate(-.35deg); }
+    .self-judgment-action::before { top: 81px; right: -8px; left: auto; }
+    .self-judgment-evidence::before { top: 3px; right: -8px; left: auto; }
+    .self-judgment-accumulation::before { top: 79px; right: auto; left: -8px; }
+    .self-judgment-direction::before { top: 3px; right: auto; left: -8px; }
     .self-judgment-action:hover, .self-judgment-action:focus-visible, .self-judgment-action.is-active,
     .self-judgment-evidence:hover, .self-judgment-evidence:focus-visible, .self-judgment-evidence.is-active,
     .self-judgment-accumulation:hover, .self-judgment-accumulation:focus-visible, .self-judgment-accumulation.is-active,
@@ -895,6 +905,10 @@
       .self-judgment-evidence,
       .self-judgment-accumulation,
       .self-judgment-direction { position: relative; inset: auto; order: 2; width: auto; min-height: 140px; transform: none; }
+      .self-judgment-action::before,
+      .self-judgment-evidence::before,
+      .self-judgment-accumulation::before,
+      .self-judgment-direction::before { top: -8px; right: auto; left: calc(50% - 7px); }
       .self-judgment:hover,
       .self-judgment:focus-visible,
       .self-judgment.is-active,
@@ -1642,7 +1656,7 @@
 
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
-      .scene-traces path, .scene-window, .story-terrain-contour, .story-terrain-ridge, .story-terrain-node, .story-terrain-marker, .constellation-lines path, .evidence-note, .current-self, .entry-converge path, .relation-graph path, .self-portrait, .self-links path, .self-pin, .self-judgment, .self-synthesis, .mcp-bridge::before, .external-models, .understanding-step, .understanding-arrow, .solution-recap-flow li, .value-card-trigger, .value-live-proof, .value-live-proof > * { animation: none !important; }
+      .scene-traces path, .scene-window, .story-terrain-contour, .story-terrain-ridge, .story-terrain-node, .story-terrain-marker, .constellation-lines path, .evidence-note, .current-self, .entry-converge path, .relation-graph path, .self-portrait, .self-links path, .self-pin, .self-judgment, .self-synthesis, .mcp-bridge::before, .external-models, .understanding-step, .understanding-arrow, .solution-recap-flow li, .value-card-static, .value-workflow { animation: none !important; }
       .has-motion .intent-story .scene-window { opacity: 1; clip-path: inset(0); }
       .has-motion .formation-act .story-terrain-contour,
       .has-motion .formation-act .story-terrain-ridge { opacity: 1; stroke-dashoffset: 0; }
@@ -1662,11 +1676,9 @@
       .has-motion .understanding-process .understanding-step,
       .has-motion .understanding-process .understanding-arrow,
       .has-motion .solution-recap .solution-recap-flow li { opacity: 1; transform: none; }
-      .has-motion .product-proof .value-card-trigger,
-      .has-motion .product-proof .value-live-proof { opacity: 1; transform: none; }
-      .value-card-visual img,
-      .value-card-trigger:hover .value-card-visual img,
-      .value-card-trigger.is-active .value-card-visual img { transform: none; transition: none; }
+      .has-motion .product-proof .value-card-static,
+      .has-motion .product-proof .value-workflow { opacity: 1; transform: none; }
+      .value-card-visual img { transform: none; transition: none; }
     }
 
     .product-proof {
@@ -1803,7 +1815,7 @@
       height: 100dvh;
       margin: 0;
       display: grid;
-      grid-template-rows: auto auto minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1fr);
       overflow: hidden;
       border: 0;
       border-radius: 0;
@@ -1820,7 +1832,7 @@
     .live-demo:fullscreen iframe,
     .live-demo:-webkit-full-screen iframe,
     .live-demo.is-live-demo-fullscreen iframe {
-      grid-row: 3;
+      grid-row: 2;
       width: 100%;
       height: 100% !important;
       min-height: 0;
@@ -1947,30 +1959,18 @@
       grid-template-columns: repeat(3, minmax(0, 1fr));
       border-bottom: 1px solid var(--line-strong);
     }
-    .value-card-trigger {
+    .value-card-static {
       position: relative;
       z-index: 1;
       min-width: 0;
-      display: block;
-      padding: 0;
+      display: grid;
+      grid-template-rows: auto 1fr;
       overflow: hidden;
-      border: 0;
-      border-radius: 0;
       color: var(--ink);
       background: rgba(250, 250, 247, .86);
-      cursor: pointer;
       text-align: left;
-      appearance: none;
-      transition: background-color .28s ease, box-shadow .28s ease;
     }
-    .value-card-trigger + .value-card-trigger { border-left: 1px solid var(--line-strong); }
-    .value-card-trigger:hover { background: #fff; }
-    .value-card-trigger:focus-visible { z-index: 3; outline: 2px solid var(--blue-deep); outline-offset: -3px; }
-    .value-card-trigger.is-active {
-      z-index: 2;
-      background: #fff;
-      box-shadow: inset 0 3px 0 var(--blue-deep), inset 0 0 0 1px rgba(84, 124, 166, .32);
-    }
+    .value-card-static + .value-card-static { border-left: 1px solid var(--line-strong); }
     .value-card-visual {
       position: relative;
       display: block;
@@ -1995,11 +1995,6 @@
       transform: scale(1.001);
       transition: transform .72s var(--ease), filter .42s ease;
     }
-    .value-card-trigger:hover .value-card-visual img,
-    .value-card-trigger.is-active .value-card-visual img {
-      filter: saturate(1) contrast(1.025);
-      transform: scale(1.025);
-    }
     .value-image-mark {
       position: absolute;
       z-index: 2;
@@ -2013,7 +2008,7 @@
       letter-spacing: .1em;
     }
     .value-card-copy {
-      min-height: 202px;
+      min-height: 220px;
       display: flex;
       flex-direction: column;
       padding: 22px 22px 20px;
@@ -2073,104 +2068,92 @@
       transform: rotate(45deg);
     }
     .value-card-proofline strong { color: var(--blue-deep); font-weight: 650; }
-    .value-card-trigger.is-active .value-card-proofline { color: var(--blue-deep); }
-    .value-card-trigger.is-active .value-card-proofline i { background: var(--blue-line); }
-
-    .value-live-proof {
-      min-height: 146px;
-      display: grid;
-      grid-template-columns: minmax(250px, .92fr) minmax(520px, 1.6fr) minmax(210px, .62fr);
-      align-items: stretch;
-      background: linear-gradient(90deg, rgba(232, 238, 248, .7), rgba(250, 250, 247, .96) 62%);
+    .value-workflow {
+      background:
+        linear-gradient(90deg, rgba(232, 238, 248, .52), rgba(250, 250, 247, .94) 34%, rgba(250, 250, 247, .98));
     }
-    .value-live-proof-copy {
+    .value-workflow-head {
       display: grid;
-      align-content: center;
-      gap: 7px;
-      padding: 22px;
-      border-right: 1px solid var(--line);
+      grid-template-columns: minmax(190px, .5fr) minmax(0, 1.5fr);
+      align-items: baseline;
+      gap: 26px;
+      padding: 20px 22px 18px;
+      border-bottom: 1px solid var(--line);
     }
-    .value-live-proof-copy small {
+    .value-workflow-head span {
       color: var(--blue-deep);
-      font: 650 7px/1 var(--mono);
-      letter-spacing: .09em;
+      font: 650 8px/1.3 var(--mono);
+      letter-spacing: .1em;
     }
-    .value-live-proof-copy strong {
-      max-width: 410px;
-      font-family: var(--sans);
-      font-size: 15px;
-      font-weight: 680;
-      line-height: 1.42;
+    .value-workflow-head strong {
+      color: var(--ink);
+      font: 680 16px/1.45 var(--sans);
     }
-    .value-live-proof-copy p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 9px;
-      line-height: 1.55;
-    }
-    .value-live-proof-flow {
+    .value-workflow-track {
+      position: relative;
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       margin: 0;
       padding: 0;
       list-style: none;
     }
-    .value-live-proof-flow li {
+    .value-workflow-track::before {
+      content: "";
+      position: absolute;
+      z-index: 0;
+      top: 33px;
+      right: 10%;
+      left: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(84,124,166,.28), rgba(84,124,166,.86) 50%, rgba(84,124,166,.28));
+    }
+    .value-workflow-track li {
       position: relative;
+      z-index: 1;
       min-width: 0;
-      display: grid;
-      align-content: center;
-      gap: 7px;
-      padding: 20px 22px;
+      min-height: 158px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 54px 22px 22px;
       border-right: 1px solid var(--line);
     }
-    .value-live-proof-flow li::after {
+    .value-workflow-track li::before {
       content: "";
       position: absolute;
       z-index: 2;
-      top: 50%;
-      right: -4px;
-      width: 7px;
-      height: 7px;
-      border-top: 1px solid var(--blue-line);
-      border-right: 1px solid var(--blue-line);
-      background: #f9f9f5;
-      transform: translateY(-50%) rotate(45deg);
+      top: 26px;
+      left: 50%;
+      width: 13px;
+      height: 13px;
+      border: 1px solid var(--blue-deep);
+      border-radius: 50%;
+      background: #fbfbf7;
+      box-shadow: inset 0 0 0 4px #fbfbf7, inset 0 0 0 7px var(--blue);
+      transform: translateX(-50%);
     }
-    .value-live-proof-flow li:last-child::after { display: none; }
-    .value-live-proof-flow span { color: var(--blue-deep); font: 650 7px/1 var(--mono); }
-    .value-live-proof-flow strong { font-size: 11px; font-weight: 680; }
-    .value-live-proof-flow small { color: var(--muted); font-size: 8px; line-height: 1.45; }
-    .value-live-proof-result {
-      display: flex;
-      align-items: center;
-      padding: 22px;
-      color: var(--blue-deep);
-      font-family: var(--sans);
-      font-size: 11px;
-      font-weight: 680;
-      line-height: 1.55;
-    }
-    .value-live-proof.is-updating > * { animation: value-proof-update .42s var(--ease) both; }
-    .value-theatre-foot {
+    .value-workflow-track li:last-child { border-right: 0; }
+    .value-workflow-track li:nth-child(4) { background: rgba(224, 234, 247, .46); }
+    .value-workflow-track span { color: var(--blue-deep); font: 650 8px/1 var(--mono); }
+    .value-workflow-track strong { font-size: 14px; font-weight: 680; line-height: 1.35; }
+    .value-workflow-track small { color: var(--muted); font-size: 10px; line-height: 1.55; }
+    .value-workflow-outcome {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      border-top: 1px solid var(--line-strong);
-      color: var(--faint);
-      font-size: 8px;
-      line-height: 1.4;
-      text-align: center;
+      grid-template-columns: 190px minmax(0, 1fr);
+      gap: 24px;
+      padding: 15px 22px 17px;
+      border-top: 1px solid var(--line);
+      color: var(--blue-deep);
+      font: 650 10px/1.55 var(--sans);
     }
-    .value-theatre-foot span { padding: 13px 12px; }
-    .value-theatre-foot span + span { border-left: 1px solid var(--line); }
+    .value-workflow-outcome span { color: var(--faint); font: 650 8px/1.4 var(--mono); letter-spacing: .08em; }
 
-    .has-motion .product-proof:not(.is-visible) .value-card-trigger { opacity: 0; transform: translateY(14px); }
-    .has-motion .product-proof.is-visible .value-card-trigger { animation: value-card-in .56s var(--ease) var(--value-delay, 0s) both; }
-    .has-motion .product-proof:not(.is-visible) .value-live-proof { opacity: 0; transform: translateY(9px); }
-    .has-motion .product-proof.is-visible .value-live-proof { animation: value-proof-in .58s var(--ease) .34s both; }
+    .has-motion .product-proof:not(.is-visible) .value-card-static { opacity: 0; transform: translateY(14px); }
+    .has-motion .product-proof.is-visible .value-card-static { animation: value-card-in .56s var(--ease) var(--value-delay, 0s) both; }
+    .has-motion .product-proof:not(.is-visible) .value-workflow { opacity: 0; transform: translateY(9px); }
+    .has-motion .product-proof.is-visible .value-workflow { animation: value-proof-in .58s var(--ease) .34s both; }
     @keyframes value-card-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes value-proof-in { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes value-proof-update { from { opacity: .15; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
     .system-overview {
       padding: 76px 0 72px;
@@ -2637,17 +2620,19 @@
     .terrain-focus.is-valley { --focus: #759dbc; }
     .terrain-focus circle,
     .terrain-focus ellipse {
-      fill: rgba(250,250,247,.18);
-      stroke: var(--focus);
-      stroke-width: 1.35;
+      fill: rgba(250,250,247,.12);
+      stroke: #17191a;
+      stroke-width: 1.3;
       stroke-dasharray: 4 3;
+      filter: drop-shadow(0 0 1px rgba(255,255,255,1)) drop-shadow(0 0 2px rgba(255,255,255,.96));
       vector-effect: non-scaling-stroke;
     }
     .terrain-focus path {
       fill: none;
-      stroke: var(--focus);
-      stroke-width: 1;
+      stroke: #17191a;
+      stroke-width: 1.15;
       stroke-linecap: round;
+      filter: drop-shadow(0 0 1px rgba(255,255,255,1)) drop-shadow(0 0 2px rgba(255,255,255,.96));
       vector-effect: non-scaling-stroke;
     }
     .terrain-map-note {
@@ -2658,9 +2643,19 @@
       padding: 10px 12px 11px;
       border: 1px solid rgba(73,94,110,.16);
       border-left: 2px solid var(--note);
-      background: rgba(250,250,247,.91);
-      box-shadow: 0 6px 18px rgba(40,57,67,.055);
-      backdrop-filter: blur(4px);
+      background: rgba(255,255,252,.965);
+      box-shadow: 0 8px 22px rgba(40,57,67,.085), 0 0 0 1px rgba(255,255,255,.75);
+      backdrop-filter: blur(6px);
+    }
+    .terrain-map-note::after {
+      content: "";
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border: 1px solid #17191a;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 0 2px rgba(255,255,255,.94), 0 0 7px rgba(255,255,255,1);
     }
     .terrain-map-note.is-peak,
     .terrain-map-note.is-relation { --note: #bd6747; }
@@ -2669,6 +2664,10 @@
     .terrain-map-note.is-peak { top: 4%; left: 21.8%; }
     .terrain-map-note.is-relation { top: 31%; left: 37.2%; }
     .terrain-map-note.is-valley { top: 32%; left: 65%; }
+    .terrain-map-note.is-memory::after { right: -4px; top: 58%; }
+    .terrain-map-note.is-peak::after { bottom: -4px; left: -4px; }
+    .terrain-map-note.is-relation::after { bottom: -4px; left: 39%; }
+    .terrain-map-note.is-valley::after { bottom: -4px; left: 14%; }
     .terrain-map-note small {
       display: block;
       margin-bottom: 5px;
@@ -2734,6 +2733,84 @@
     .system-flow h3 { font-family: var(--sans); }
     .closing h3 { font-family: var(--narrative); }
 
+    /* Canonical desktop reading rhythm: one left edge, one title scale */
+    @media (min-width: 981px) {
+      .product-proof {
+        min-height: auto;
+        padding-top: 76px;
+        padding-bottom: 84px;
+      }
+      .product-proof-head {
+        width: min(100%, var(--max));
+        max-width: none;
+        margin-inline: auto;
+        align-items: flex-start;
+        text-align: left;
+      }
+      .product-proof-head .section-no,
+      .story-sequence .section-head .section-no,
+      .story-sequence .system-overview-head .section-no {
+        margin-bottom: 15px;
+        font-size: 13px;
+        line-height: 1.35;
+      }
+      .product-proof-head h2,
+      .story-sequence .section-head h2,
+      .story-sequence .overview-head h2,
+      .story-sequence .system-overview-head h2 {
+        max-width: 920px;
+        font-size: clamp(44px, 2.9vw, 48px);
+        line-height: 1.13;
+        letter-spacing: -.038em;
+        text-align: left;
+      }
+      .product-proof-head p,
+      .story-sequence .section-note,
+      .story-sequence .overview-head p,
+      .story-sequence .system-overview-head p {
+        max-width: 650px;
+        margin: 15px 0 0;
+        padding-left: 16px;
+        border-left: 1px solid var(--blue-line);
+        font-family: var(--sans);
+        font-size: 14px;
+        line-height: 1.65;
+        text-align: left;
+      }
+      .product-proof-grid { margin-top: 32px; }
+      .story-sequence { padding-top: 64px; }
+      .story-sequence .section-head,
+      .story-sequence .intent-story .section-head,
+      .story-sequence .formation-act .section-head,
+      .story-sequence .interpretation-act .section-head,
+      .story-sequence .access-act .section-head {
+        margin-bottom: 30px;
+      }
+      .story-sequence #intent,
+      .story-sequence #how,
+      .story-sequence #understanding,
+      .story-sequence #outcome {
+        padding-top: 76px;
+        padding-bottom: 76px;
+      }
+      .story-sequence #system {
+        padding-top: 68px;
+        padding-bottom: 68px;
+      }
+      .system-flow { margin-top: 32px; }
+      .closing {
+        padding-top: 48px;
+        padding-bottom: 48px;
+      }
+      .story-sequence .closing h3 {
+        max-width: 760px;
+        font-size: clamp(34px, 2.5vw, 42px);
+        line-height: 1.18;
+        letter-spacing: -.035em;
+        text-align: left;
+      }
+    }
+
     @media (max-width: 980px) {
       .chain-caption { grid-template-columns: 46px minmax(0, 1fr); }
       .chain-caption p { grid-column: 2; margin-top: 0; }
@@ -2745,16 +2822,8 @@
       .live-demo iframe { min-height: clamp(700px, 78svh, 860px); }
       .value-theatre-head { align-items: flex-start; flex-direction: column; gap: 8px; }
       .value-triptych { grid-template-columns: 1fr; }
-      .value-card-trigger + .value-card-trigger { border-top: 1px solid var(--line-strong); border-left: 0; }
-      .value-card-trigger { display: grid; grid-template-columns: minmax(240px, .8fr) minmax(0, 1fr); }
       .value-card-visual { aspect-ratio: 4 / 3; border-right: 1px solid var(--line); border-bottom: 0; }
       .value-card-copy { min-height: 0; }
-      .value-live-proof { grid-template-columns: 1fr; }
-      .value-live-proof-copy,
-      .value-live-proof-flow { border-bottom: 1px solid var(--line); }
-      .value-live-proof-copy { border-right: 0; }
-      .value-live-proof-flow li:last-child { border-right: 0; }
-      .value-live-proof-result { min-height: 64px; }
       .value-stack { grid-template-columns: 1fr; grid-template-rows: auto; }
       .value-item { min-height: 0; padding: 24px 20px; }
       .value-item + .value-item { border-left: 0; }
@@ -2770,20 +2839,554 @@
       .story-sequence .overview-head h2,
       .story-sequence .system-overview-head h2 { font-size: 35px; }
       .product-proof-head p { font-size: 11px; }
-      .value-card-trigger { display: block; }
       .value-card-visual { border-right: 0; border-bottom: 1px solid var(--line); }
       .value-card-copy { min-height: 190px; padding: 20px 18px 18px; }
-      .value-live-proof-flow { grid-template-columns: 1fr; }
-      .value-live-proof-flow li { min-height: 88px; border-right: 0; border-bottom: 1px solid var(--line); }
-      .value-live-proof-flow li::after { top: auto; right: 50%; bottom: -4px; transform: translateX(50%) rotate(135deg); }
-      .value-theatre-foot { grid-template-columns: 1fr; }
-      .value-theatre-foot span + span { border-top: 1px solid var(--line); border-left: 0; }
       .live-demo iframe { min-height: 760px; }
       .live-demo-bar > span:not(.live-demo-dots):not(.live-demo-actions) { display: none; }
       .live-demo-bar strong { max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .live-demo-bar button { min-height: 34px; padding-inline: 12px; }
       .story-sequence { padding-top: 62px; }
       .story-sequence .section-story { font-size: 25px; }
+    }
+
+    /* 4.0 reading system: visible chapters, one grid, a recognizable product stage */
+    html,
+    body { overflow-x: clip; }
+    html { scroll-behavior: smooth; }
+    .masthead nav {
+      gap: clamp(14px, 1.45vw, 24px);
+      font-size: 11px;
+      font-weight: 550;
+    }
+    .masthead nav a { padding-top: 7px; }
+
+    .product-proof-grid { gap: 48px; }
+    .product-proof-grid > .value-theatre { order: 1; }
+    .product-proof-grid > .demo-stage { order: 2; }
+    .demo-stage {
+      position: relative;
+      isolation: isolate;
+      padding: 34px;
+      background:
+        radial-gradient(ellipse at 50% 48%, rgba(226, 236, 248, .72) 0 24%, rgba(244, 247, 249, .44) 52%, transparent 76%),
+        linear-gradient(180deg, rgba(252, 252, 249, .98), rgba(244, 246, 245, .9));
+      box-shadow: none;
+    }
+    .demo-stage::before,
+    .demo-stage::after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      pointer-events: none;
+    }
+    .demo-stage::before {
+      inset: -46px -34px -72px;
+      opacity: .74;
+      background:
+        linear-gradient(rgba(84, 124, 166, .058) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(84, 124, 166, .058) 1px, transparent 1px);
+      background-size: 34px 34px;
+      -webkit-mask-image: radial-gradient(ellipse 74% 64% at 50% 36%, #000 0 34%, rgba(0,0,0,.72) 55%, rgba(0,0,0,.2) 76%, transparent 94%);
+      mask-image: radial-gradient(ellipse 74% 64% at 50% 36%, #000 0 34%, rgba(0,0,0,.72) 55%, rgba(0,0,0,.2) 76%, transparent 94%);
+    }
+    .demo-stage::after {
+      width: 410px;
+      height: 184px;
+      top: -28px;
+      right: 4%;
+      border: 1px solid rgba(84, 124, 166, .065);
+      border-radius: 50%;
+      opacity: .42;
+      box-shadow: 0 0 0 22px rgba(84,124,166,.02), 0 0 0 48px rgba(84,124,166,.013), 0 0 0 78px rgba(84,124,166,.008);
+      transform: rotate(-7deg);
+    }
+    .demo-stage-head {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 390px);
+      align-items: end;
+      gap: 32px;
+      padding: 0 4px 24px;
+    }
+    .demo-stage-head span {
+      display: block;
+      margin-bottom: 9px;
+      color: var(--blue-deep);
+      font: 650 11px/1.25 var(--mono);
+      letter-spacing: .09em;
+    }
+    .demo-stage-head h3 {
+      margin: 0;
+      font: 650 27px/1.25 var(--sans);
+      letter-spacing: -.025em;
+    }
+    .demo-stage-head p {
+      margin: 0;
+      padding-left: 16px;
+      border-left: 1px solid var(--blue-line);
+      color: var(--muted);
+      font: 400 14px/1.65 var(--sans);
+    }
+    .live-demo {
+      position: relative;
+      z-index: 2;
+      overflow: hidden;
+      border-color: rgba(72, 105, 138, .34);
+      border-radius: 14px;
+      background: #f7f5ef;
+      box-shadow:
+        0 34px 96px rgba(22, 35, 49, .21),
+        0 10px 28px rgba(22, 35, 49, .12),
+        0 0 0 1px rgba(84, 124, 166, .15),
+        0 0 54px rgba(100, 157, 212, .2),
+        0 0 116px rgba(100, 157, 212, .1);
+    }
+    .live-demo-bar {
+      min-height: 0;
+      display: block;
+      padding: 0;
+      background: #eef3fb;
+      box-shadow: inset 0 -1px 0 rgba(26, 26, 26, .06);
+    }
+    .live-demo-tabs {
+      height: 38px;
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      padding: 6px 12px 0;
+      color: #435160;
+      background: linear-gradient(180deg, #dfe9f8, #d6e3f5);
+    }
+    .live-demo-dots { gap: 7px; margin-right: 2px; }
+    .live-demo-dots i {
+      width: 10px;
+      height: 10px;
+      border: 0;
+      box-shadow: inset 0 0 0 1px rgba(26,26,26,.1);
+    }
+    .live-demo-dots i:nth-child(1) { background: #c97968; }
+    .live-demo-dots i:nth-child(2) { background: #d6aa5e; }
+    .live-demo-dots i:nth-child(3) { background: #71987a; }
+    .chrome-tab {
+      min-width: 0;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 12px;
+      border-radius: 9px 9px 0 0;
+      font: 550 10px/1 var(--sans);
+      white-space: nowrap;
+    }
+    .chrome-tab.is-muted {
+      width: 148px;
+      background: rgba(255,255,255,.28);
+      opacity: .68;
+    }
+    .chrome-tab.is-muted i {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #8ea3b8;
+    }
+    .chrome-tab.is-active {
+      width: 226px;
+      color: #20262b;
+      background: #fbfbf9;
+      box-shadow: 0 -1px 0 rgba(54,76,96,.08), 1px 0 0 rgba(54,76,96,.08), -1px 0 0 rgba(54,76,96,.08);
+    }
+    .chrome-tab.is-active b {
+      width: 17px;
+      height: 17px;
+      display: grid;
+      flex: 0 0 17px;
+      place-items: center;
+      border-radius: 4px;
+      color: #fff;
+      background: var(--blue-deep);
+      font: 650 9px/1 var(--sans);
+    }
+    .chrome-tab.is-active strong {
+      min-width: 0;
+      overflow: hidden;
+      flex: 1;
+      font-size: 10px;
+      font-weight: 650;
+      text-overflow: ellipsis;
+    }
+    .chrome-tab.is-active > i { color: #65717b; font: 500 14px/1 var(--sans); }
+    .chrome-new-tab {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 1px;
+      border-radius: 50%;
+      font: 500 16px/1 var(--sans);
+    }
+    .live-demo-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin: 0 4px 7px auto;
+      padding: 5px 8px;
+      border: 1px solid rgba(84, 124, 166, .22);
+      border-radius: 999px;
+      color: var(--blue-deep);
+      background: rgba(255,255,255,.5);
+      font: 650 9px/1 var(--mono);
+      letter-spacing: .08em;
+    }
+    .live-demo-status i {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--blue-deep);
+      box-shadow: 0 0 0 4px rgba(84, 124, 166, .12);
+    }
+    .live-demo-toolbar {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 7px 14px;
+      border-bottom: 1px solid rgba(42,58,70,.1);
+      background: #fbfbf9;
+    }
+    .chrome-navigation {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: #64717c;
+    }
+    .chrome-navigation svg { width: 17px; height: 17px; }
+    .chrome-address {
+      min-width: 0;
+      min-height: 33px;
+      display: flex;
+      flex: 1;
+      align-items: center;
+      gap: 9px;
+      padding: 0 13px;
+      border: 1px solid rgba(66,88,107,.1);
+      border-radius: 999px;
+      color: #465461;
+      background: #edf1f6;
+      font: 500 10px/1 var(--sans);
+    }
+    .chrome-address > i {
+      width: 8px;
+      height: 8px;
+      flex: 0 0 8px;
+      border: 1px solid var(--blue-deep);
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 4px var(--blue);
+    }
+    .chrome-address strong { color: #24323e; font: 600 10px/1 var(--mono); }
+    .chrome-address small {
+      min-width: 0;
+      overflow: hidden;
+      color: #7a8791;
+      font-size: 9px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .live-demo-actions { flex: 0 0 auto; gap: 10px; }
+    .live-demo-install { font-size: 9px; }
+    .live-demo-boundary {
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 8px 16px;
+      background: rgba(252, 251, 247, .98);
+      font-family: var(--mono);
+    }
+    .live-demo-boundary span { color: var(--blue-deep); font-size: 10px; font-weight: 650; }
+    .live-demo-boundary small { color: var(--muted); font-size: 10px; }
+    .live-demo:not(:fullscreen):not(.is-live-demo-fullscreen) iframe {
+      height: clamp(650px, 72svh, 760px);
+      min-height: 0;
+    }
+    .live-demo:fullscreen .live-demo-bar,
+    .live-demo:-webkit-full-screen .live-demo-bar,
+    .live-demo.is-live-demo-fullscreen .live-demo-bar {
+      min-height: 0;
+      padding: 0;
+      background: #eef3fb;
+    }
+    .value-theatre,
+    .product-path-summary {
+      width: min(var(--max), calc(100% - clamp(48px, 8vw, 112px)));
+      margin-right: auto;
+      margin-left: auto;
+    }
+    .product-path-summary {
+      margin-top: 28px;
+      border-top: 1px solid var(--line-strong);
+      border-bottom: 1px solid var(--line-strong);
+      background: linear-gradient(90deg, rgba(232,238,248,.32), rgba(250,250,247,.6) 35%, rgba(250,250,247,.24));
+    }
+    .product-path-summary > header {
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      align-items: baseline;
+      gap: 24px;
+      padding: 17px 18px 15px;
+      border-bottom: 1px solid var(--line);
+    }
+    .product-path-summary > header span {
+      color: var(--blue-deep);
+      font: 650 9px/1.3 var(--mono);
+      letter-spacing: .09em;
+    }
+    .product-path-summary > header strong {
+      color: var(--ink);
+      font: 650 15px/1.45 var(--sans);
+    }
+    .product-path-summary .product-proof-path {
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      border: 0;
+    }
+
+    .intent-summary {
+      margin-top: 32px;
+      padding: 26px 0 2px 18px;
+      border-top: 1px solid var(--line-strong);
+      border-left: 2px solid var(--blue);
+    }
+    .intent-summary p {
+      max-width: 960px;
+      margin: 0;
+      color: var(--ink);
+      font: 500 clamp(22px, 2vw, 30px)/1.5 var(--narrative);
+      letter-spacing: -.022em;
+      text-wrap: balance;
+    }
+    .value-theatre { border-radius: 8px; }
+    .value-theatre-head { padding: 21px 24px; }
+    .value-theatre-head span { font-size: 10px; }
+    .value-theatre-head strong { font-size: 19px; }
+    .value-theatre-head p,
+    .value-card-description { font-size: 13px; }
+    .value-card-proofline { font-size: 9px; }
+    .product-proof-path li { padding-block: 15px; font-size: 12px; }
+    .product-proof-path small { font-size: 9px; }
+
+    .system-closing {
+      position: relative;
+      min-height: min(760px, 88svh);
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      isolation: isolate;
+      padding: clamp(88px, 10vw, 142px) 0 clamp(72px, 8vw, 108px);
+      border-top: 1px solid rgba(154, 184, 209, .18);
+      color: #f2efe7;
+      background: #091014 url("assets/product/memento-hero-cognitive-atlas-v1.webp") center 44% / cover no-repeat;
+    }
+    .system-closing::before {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 48% 50%, rgba(7,13,16,.9) 0 23%, rgba(7,13,16,.68) 48%, rgba(7,13,16,.36) 75%),
+        linear-gradient(180deg, rgba(7,13,16,.34), rgba(7,13,16,.82)),
+        repeating-linear-gradient(0deg, rgba(255,255,255,.012) 0 1px, transparent 1px 6px);
+    }
+    .system-closing-inner { position: relative; z-index: 1; }
+    .system-closing-eyebrow {
+      display: block;
+      margin-bottom: 42px;
+      color: #a9c2da;
+      font: 650 10px/1.4 var(--mono);
+      letter-spacing: .13em;
+    }
+    .system-closing-thesis {
+      display: grid;
+      grid-template-columns: minmax(0, 1.12fr) minmax(360px, .88fr);
+      align-items: end;
+      gap: clamp(64px, 9vw, 142px);
+    }
+    .story-sequence .system-closing-thesis h2 {
+      max-width: 760px;
+      margin: 0;
+      color: #f5f2e9;
+      font: 500 clamp(56px, 5vw, 78px)/1.08 var(--narrative);
+      letter-spacing: -.052em;
+    }
+    .system-closing-copy {
+      max-width: 560px;
+      padding-left: 22px;
+      border-left: 1px solid rgba(154,184,209,.48);
+    }
+    .system-closing-copy strong {
+      display: block;
+      color: #dce7ed;
+      font: 500 clamp(19px, 1.65vw, 25px)/1.55 var(--narrative);
+      letter-spacing: -.02em;
+    }
+    .system-closing-copy p {
+      margin: 18px 0 0;
+      color: rgba(231,236,234,.58);
+      font: 400 13px/1.8 var(--sans);
+    }
+    .system-closing-principles {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-top: clamp(74px, 8vw, 112px);
+      border-top: 1px solid rgba(242,239,231,.18);
+      border-bottom: 1px solid rgba(242,239,231,.18);
+    }
+    .system-closing-principles > span {
+      min-height: 92px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 20px 22px;
+    }
+    .system-closing-principles > span + span { border-left: 1px solid rgba(242,239,231,.13); }
+    .system-closing-principles small { color: #8eabc5; font: 650 9px/1 var(--mono); }
+    .system-closing-principles strong { color: rgba(245,242,233,.84); font: 600 15px/1.4 var(--sans); }
+    .system-closing-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 28px;
+    }
+    .system-closing-actions a {
+      min-height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 16px;
+      border: 1px solid rgba(169,194,218,.34);
+      color: #bfd2e2;
+      font: 600 10px/1 var(--sans);
+    }
+    .system-closing-actions a:first-child {
+      border-color: #89a8c2;
+      color: #091014;
+      background: #b9cddd;
+    }
+    .system-closing-actions a:hover { border-color: #c7d8e5; color: #f5f2e9; }
+    .system-closing-actions a:first-child:hover { color: #091014; background: #d0dee8; }
+    body > footer {
+      border-top-color: rgba(242,239,231,.12);
+      color: rgba(242,239,231,.42);
+      background: #091014;
+    }
+
+    .chapter-gate {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 132px minmax(260px, .72fr) minmax(340px, 1fr);
+      align-items: center;
+      gap: 28px;
+      margin-bottom: 38px;
+      padding: 15px 0 16px;
+      border-top: 1px solid var(--line-strong);
+      border-bottom: 1px solid var(--line);
+    }
+    .chapter-gate span {
+      color: var(--blue-deep);
+      font: 650 10px/1.2 var(--mono);
+      letter-spacing: .1em;
+    }
+    .chapter-gate strong {
+      color: var(--ink);
+      font: 650 18px/1.35 var(--sans);
+      letter-spacing: -.015em;
+    }
+    .chapter-gate p {
+      margin: 0;
+      color: var(--muted);
+      font: 400 14px/1.55 var(--sans);
+      text-align: right;
+    }
+    .story-sequence .section-head,
+    .story-sequence .intent-story .section-head,
+    .story-sequence .formation-act .section-head,
+    .story-sequence .interpretation-act .section-head,
+    .story-sequence .access-act .section-head,
+    .story-sequence .system-overview-head {
+      width: 100%;
+      max-width: none;
+      margin-bottom: 34px;
+    }
+    .story-sequence .section-head h2,
+    .story-sequence .system-overview-head h2 { max-width: 920px; }
+    .story-sequence .section-head .section-no,
+    .story-sequence .system-overview-head .section-no {
+      margin-bottom: 14px;
+      font-size: 12px;
+    }
+    .story-sequence .section-note,
+    .story-sequence .system-overview-head p { font-size: 15px; }
+    .story-sequence #intent,
+    .story-sequence #how,
+    .story-sequence #understanding,
+    .story-sequence #outcome { padding-top: 64px; padding-bottom: 72px; }
+    .story-sequence #system { padding-top: 64px; padding-bottom: 64px; }
+    .story-sequence #system.system-closing {
+      padding: clamp(88px, 10vw, 142px) 0 clamp(72px, 8vw, 108px);
+    }
+    .system-flow p { font-size: 12px; }
+    .system-overview-foot { font-size: 13px; }
+    #product,
+    #intent,
+    #how,
+    #understanding,
+    #outcome,
+    #system { scroll-margin-top: 72px; }
+
+    .interpretation-act .chapter-gate {
+      border-color: rgba(250, 250, 247, .14);
+    }
+    .interpretation-act .chapter-gate span { color: #a9c2da; }
+    .interpretation-act .chapter-gate strong { color: var(--surface); }
+    .interpretation-act .chapter-gate p { color: rgba(250,250,247,.58); }
+
+    @media (max-width: 980px) {
+      .demo-stage { padding: 20px; }
+      .demo-stage-head { grid-template-columns: 1fr; gap: 14px; }
+      .chapter-gate { grid-template-columns: 100px minmax(0, 1fr); gap: 12px 20px; }
+      .chapter-gate p { grid-column: 2; text-align: left; }
+      .live-demo-boundary { align-items: flex-start; flex-direction: column; gap: 3px; }
+      .chrome-tab.is-muted { display: none; }
+      .chrome-address small { display: none; }
+      .product-path-summary > header { grid-template-columns: 1fr; gap: 7px; }
+      .value-card-static + .value-card-static { border-top: 1px solid var(--line-strong); border-left: 0; }
+      .value-card-static { grid-template-columns: minmax(240px, .8fr) minmax(0, 1fr); grid-template-rows: none; }
+      .value-card-static .value-card-visual { border-right: 1px solid var(--line); border-bottom: 0; }
+      .value-workflow-head { grid-template-columns: 1fr; gap: 7px; }
+      .value-workflow-track { grid-template-columns: 1fr; }
+      .value-workflow-track::before { top: 34px; bottom: 34px; left: 29px; width: 1px; height: auto; background: rgba(84,124,166,.56); }
+      .value-workflow-track li { min-height: 108px; padding: 24px 22px 24px 58px; border-right: 0; border-bottom: 1px solid var(--line); }
+      .value-workflow-track li::before { top: 25px; left: 29px; transform: translateX(-50%); }
+      .value-workflow-outcome { grid-template-columns: 1fr; gap: 6px; }
+      .system-closing-thesis { grid-template-columns: 1fr; gap: 38px; }
+      .system-closing-principles { grid-template-columns: 1fr 1fr; }
+      .system-closing-principles > span:nth-child(3) { border-left: 0; border-top: 1px solid rgba(242,239,231,.13); }
+      .system-closing-principles > span:nth-child(4) { border-top: 1px solid rgba(242,239,231,.13); }
+    }
+
+    @media (min-width: 981px) {
+      .product-proof { padding-bottom: 56px; }
+      .story-sequence { padding-top: 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .value-card-static,
+      .value-workflow { animation: none !important; opacity: 1 !important; transform: none !important; }
     }
 
   </style>
@@ -2836,13 +3439,12 @@
 
       <div class="static-cover-inner shell">
         <header class="cover-film-head">
-          <strong>A context about memory</strong>
-          <span>Memento · Personal Cognitive Secretary</span>
+          <strong>Memento</strong>
+          <span>Personal Cognitive Secretary · Local First</span>
         </header>
 
         <div class="static-cover-content">
           <div class="film-quote">
-            <p class="film-title">Memento</p>
             <blockquote>
               <p lang="en">“Memory is not a record.<br>It's interpretation.”</p>
               <footer>
@@ -2854,15 +3456,15 @@
 
           <div class="cover-thesis">
             <span class="eyebrow">One person · Across time</span>
-            <h1 id="cover-title">每次对话<br>都留下了一部分我</h1>
+            <h1 id="cover-title">接住每次对话<br>让长期理解持续生长</h1>
             <div class="cover-thesis-copy">
-              <p><strong>我想让这些局部<br>被持续理解成一个完整的人</strong>一位运行在电脑里的自动笔记与认知秘书</p>
+              <p><strong>让分散在不同窗口的意图<br>逐渐拼出一个完整的人</strong>运行于本地的自动笔记与认知秘书</p>
             </div>
           </div>
         </div>
 
         <footer class="static-cover-foot">
-          <span>Local first · User owned</span>
+          <span>Evidence · Relation · Terrain · Self</span>
           <a href="#product">向下进入产品预览</a>
         </footer>
       </div>
@@ -2870,7 +3472,7 @@
 
     <header class="masthead">
       <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true"></span><span>Memento</span></a>
-      <nav aria-label="页面章节"><a href="#product">产品预览</a><a href="#intent">为什么做</a><a href="#understanding">诠释我</a><a href="#outcome">接入工作</a><a href="#system">完整路径</a></nav>
+      <nav aria-label="页面章节"><a href="#product">产品预览</a><a href="#intent">为什么做</a><a href="#how">从记录到地形</a><a href="#understanding">理解一个人</a><a href="#outcome">接入工作</a><a href="#system">最终目标</a></nav>
       <a class="top-action" href="demo/dashboard.html">打开独立预览</a>
     </header>
 
@@ -2878,20 +3480,63 @@
     <section class="product-proof" id="product" aria-labelledby="product-title" data-reveal>
       <div class="shell">
         <header class="product-proof-head">
-          <span class="section-no">01 · Memento in action</span>
+          <span class="section-no">01 · Memento at a glance</span>
           <h2 id="product-title">从一次记录<br>到一份持续形成的理解</h2>
-          <p>进入真实的认知主页<br>查看记录、地形与 Memento 对我的当前理解</p>
+          <p>先看三项核心价值<br>再进入真实的认知主页</p>
         </header>
 
         <div class="product-proof-grid">
+          <section class="demo-stage" aria-labelledby="demo-stage-title">
+            <header class="demo-stage-head">
+              <div>
+                <span>LIVE PRODUCT DEMO · 可操作产品预览</span>
+                <h3 id="demo-stage-title">先进入真实的 Memento</h3>
+              </div>
+              <p>缩放认知地形、切换时间层级<br>查看 Memento 对用户的当前理解</p>
+            </header>
+
+            <figure class="live-demo" aria-label="Memento 驻留在 Chrome 新标签页中的可操作产品预览">
+              <figcaption class="live-demo-bar" aria-label="Chrome 新标签页演示窗口">
+                <div class="live-demo-tabs">
+                  <span class="live-demo-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+                  <span class="chrome-tab is-muted" aria-hidden="true"><i></i><span>工作流研究</span></span>
+                  <span class="chrome-tab is-muted" aria-hidden="true"><i></i><span>AI 产品笔记</span></span>
+                  <span class="chrome-tab is-active"><b aria-hidden="true">M</b><strong>Memento · 新标签页</strong><i aria-hidden="true">×</i></span>
+                  <span class="chrome-new-tab" aria-hidden="true">＋</span>
+                  <span class="live-demo-status"><i aria-hidden="true"></i>LIVE DEMO</span>
+                </div>
+                <div class="live-demo-toolbar">
+                  <span class="chrome-navigation" aria-hidden="true">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10.5 3.5 6 8l4.5 4.5"/></svg>
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5.5 3.5 10 8l-4.5 4.5"/></svg>
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12.5 6A5 5 0 1 0 13 9M12.5 2.5V6H9"/></svg>
+                  </span>
+                  <span class="chrome-address"><i aria-hidden="true"></i><strong>chrome://newtab</strong><small>Memento 本地认知主页 · 20 天固定数据</small></span>
+                  <span class="live-demo-actions">
+                    <a class="live-demo-install" href="https://github.com/Luke20001024/Memento/blob/main/docs/MEMENTO_DEMO_INSTALL.md" target="_blank" rel="noreferrer">安装为 Chrome 新标签页</a>
+                    <button class="live-demo-fullscreen-enter" type="button" data-live-demo-action="enter" aria-label="进入全屏演示">
+                      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10"/></svg>
+                      <span>进入全屏</span>
+                    </button>
+                    <button class="live-demo-fullscreen-exit" type="button" data-live-demo-action="exit" aria-label="退出全屏演示">
+                      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M6 2.5V6H2.5M13.5 6H10V2.5M10 13.5V10h3.5M2.5 10H6v3.5"/></svg>
+                      <span>退出全屏</span>
+                    </button>
+                  </span>
+                </div>
+              </figcaption>
+              <iframe src="demo/dashboard.html" title="Memento 可操作的固定数据认知主页预览" allow="fullscreen" scrolling="yes"></iframe>
+            </figure>
+          </section>
+
           <section class="value-theatre" aria-labelledby="value-theatre-title" data-value-theatre>
             <header class="value-theatre-head">
               <div><span>Three values · 三项核心价值</span><strong id="value-theatre-title">从接住此刻，到理解一个长期的你</strong></div>
-              <p>点击三张图，查看每一种价值如何真正发生</p>
+              <p>上方呈现产品价值，下方展开一条完整工作流</p>
             </header>
 
-            <div class="value-triptych" role="tablist" aria-label="Memento 的三项核心价值">
-              <button class="value-card-trigger is-active" id="value-tab-capture" type="button" role="tab" aria-selected="true" aria-controls="value-live-proof" tabindex="0" data-value="capture" style="--value-delay:.08s">
+            <div class="value-triptych" aria-label="Memento 的三项核心价值">
+              <article class="value-card-static" style="--value-delay:.08s">
                 <span class="value-card-visual">
                   <img src="assets/product/memento-value-01-capture-v1.png" alt="对话、网页、文档、语音和生活片段被同一条蓝线汇入一份本地记录">
                   <span class="value-image-mark">01 · CAPTURE</span>
@@ -2902,9 +3547,9 @@
                   <span class="value-card-description">保留原文、时间、来源与当时语境，让想法不再消失在当前窗口</span>
                   <span class="value-card-proofline"><span>对话 · 网页 · 文档 · 语音</span><i></i><strong>本地事实</strong></span>
                 </span>
-              </button>
+              </article>
 
-              <button class="value-card-trigger" id="value-tab-understand" type="button" role="tab" aria-selected="false" aria-controls="value-live-proof" tabindex="-1" data-value="understand" style="--value-delay:.16s">
+              <article class="value-card-static" style="--value-delay:.16s">
                 <span class="value-card-visual">
                   <img src="assets/product/memento-value-02-understand-v1.png" alt="跨时间的记录点、照片碎片和等高线逐渐拼出一张仍在生长的个人轮廓">
                   <span class="value-image-mark">02 · UNDERSTAND</span>
@@ -2915,9 +3560,9 @@
                   <span class="value-card-description">记录逐渐形成主题与认知地形，最终收束成对你的当前理解</span>
                   <span class="value-card-proofline"><span>记录点</span><i></i><span>长期关系</span><i></i><strong>当前理解</strong></span>
                 </span>
-              </button>
+              </article>
 
-              <button class="value-card-trigger" id="value-tab-callable" type="button" role="tab" aria-selected="false" aria-controls="value-live-proof" tabindex="-1" data-value="callable" style="--value-delay:.24s">
+              <article class="value-card-static" style="--value-delay:.24s">
                 <span class="value-card-visual">
                   <img src="assets/product/memento-value-03-callable-v1.png" alt="一份保存在本地的个人记忆按范围连接到写作、研究和编程工作场景">
                   <span class="value-image-mark">03 · PERSONAL MEMORY</span>
@@ -2928,54 +3573,24 @@
                   <span class="value-card-description">把相关理解带入写作、研究、编程与其他 AI，调用范围始终由你决定</span>
                   <span class="value-card-proofline"><strong>个人记忆</strong><i></i><span>写作 · 研究 · 编程</span></span>
                 </span>
-              </button>
+              </article>
             </div>
 
-            <div class="value-live-proof" id="value-live-proof" role="tabpanel" aria-labelledby="value-tab-capture" aria-live="polite">
-              <div class="value-live-proof-copy">
-                <small data-value-live="eyebrow">01 · 接住现场</small>
-                <strong data-value-live="title">任何入口，都回到同一份本地记录</strong>
-                <p data-value-live="copy">原文、时间、来源与当时语境被一起保留</p>
-              </div>
-              <ol class="value-live-proof-flow" data-value-live="flow" aria-label="接住意图的形成过程">
-                <li><span>01</span><strong>不同窗口</strong><small>对话 网页 文档 语音</small></li>
-                <li><span>02</span><strong>保留现场</strong><small>原文 时间 来源 语境</small></li>
-                <li><span>03</span><strong>形成记录</strong><small>同一份本地事实</small></li>
+            <section class="value-workflow" aria-labelledby="value-workflow-title">
+              <header class="value-workflow-head">
+                <span>HOW IT WORKS / 完整工作流</span>
+                <strong id="value-workflow-title">一条记录，如何持续成为可以调用的长期理解</strong>
+              </header>
+              <ol class="value-workflow-track" aria-label="Memento 从记录到调用的完整工作流">
+                <li><span>01</span><strong>接住现场</strong><small>保留原文、时间、来源与当时语境</small></li>
+                <li><span>02</span><strong>Agent 整理</strong><small>逐条改写与归类，同时保留原始依据</small></li>
+                <li><span>03</span><strong>形成地形</strong><small>重复关系跨越时间，逐渐显形成长期主题</small></li>
+                <li><span>04</span><strong>形成当前理解</strong><small>收束为包含证据、边界与版本的当前诠释</small></li>
+                <li><span>05</span><strong>回到工作</strong><small>通过 Memory.md、MCP 与本地工具按需调用</small></li>
               </ol>
-              <span class="value-live-proof-result" data-value-live="result">结果：意图不会消失在当前窗口</span>
-            </div>
-
-            <footer class="value-theatre-foot"><span>记录留在本地</span><span>每条理解都能回到依据</span><span>决定权始终属于你</span></footer>
+              <div class="value-workflow-outcome"><span>ONE CONTINUOUS MEMORY</span><strong>从一次记录到下一次工作，整条路径始终连接着同一份可追溯的个人记忆</strong></div>
+            </section>
           </section>
-
-          <ol class="product-proof-path" aria-label="Memento 从记录到调用的完整路径">
-            <li><small>01</small>接住记录</li>
-            <li><small>02</small>Agent 整理</li>
-            <li><small>03</small>形成地形</li>
-            <li><small>04</small>诠释当前的我</li>
-            <li><small>05</small>回到工作</li>
-          </ol>
-
-          <figure class="live-demo" aria-label="Memento 可操作的固定数据认知主页预览">
-            <figcaption class="live-demo-bar">
-              <span class="live-demo-dots" aria-hidden="true"><i></i><i></i><i></i></span>
-              <strong>Memento · 个人认知主页预览</strong>
-              <span>INTERACTIVE PREVIEW · FIXED DATA</span>
-              <span class="live-demo-actions">
-                <a class="live-demo-install" href="https://github.com/Luke20001024/Memento/blob/main/docs/MEMENTO_DEMO_INSTALL.md" target="_blank" rel="noreferrer">安装 Chrome Demo</a>
-                <button class="live-demo-fullscreen-enter" type="button" data-live-demo-action="enter" aria-label="进入全屏演示">
-                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10"/></svg>
-                  <span>全屏演示</span>
-                </button>
-                <button class="live-demo-fullscreen-exit" type="button" data-live-demo-action="exit" aria-label="退出全屏演示">
-                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M6 2.5V6H2.5M13.5 6H10V2.5M10 13.5V10h3.5M2.5 10H6v3.5"/></svg>
-                  <span>退出全屏</span>
-                </button>
-              </span>
-            </figcaption>
-            <p class="live-demo-boundary">基于 20 天、261 条固定汇总与 6 条代表记录；不读取真实目录，不连接模型或定时任务。</p>
-            <iframe src="demo/dashboard.html" title="Memento 可操作的固定数据认知主页预览" allow="fullscreen" scrolling="no"></iframe>
-          </figure>
         </div>
       </div>
     </section>
@@ -2984,9 +3599,12 @@
     <div class="story-sequence">
     <section class="section intent-story" id="intent" aria-labelledby="intent-title" data-reveal>
       <div class="shell">
+        <div class="chapter-gate" aria-label="第一章 为什么需要 Memento">
+          <span>CHAPTER 01</span><strong>为什么需要 Memento</strong><p>散落在不同关系里的理解，如何重新获得连续性</p>
+        </div>
         <header class="section-head">
-          <span class="section-no"><b>01</b><span>我为什么做 Memento</span></span>
-          <h2 id="intent-title">我与不同的客体对话<br>每段关系只留下<em>一个局部的我</em></h2>
+          <span class="section-no"><span>PRODUCT ORIGIN / 产品起点</span></span>
+          <h2 id="intent-title">每段关系都理解过一个局部<br>却没有一处保留<em>完整的人</em></h2>
           <p class="section-note">AI 他人 网页 文档和语音承接了不同处境中的我<br>这些局部都属于我 却没有一处能够持续理解完整的我</p>
         </header>
         <div class="intent-scene" aria-label="我与不同客体的对话分别留在微信 AI 网页 文档和语音窗口">
@@ -3035,15 +3653,17 @@
 
           <div class="context-gap"><div class="gap-visual"><i></i><span></span><i></i></div><strong>SELF / INCOMPLETE</strong><small>没有一处保留完整的我</small></div>
         </div>
-        <div class="intent-conclusion"><span>ONE SELF<br>MANY RELATIONS</span><p>每段对话都成为我的一部分<br><strong>却没有一处保留完整的我</strong></p><div class="intent-thesis"><small>WHAT IS MISSING</small><strong>我的主体被分散在不同关系里</strong></div></div>
-        <div class="intent-handoff" aria-label="从问题进入 Memento 的解决方式"><span>于是我想要一处</span><strong>能够接住这些仍在发生的我</strong><i aria-hidden="true"></i></div>
+        <div class="intent-summary" aria-label="Memento 需要解决的问题"><p>Memento 将分散在不同关系里的局部，接回一份持续形成的个人理解</p></div>
       </div>
     </section>
 
     <section class="section formation-act" id="how" aria-labelledby="how-title" data-reveal>
       <div class="shell">
+        <div class="chapter-gate" aria-label="第二章 如何形成认知地形">
+          <span>CHAPTER 02</span><strong>如何形成认知地形</strong><p>记录被保留、整理和连接，长期关系由此逐渐显形</p>
+        </div>
         <header class="section-head">
-          <span class="section-no"><b>02</b><span>逐渐认知</span></span>
+          <span class="section-no"><span>FORMATION / 形成过程</span></span>
           <h2 id="how-title">从一条记录开始<br>让长期关系逐渐显形</h2>
           <p class="section-note">现场先被完整留下 Agent 再整理并连接<br>反复出现的关系逐渐成为能够追溯的认知地形</p>
         </header>
@@ -3087,7 +3707,7 @@
               <div class="cognition-arrow" aria-hidden="true"><span>Agent<br>整理原意</span><i></i></div>
               <article class="cognition-node is-readable">
                 <small>02 · REWRITE / 可读记忆</small>
-                <h3>我希望记录<br>判断发生变化的理由</h3>
+                <h3>记录判断<br>发生变化的理由</h3>
                 <p>原文与整理结果共同保存<br>未来可以回到形成现场</p>
                 <div class="meaning-tags"><span>我的判断</span><span>长期积累</span></div>
                 <footer>原始依据始终保留</footer>
@@ -3134,10 +3754,10 @@
             <div class="terrain-final-map">
               <img src="assets/product/memento-cognitive-landscape-latest-20260823.png" width="2158" height="1084" loading="lazy" decoding="async" alt="Memento 最新认知地景 六座聚合主题山峰 十二个可用记忆点与已确认的关系线共同形成等高线">
               <svg class="terrain-map-focus" viewBox="0 0 1000 502" preserveAspectRatio="none" aria-hidden="true">
-                <g class="terrain-focus is-memory"><circle cx="68" cy="80" r="17"></circle><path d="M81 69 L103 52"></path></g>
-                <g class="terrain-focus is-peak"><circle cx="178" cy="119" r="21"></circle><path d="M194 104 L216 80"></path></g>
-                <g class="terrain-focus is-relation"><ellipse cx="487" cy="255" rx="43" ry="16" transform="rotate(61 487 255)"></ellipse><path d="M466 221 L450 202"></path></g>
-                <g class="terrain-focus is-valley"><ellipse cx="737" cy="250" rx="52" ry="42"></ellipse><path d="M700 222 L680 204"></path></g>
+                <g class="terrain-focus is-memory"><circle cx="68" cy="80" r="17"></circle><path d="M80 68 L109 52"></path></g>
+                <g class="terrain-focus is-peak"><circle cx="178" cy="119" r="21"></circle><path d="M193 104 L218 62"></path></g>
+                <g class="terrain-focus is-relation"><ellipse cx="487" cy="255" rx="43" ry="16" transform="rotate(61 487 255)"></ellipse><path d="M468 223 L445 210"></path></g>
+                <g class="terrain-focus is-valley"><ellipse cx="737" cy="250" rx="52" ry="42"></ellipse><path d="M700 222 L680 210"></path></g>
               </svg>
               <aside class="terrain-map-note is-memory"><small>记忆点</small><strong>可回到原文的可用记忆</strong></aside>
               <aside class="terrain-map-note is-peak"><small>山峰</small><strong>通过校验的长期主题</strong></aside>
@@ -3158,8 +3778,11 @@
 
     <section class="section interpretation-act" id="understanding" aria-labelledby="understanding-title" data-reveal>
       <div class="shell">
+        <div class="chapter-gate" aria-label="第三章 如何长期理解一个人">
+          <span>CHAPTER 03</span><strong>如何长期理解一个人</strong><p>多个主题收束成带有依据、边界与修订历史的当前理解</p>
+        </div>
         <header class="section-head">
-          <span class="section-no"><b>03</b><span>诠释我</span></span>
+          <span class="section-no"><span>INTERPRETATION / 长期诠释</span></span>
           <h2 id="understanding-title">一次次输入<br>让它逐渐理解一个完整的人</h2>
           <p class="section-note">每句话都带着依据 边界与修订历史<br>点击判断或图钉 可以回到形成它的记忆</p>
         </header>
@@ -3171,20 +3794,20 @@
           <div class="self-portrait-field">
             <img class="self-portrait" src="assets/product/memento-symbolic-self-v3.webp" width="1448" height="1086" loading="lazy" decoding="async" alt="黑白生活照片与未完成的蓝色线稿逐渐拼出一个人的上半身">
             <svg class="self-links" viewBox="0 0 1320 760" preserveAspectRatio="none" aria-hidden="true">
-              <path data-self-link="action" data-self-evidence="e1" d="M462 137 C385 128 350 145 302 166"></path>
-              <path data-self-link="action" data-self-evidence="e2" d="M634 182 C480 152 390 152 302 166"></path>
-              <path data-self-link="action" data-self-evidence="e8" class="is-boundary" d="M805 479 C592 422 476 248 302 166"></path>
-              <path data-self-link="evidence" data-self-evidence="e3" d="M449 395 C382 432 342 492 302 546"></path>
-              <path data-self-link="evidence" data-self-evidence="e4" d="M818 167 C620 280 472 414 302 546"></path>
-              <path data-self-link="evidence" data-self-evidence="e9" d="M554 289 C438 344 370 432 302 546"></path>
-              <path data-self-link="accumulation" data-self-evidence="e5" d="M871 380 C933 288 974 220 1018 166"></path>
-              <path data-self-link="accumulation" data-self-evidence="e6" d="M700 471 C844 370 920 264 1018 166"></path>
-              <path data-self-link="accumulation" data-self-evidence="e10" d="M752 296 C862 246 925 206 1018 166"></path>
-              <path data-self-link="direction" data-self-evidence="e6" d="M700 471 C814 482 914 514 1018 546"></path>
-              <path data-self-link="direction" data-self-evidence="e7" d="M594 486 C750 490 882 520 1018 546"></path>
-              <path data-self-link="direction" data-self-evidence="e8" class="is-boundary" d="M805 479 C892 492 950 520 1018 546"></path>
-              <path data-self-link="direction" data-self-evidence="e1" d="M462 137 C696 224 836 406 1018 546"></path>
-              <path data-self-link="evidence" data-self-evidence="e10" d="M752 296 C610 344 456 426 302 546"></path>
+              <path data-self-link="action" data-self-evidence="e1" d="M473 148 C393 134 352 146 302 166"></path>
+              <path data-self-link="action" data-self-evidence="e2" d="M645 193 C490 156 393 153 302 166"></path>
+              <path data-self-link="action" data-self-evidence="e8" class="is-boundary" d="M816 490 C600 430 480 252 302 166"></path>
+              <path data-self-link="evidence" data-self-evidence="e3" d="M460 406 C390 438 346 493 302 546"></path>
+              <path data-self-link="evidence" data-self-evidence="e4" d="M829 178 C630 286 476 416 302 546"></path>
+              <path data-self-link="evidence" data-self-evidence="e9" d="M565 300 C446 350 374 434 302 546"></path>
+              <path data-self-link="accumulation" data-self-evidence="e5" d="M882 391 C940 294 978 222 1018 166"></path>
+              <path data-self-link="accumulation" data-self-evidence="e6" d="M711 482 C850 374 924 266 1018 166"></path>
+              <path data-self-link="accumulation" data-self-evidence="e10" d="M763 307 C868 252 928 208 1018 166"></path>
+              <path data-self-link="direction" data-self-evidence="e6" d="M711 482 C820 486 916 516 1018 546"></path>
+              <path data-self-link="direction" data-self-evidence="e7" d="M605 497 C756 494 884 522 1018 546"></path>
+              <path data-self-link="direction" data-self-evidence="e8" class="is-boundary" d="M816 490 C898 496 952 522 1018 546"></path>
+              <path data-self-link="direction" data-self-evidence="e1" d="M473 148 C704 230 840 410 1018 546"></path>
+              <path data-self-link="evidence" data-self-evidence="e10" d="M763 307 C618 350 460 430 302 546"></path>
               <circle cx="302" cy="166" r="5"></circle><circle cx="302" cy="546" r="5"></circle><circle cx="1018" cy="166" r="5"></circle><circle cx="1018" cy="546" r="5"></circle>
             </svg>
 
@@ -3207,7 +3830,7 @@
 
           <article class="self-synthesis" aria-labelledby="current-self-title" aria-live="polite">
             <small id="self-synthesis-eyebrow">MEMENTO · 当前对我的理解</small>
-            <h3 id="current-self-title">我看到的你</h3>
+            <h3 id="current-self-title">Memento 的当前理解</h3>
             <p id="self-synthesis-copy">你会先确认边界再推进 重视能够回到原文的证据 也在把一次次经验变成能够复用和接手的方法</p>
             <div><span id="self-synthesis-meta">由多个长期主题共同支持 · 每句话都能回到来源</span><button class="self-synthesis-reset" type="button">回到当前理解</button></div>
           </article>
@@ -3262,22 +3885,25 @@
           <footer class="understanding-process-foot"><p><span>适用范围</span>高风险改动 重要决策 新协作</p><p><span>暂不推断</span>低风险探索 日常微调 即兴尝试</p><div><button type="button">查看形成依据</button><button type="button">修正这条理解</button></div></footer>
         </section>
 
-        <div class="interpretation-value"><span>ONE PERSON<br>ACROSS TIME</span><p>一次次输入 让它逐渐理解一个完整的人<br><strong>每条判断都能回到依据 也允许我修订或撤回</strong></p><small>下一次输入<br>继续校准这份理解</small></div>
+        <div class="interpretation-value"><span>ONE PERSON<br>ACROSS TIME</span><p>一次次输入 让它逐渐理解一个完整的人<br><strong>每条判断都能回到依据 也允许随时修订或撤回</strong></p><small>下一次输入<br>继续校准这份理解</small></div>
       </div>
     </section>
 
     <section class="section access-act" id="outcome" aria-labelledby="outcome-title" data-reveal>
       <div class="shell">
+        <div class="chapter-gate" aria-label="第四章 如何进入真实工作流">
+          <span>CHAPTER 04</span><strong>如何进入真实工作流</strong><p>可调用的个人记忆，让外部 AI 从已经形成的理解继续</p>
+        </div>
         <header class="section-head">
-          <span class="section-no"><b>04</b><span>可调用的个人记忆</span></span>
-          <h2 id="outcome-title">将对我的理解<br>重新接入真实工作</h2>
+          <span class="section-no"><span>PORTABLE MEMORY / 可调用记忆</span></span>
+          <h2 id="outcome-title">将长期理解<br>重新接入真实工作</h2>
           <p class="section-note">Memento 按任务范围交出带来源的长期理解<br>调用什么、调用多少，始终由我决定</p>
         </header>
 
         <div class="access-scene" aria-label="Memento 通过个人上下文接口向外部 AI 提供带来源的长期理解 外部交流产生的新线索作为候选痕迹返回并由用户确认">
           <section class="memory-file" aria-labelledby="memory-file-title">
             <small>01 · PERSONAL SOURCE / 我的上下文来源</small>
-            <header class="memory-file-head"><h3 id="memory-file-title">我的长期理解</h3><span>MEMORY.md · USER OWNED</span></header>
+            <header class="memory-file-head"><h3 id="memory-file-title">长期理解档案</h3><span>MEMORY.md · USER OWNED</span></header>
             <div class="memory-entries">
               <div class="memory-entry"><code>judgment</code><div><strong>证据先于结论</strong><p>先确认来源和失败条件 再形成判断</p><small>sources: R-019 R-026 R-034</small></div></div>
               <div class="memory-entry"><code>direction</code><div><strong>把经验沉淀成可以复用的方法</strong><p>让新的任务从已经形成的理解继续</p><small>themes: 长期积累 方法复用</small></div></div>
@@ -3296,7 +3922,7 @@
 
           <section class="external-models" aria-labelledby="external-models-title">
             <small>03 · PROPOSED NEXT / 双向交流示意</small>
-            <h3 id="external-models-title">从我的理解继续<br>也为我留下新证据</h3>
+            <h3 id="external-models-title">从同一份理解继续<br>同时留下新的证据</h3>
             <div class="work-dialogue" aria-label="未来外部 AI 读取个人上下文并返回候选痕迹的场景重构">
               <header><span>SCENE RECONSTRUCTION · 场景重构</span><strong>重新梳理 Memento 的产品叙事</strong></header>
               <article class="dialogue-context"><small>已读取个人上下文</small><p>你重视判断形成的依据，也希望重要修改先确认边界</p><code>来源 R-019 · R-026 · R-034</code></article>
@@ -3314,33 +3940,27 @@
       </div>
     </section>
 
-    <section class="system-overview" id="system" aria-labelledby="system-title" data-reveal>
-      <div class="shell">
-        <header class="system-overview-head">
-          <span class="section-no"><b>05</b><span>完整系统</span></span>
-          <h2 id="system-title">Memento 怎样形成<br>一份可以继续工作的长期理解</h2>
-          <p>前面的故事收束成五个连续动作<br>每一步都能回到来源</p>
-        </header>
-        <ol class="system-flow" aria-label="Memento 形成长期理解的五个步骤">
-          <li><small>01 · CAPTURE</small><h3>接住记录</h3><p>保留原文、时间、来源和现场</p></li>
-          <li><small>02 · ORGANIZE</small><h3>Agent 整理</h3><p>逐条改写与归类，同时保留原始依据</p></li>
-          <li><small>03 · TERRAIN</small><h3>形成地形</h3><p>反复出现的关系逐渐成为长期主题</p></li>
-          <li class="is-focus"><small>04 · INTERPRET</small><h3>诠释当前的我</h3><p>多个主题收束成有证据、边界和版本的当前理解</p></li>
-          <li><small>05 · RETURN</small><h3>回到工作</h3><p>通过 Memory.md、MCP 与本地工具带入外部 AI</p></li>
-        </ol>
-        <div class="system-overview-foot"><p><strong>最后留下的，是一份可以持续校准、也能让每个 AI 从同一个你开始的个人记忆</strong></p><a href="#product">返回产品预览</a></div>
-      </div>
-    </section>
-
-    <section class="closing shell" aria-labelledby="closing-title">
-      <div class="closing-copy">
-        <h3 id="closing-title">一份属于我、可以持续修订<br>也可以被我带走的长期理解</h3>
-        <p>可以先下载固定数据 Demo，将它加载到 Chrome 新建页，完整体验时间河、认知地形与“她理解的我”。</p>
-      </div>
-      <div class="actions" aria-label="Memento 体验与安装入口">
-        <a href="https://github.com/Luke20001024/Memento/releases/tag/v0.10.1" target="_blank" rel="noreferrer">去 GitHub 下载</a>
-        <a href="https://github.com/Luke20001024/Memento/blob/main/docs/MEMENTO_DEMO_INSTALL.md" target="_blank" rel="noreferrer">查看安装步骤</a>
-        <a href="demo/dashboard.html">先在线体验</a>
+    <section class="system-overview system-closing" id="system" aria-labelledby="system-title" data-reveal>
+      <div class="shell system-closing-inner">
+        <span class="system-closing-eyebrow">MEMENTO · ONE PERSON ACROSS TIME</span>
+        <div class="system-closing-thesis">
+          <h2 id="system-title">让理解<br>在时间里保持连续</h2>
+          <div class="system-closing-copy">
+            <strong>最终留下的，是一份由用户拥有、可以持续校准，也能按需带入下一次工作的个人记忆</strong>
+            <p>每条理解都能回到真实记录，每次修订都保留原因；需要时，通过 Memory.md、MCP 与本地工具，让每个 AI 从同一个你开始</p>
+          </div>
+        </div>
+        <div class="system-closing-principles" aria-label="Memento 的四项长期原则">
+          <span><small>01</small><strong>本地拥有</strong></span>
+          <span><small>02</small><strong>依据可追溯</strong></span>
+          <span><small>03</small><strong>理解可修订</strong></span>
+          <span><small>04</small><strong>记忆可调用</strong></span>
+        </div>
+        <div class="system-closing-actions" aria-label="Memento 体验与安装入口">
+          <a href="demo/dashboard.html">进入产品预览</a>
+          <a href="https://github.com/Luke20001024/Memento/releases/tag/v0.10.1" target="_blank" rel="noreferrer">去 GitHub 下载</a>
+          <a href="https://github.com/Luke20001024/Memento/blob/main/docs/MEMENTO_DEMO_INSTALL.md" target="_blank" rel="noreferrer">查看安装步骤</a>
+        </div>
       </div>
     </section>
     </div>
@@ -3353,109 +3973,12 @@
     const revealSections = Array.from(document.querySelectorAll('[data-reveal]'))
     const navLinks = Array.from(document.querySelectorAll('.masthead nav a'))
     const processStories = Array.from(document.querySelectorAll('.understanding-process'))
-    const valueCards = Array.from(document.querySelectorAll('[data-value-theatre] [data-value]'))
-    const valueLiveProof = document.querySelector('#value-live-proof')
-    const valueLiveEyebrow = valueLiveProof?.querySelector('[data-value-live="eyebrow"]')
-    const valueLiveTitle = valueLiveProof?.querySelector('[data-value-live="title"]')
-    const valueLiveCopy = valueLiveProof?.querySelector('[data-value-live="copy"]')
-    const valueLiveFlow = valueLiveProof?.querySelector('[data-value-live="flow"]')
-    const valueLiveResult = valueLiveProof?.querySelector('[data-value-live="result"]')
     const liveDemo = document.querySelector('.live-demo')
     const liveDemoFrame = liveDemo?.querySelector('iframe')
     const liveDemoEnter = liveDemo?.querySelector('[data-live-demo-action="enter"]')
     const liveDemoExit = liveDemo?.querySelector('[data-live-demo-action="exit"]')
     let liveDemoUsesFallback = false
     let liveDemoResizeObserver = null
-
-    const valueProofs = {
-      capture: {
-        eyebrow: '01 · 接住现场',
-        title: '任何入口，都回到同一份本地记录',
-        copy: '原文、时间、来源与当时语境被一起保留',
-        label: '接住意图的形成过程',
-        result: '结果：意图不会消失在当前窗口',
-        flow: [
-          ['不同窗口', '对话 网页 文档 语音'],
-          ['保留现场', '原文 时间 来源 语境'],
-          ['形成记录', '同一份本地事实'],
-        ],
-      },
-      understand: {
-        eyebrow: '02 · 长期理解',
-        title: '记录反复出现，关系才逐渐显形',
-        copy: '每条理解保留依据，新证据继续修订当前的我',
-        label: '长期理解的形成过程',
-        result: '结果：一次次输入持续理解并修订同一个我',
-        flow: [
-          ['逐条整理', '原文与可读记忆共同保存'],
-          ['跨时间连接', '重复关系逐渐形成主题'],
-          ['形成理解', '判断 边界 方向与依据'],
-        ],
-      },
-      callable: {
-        eyebrow: '03 · 可调用的个人记忆',
-        title: '让每个 AI，都从同一个你开始',
-        copy: '个人记忆由你持有，并按当前任务决定调用范围',
-        label: '个人记忆进入工作流的过程',
-        result: '结果：无需在每个窗口重新解释自己',
-        flow: [
-          ['本地持有', 'MEMORY.md 与个人上下文'],
-          ['按任务调用', '只提供当前工作需要的范围'],
-          ['进入工作流', '写作 研究 编程与其他 AI'],
-        ],
-      },
-    }
-
-    const renderValueProof = (card, moveFocus = false) => {
-      if (!card || !valueLiveProof || !valueLiveFlow) return
-      const proof = valueProofs[card.dataset.value]
-      if (!proof) return
-
-      valueCards.forEach((item) => {
-        const active = item === card
-        item.classList.toggle('is-active', active)
-        item.setAttribute('aria-selected', String(active))
-        item.tabIndex = active ? 0 : -1
-      })
-
-      valueLiveEyebrow.textContent = proof.eyebrow
-      valueLiveTitle.textContent = proof.title
-      valueLiveCopy.textContent = proof.copy
-      valueLiveResult.textContent = proof.result
-      valueLiveFlow.setAttribute('aria-label', proof.label)
-      valueLiveProof.setAttribute('aria-labelledby', card.id)
-      valueLiveFlow.replaceChildren(...proof.flow.map((step, index) => {
-        const item = document.createElement('li')
-        const number = document.createElement('span')
-        const title = document.createElement('strong')
-        const detail = document.createElement('small')
-        number.textContent = String(index + 1).padStart(2, '0')
-        title.textContent = step[0]
-        detail.textContent = step[1]
-        item.append(number, title, detail)
-        return item
-      }))
-
-      valueLiveProof.classList.remove('is-updating')
-      void valueLiveProof.offsetWidth
-      valueLiveProof.classList.add('is-updating')
-      window.setTimeout(() => valueLiveProof.classList.remove('is-updating'), 460)
-      if (moveFocus) card.focus()
-    }
-
-    valueCards.forEach((card, index) => {
-      card.addEventListener('click', () => renderValueProof(card))
-      card.addEventListener('keydown', (event) => {
-        let nextIndex = index
-        if (event.key === 'ArrowRight' || event.key === 'ArrowDown') nextIndex = (index + 1) % valueCards.length
-        else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') nextIndex = (index - 1 + valueCards.length) % valueCards.length
-        else if (event.key === 'Home') nextIndex = 0
-        else if (event.key === 'End') nextIndex = valueCards.length - 1
-        else return
-        event.preventDefault()
-        renderValueProof(valueCards[nextIndex], true)
-      })
-    })
 
     const liveDemoIsNativeFullscreen = () => (
       document.fullscreenElement === liveDemo || document.webkitFullscreenElement === liveDemo
