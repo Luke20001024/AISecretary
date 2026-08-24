@@ -837,11 +837,14 @@
     @keyframes bridge-grow-y { from { transform: scaleY(0); } to { transform: scaleY(1); } }
     @keyframes models-in { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: translateX(0); } }
 
-    .closing { display: flex; align-items: center; justify-content: space-between; gap: 30px; padding: 38px 0; border-top: 1px solid var(--line-strong); }
+    .closing { display: flex; align-items: center; justify-content: space-between; gap: 46px; padding: 38px 0; border-top: 1px solid var(--line-strong); }
+    .closing-copy { max-width: 720px; }
     .closing h3 { margin: 0; font: 500 clamp(26px, 3vw, 40px)/1.2 var(--narrative); letter-spacing: -.035em; }
-    .actions { display: flex; flex-wrap: wrap; gap: 9px; }
-    .actions a { padding: 10px 13px; border: 1px solid var(--blue-line); color: var(--blue-deep); font-size: 10px; }
+    .closing p { max-width: 620px; margin: 15px 0 0; color: var(--muted); font-size: 11px; line-height: 1.75; }
+    .actions { display: flex; flex: 0 0 auto; flex-wrap: wrap; justify-content: flex-end; gap: 9px; }
+    .actions a { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; padding: 0 16px; border: 1px solid var(--blue-line); color: var(--blue-deep); font-size: 10px; white-space: nowrap; }
     .actions a:first-child { color: var(--surface); background: var(--blue-deep); border-color: var(--blue-deep); }
+    .actions a:last-child { border-color: transparent; }
     footer { display: flex; justify-content: space-between; gap: 24px; padding: 20px max(24px, calc((100vw - var(--max)) / 2)); border-top: 1px solid var(--line); color: var(--faint); font: 500 8px/1.55 var(--mono); }
 
     @media (max-width: 920px) {
@@ -1077,7 +1080,8 @@
       .capability-band { grid-template-columns: 1fr; }
       .capability-band div { grid-template-columns: 68px minmax(0, 1fr); padding-inline: 0; }
       .capability-band div + div { border-top: 1px solid var(--line); border-left: 0; }
-      .closing { align-items: flex-start; flex-direction: column; }
+      .closing { align-items: flex-start; flex-direction: column; gap: 24px; }
+      .actions { justify-content: flex-start; }
       footer { flex-direction: column; padding-inline: 16px; }
     }
 
@@ -2958,7 +2962,7 @@
               <strong>Memento · 个人认知主页预览</strong>
               <span>INTERACTIVE PREVIEW · FIXED DATA</span>
               <span class="live-demo-actions">
-                <a class="live-demo-install" href="MEMENTO_DEMO_INSTALL.md">安装 Chrome Demo</a>
+                <a class="live-demo-install" href="https://github.com/Luke20001024/Memento/blob/main/docs/MEMENTO_DEMO_INSTALL.md" target="_blank" rel="noreferrer">安装 Chrome Demo</a>
                 <button class="live-demo-fullscreen-enter" type="button" data-live-demo-action="enter" aria-label="进入全屏演示">
                   <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10"/></svg>
                   <span>全屏演示</span>
@@ -3328,7 +3332,17 @@
       </div>
     </section>
 
-    <section class="closing shell"><h3>一份属于我、可以持续修订<br>也可以被我带走的长期理解</h3><div class="actions"><a href="demo/dashboard.html">打开独立预览</a><a href="MEMENTO_PRODUCT_FINAL_STATE.md">阅读产品终态说明</a></div></section>
+    <section class="closing shell" aria-labelledby="closing-title">
+      <div class="closing-copy">
+        <h3 id="closing-title">一份属于我、可以持续修订<br>也可以被我带走的长期理解</h3>
+        <p>可以先下载固定数据 Demo，将它加载到 Chrome 新建页，完整体验时间河、认知地形与“她理解的我”。</p>
+      </div>
+      <div class="actions" aria-label="Memento 体验与安装入口">
+        <a href="https://github.com/Luke20001024/Memento/releases/tag/v0.10.1" target="_blank" rel="noreferrer">去 GitHub 下载</a>
+        <a href="https://github.com/Luke20001024/Memento/blob/main/docs/MEMENTO_DEMO_INSTALL.md" target="_blank" rel="noreferrer">查看安装步骤</a>
+        <a href="demo/dashboard.html">先在线体验</a>
+      </div>
+    </section>
     </div>
   </main>
 
