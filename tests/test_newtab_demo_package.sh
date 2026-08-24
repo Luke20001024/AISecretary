@@ -5,7 +5,8 @@ set -euo pipefail
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$ROOT"
 
-VERSION=$(python3 -c 'import json; print(json.load(open("chrome-newtab-demo/manifest.json", encoding="utf-8"))["version"])')
+python3 scripts/build_standalone_preview.py --check >/dev/null
+VERSION=$(python3 -c 'import json; print(json.load(open("docs/demo/manifest.json", encoding="utf-8"))["version"])')
 TMP_ROOT=$(mktemp -d "${TMPDIR:-/tmp}/memento-newtab-package.XXXXXX")
 cleanup() { rm -rf -- "$TMP_ROOT"; }
 trap cleanup EXIT
@@ -28,22 +29,27 @@ tar -C "$ROOT" --exclude='./.git' --exclude='./dist' -cf - . | tar -C "$FIXTURE"
 (cd "$TMP_ROOT" && shasum -a 256 -c demo.zip.sha256 >/dev/null)
 
 python3 - "$TMP_ROOT/demo.zip" "$VERSION" <<'PY'
+import hashlib
+import json
 import sys
 import zipfile
+from pathlib import Path
 
 archive_path, version = sys.argv[1:]
-prefix = f'Memento-New-Tab-Demo-v{version}/chrome-newtab-demo/'
-required = {'manifest.json', 'dashboard.html', 'dashboard.js', 'dashboard.css',
-            'cognitive-demo-fixture.js', 'README-DEMO.md'}
+root = Path.cwd()
+prefix = f'Memento-New-Tab-Demo-v{version}/Memento-Demo/'
+runtime = json.loads((root / 'docs/demo/runtime.json').read_text(encoding='utf-8'))
+required = [*runtime['files'], 'runtime.json']
 with zipfile.ZipFile(archive_path) as archive:
-    names = set(archive.namelist())
-missing = [item for item in required if prefix + item not in names]
-if missing:
-    raise SystemExit('missing package content: ' + ', '.join(missing))
-files = {name for name in names if not name.endswith('/')}
-expected = {prefix + item for item in required}
-if files != expected:
-    raise SystemExit('unexpected package content: ' + ', '.join(sorted(files - expected)))
+    files = {name for name in archive.namelist() if not name.endswith('/')}
+    expected = {prefix + name for name in required}
+    if files != expected:
+        raise SystemExit('Preview ZIP has unexpected content')
+    for name in required:
+        packaged = archive.read(prefix + name)
+        published = (root / 'docs/demo' / name).read_bytes()
+        if hashlib.sha256(packaged).digest() != hashlib.sha256(published).digest():
+            raise SystemExit(f'Preview ZIP diverges from shared web runtime: {name}')
 PY
 
-echo 'Chrome Demo package contract passed.'
+echo 'Chrome Demo package and shared web runtime are byte-identical.'

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Memento</title>
+  <link rel="stylesheet" href="dashboard.css?v=evidence-river-2">
+</head>
+<body>
+  <main id="app">
+    <header id="hero" class="hero">
+      <h1>Memento</h1>
+      <p id="status" class="status" role="status" aria-live="polite">正在恢复数据目录…</p>
+    </header>
+
+    <section id="grant-section" class="grant-card">
+      <h2>首次使用需要选择数据目录</h2>
+      <p class="muted">
+        Chrome 会记住你的 Memento 数据目录(默认 <code>~/AISecretary</code>)。
+        如果浏览器询问授权期限,请选择“允许每次访问”;临时权限到期时通常只需再次确认,明确移除访问后才需重选目录。
+        扩展本身不联网；当前页面会先展示一组完整的 20 天记录、主题地图与深层理解。
+      </p>
+      <div class="grant-actions">
+        <button id="grant-btn" class="cta-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/>
+          </svg>
+          <span class="btn-label">使用本地记录</span>
+        </button>
+      </div>
+    </section>
+
+    <section id="dashboard-section" hidden>
+      <div id="dashboard-notice" class="dashboard-notice" role="status" aria-live="polite" hidden></div>
+      <section id="cognitive-home-shell" class="cognitive-home" aria-labelledby="cognitive-home-title" hidden>
+        <header class="cognitive-topbar">
+          <div class="cognitive-brand">
+            <span class="cognitive-brand-mark" aria-hidden="true"></span>
+            <div>
+              <h1 id="cognitive-home-title">Memento</h1>
+              <p hidden>本地认知秘书 · 可追溯理解</p>
+            </div>
+          </div>
+          <div id="cognitive-home-summary" class="cognitive-home-summary" aria-live="polite"></div>
+          <nav class="cognitive-topbar-actions" aria-label="认知秘书次要功能">
+            <button id="cognitive-history-action" type="button" data-cognitive-secondary="archive"
+              aria-controls="cognitive-chain-drawer" aria-expanded="false">记录轨迹</button>
+          </nav>
+        </header>
+
+        <section class="cognitive-today-section" aria-labelledby="cognitive-today-title">
+          <header class="cognitive-section-head cognitive-today-head">
+            <div class="cognitive-module-heading">
+              <svg class="cognitive-module-icon cognitive-module-icon--river" data-cognitive-section-icon="river"
+                viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.25"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                <path d="M3.1 8.8c3.1-2.4 5.9-2.3 8.8-.1 3.1 2.4 5.8 2.6 8.9.3 1.5-1.1 2.7-1.5 4.1-1.5"/>
+                <path d="M3.1 15.1c3.1-2.4 5.9-2.3 8.8-.1 3.1 2.4 5.8 2.6 8.9.3 1.5-1.1 2.7-1.5 4.1-1.5" opacity=".48"/>
+                <path d="M3.1 21.1c3.1-2.4 5.9-2.3 8.8-.1 3.1 2.4 5.8 2.6 8.9.3 1.5-1.1 2.7-1.5 4.1-1.5" opacity=".22"/>
+                <circle class="cognitive-module-icon-accent" cx="14.1" cy="12.6" r="1.15"
+                  fill="currentColor" stroke="none"/>
+              </svg>
+              <div>
+                <p class="cognitive-section-index" hidden>记录流</p>
+                <h2 id="cognitive-today-title">今天的时间河</h2>
+                <p id="cognitive-today-caption" hidden></p>
+              </div>
+            </div>
+            <div id="cognitive-today-status" class="cognitive-today-status">
+              <div id="cognitive-today-status-copy" aria-live="polite"></div>
+              <button type="button" data-cognitive-timeline-now aria-controls="cognitive-record-list"
+                aria-hidden="true" hidden>回到现在</button>
+              <button id="cognitive-manual-day-button" type="button" data-cognitive-manual-day>积累今天</button>
+              <div id="cognitive-manual-day-status" class="cognitive-manual-day-status" role="status" aria-live="polite" hidden></div>
+            </div>
+          </header>
+          <div class="cognitive-status-rail" aria-label="今日整理进度">
+            <span><strong id="cognitive-saved-count">0</strong><em>已保存</em></span>
+            <i aria-hidden="true"></i>
+            <span><strong id="cognitive-interpreted-count">0</strong><em>有主题</em></span>
+            <i aria-hidden="true"></i>
+            <span><strong id="cognitive-merged-count">0</strong><em>已进入地图</em></span>
+            <i aria-hidden="true"></i>
+            <span><strong id="cognitive-review-count">0</strong><em>含不确定</em></span>
+          </div>
+          <div id="cognitive-record-list" class="cognitive-record-list" aria-label="今日记录，最新在左，向右浏览更早记录"></div>
+          <div id="cognitive-record-empty" class="cognitive-record-empty" hidden></div>
+        </section>
+
+        <div id="cognitive-projection-notice" class="cognitive-projection-notice" role="status" aria-live="polite" hidden></div>
+
+        <div class="cognitive-overview-grid">
+          <section class="cognitive-landscape-section" aria-labelledby="cognitive-landscape-title">
+            <header class="cognitive-section-head">
+              <div class="cognitive-module-heading">
+                <svg class="cognitive-module-icon cognitive-module-icon--terrain" data-cognitive-section-icon="terrain"
+                  viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.25"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                  <path d="M3.7 15.6C3 10.2 7.3 5.5 13.2 5.1c6-.4 10.9 3.5 10.8 8.7-.1 5.4-5.2 8.8-11.5 8.3-5-.4-8.2-2.8-8.8-6.5Z"/>
+                  <path d="M7.1 15c-.5-3.3 2.2-6.1 5.9-6.3 3.8-.2 6.8 2.1 6.7 5.2-.1 3.2-3.1 5.2-6.9 4.9-3.1-.2-5.3-1.7-5.7-3.8Z" opacity=".62"/>
+                  <path d="M10.4 14.3c-.2-1.6 1.1-2.9 2.9-3 1.8-.1 3.2 1 3.1 2.5-.1 1.6-1.5 2.5-3.3 2.4-1.5-.1-2.5-.8-2.7-1.9Z" opacity=".34"/>
+                  <circle class="cognitive-module-icon-accent" cx="13.8" cy="13.7" r="1.05"
+                    fill="currentColor" stroke="none"/>
+                </svg>
+                <div>
+                  <p class="cognitive-section-index" hidden>主题地图</p>
+                  <h2 id="cognitive-landscape-title">认知地景</h2>
+                  <p id="cognitive-landscape-caption" hidden></p>
+                </div>
+              </div>
+            </header>
+            <div id="cognitive-map-region" class="cognitive-map-region" tabindex="0"
+              aria-label="认知地形图。滚轮缩放，拖拽移动，方向键平移，加减键缩放，数字 0 返回全景。">
+              <div id="cognitive-map-stage" class="cognitive-map-stage">
+                <svg id="cognitive-landscape-map" class="cognitive-landscape-map" viewBox="0 0 1100 520" preserveAspectRatio="xMidYMid slice" role="group" aria-labelledby="cognitive-landscape-title cognitive-map-desc">
+                  <desc id="cognitive-map-desc">山峰代表聚合主题，点代表可用记忆，连线代表已确认关系，地形层级表示证据积累。</desc>
+                </svg>
+              </div>
+              <div class="cognitive-atlas-hud" aria-hidden="true">
+                <div class="cognitive-atlas-coordinate-frame">
+                  <div id="cognitive-atlas-x-top" class="cognitive-atlas-coordinate-axis is-x is-top"></div>
+                  <div id="cognitive-atlas-x-bottom" class="cognitive-atlas-coordinate-axis is-x is-bottom"></div>
+                  <div id="cognitive-atlas-y-left" class="cognitive-atlas-coordinate-axis is-y is-left"></div>
+                  <div id="cognitive-atlas-y-right" class="cognitive-atlas-coordinate-axis is-y is-right"></div>
+                </div>
+                <div class="cognitive-atlas-sheet-hud">
+                  <strong>MEMENTO / COGNITIVE ATLAS</strong>
+                  <output id="cognitive-atlas-sheet-code">SHEET 01 · X0550 Y0260</output>
+                </div>
+                <div class="cognitive-atlas-legend" aria-label="地图图例">
+                  <span><i class="cognitive-legend-summit"></i>聚合主题</span>
+                  <span><i class="cognitive-legend-memory"></i>可用记忆</span>
+                  <span><i class="cognitive-legend-relation"></i>确认关系</span>
+                </div>
+                <div class="cognitive-atlas-scale" aria-label="地图比例尺">
+                  <output id="cognitive-atlas-scale-label">100 u</output>
+                  <i id="cognitive-atlas-scale-bar"></i>
+                </div>
+                <div class="cognitive-atlas-north" aria-label="指北针">
+                  <b>N</b><i></i><span>北</span>
+                </div>
+              </div>
+              <div id="cognitive-map-empty" class="cognitive-map-empty" hidden></div>
+              <div class="cognitive-map-controls" aria-label="地图缩放控制">
+                <button type="button" class="cognitive-map-fullscreen-button" data-cognitive-map-action="fullscreen"
+                  aria-label="全屏查看认知地图" aria-pressed="false">全屏查看</button>
+                <span class="cognitive-map-camera-controls">
+                  <button type="button" data-cognitive-map-action="zoom-out" aria-label="缩小地图">−</button>
+                  <output id="cognitive-map-zoom" aria-live="polite">全景 · 100%</output>
+                  <button type="button" data-cognitive-map-action="zoom-in" aria-label="放大地图">＋</button>
+                  <button type="button" data-cognitive-map-action="reset" aria-label="返回地图全景">复位</button>
+                </span>
+              </div>
+            </div>
+            <div id="cognitive-list-region" class="cognitive-list-region" hidden></div>
+          </section>
+
+          <section id="cognitive-portrait-section" class="cognitive-portrait-section"
+            aria-labelledby="cognitive-portrait-title">
+            <header class="cognitive-portrait-head">
+              <div class="cognitive-portrait-identity">
+                <svg class="cognitive-module-icon cognitive-module-icon--eye" data-cognitive-section-icon="eye"
+                  viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.25"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                  <path d="M3.2 13.8C5.8 9.9 9.3 8 14 8s8.2 1.9 10.8 5.8"/>
+                  <path d="M4.7 16.1c2.4 2.5 5.5 3.8 9.3 3.8s6.9-1.3 9.3-3.8" opacity=".72"/>
+                  <path d="M10.6 11.1a4.25 4.25 0 1 0 6.5.5" opacity=".58"/>
+                  <circle class="cognitive-module-icon-accent" cx="14" cy="14" r="1.2"
+                    fill="currentColor" stroke="none"/>
+                </svg>
+                <div class="cognitive-portrait-title-group">
+                  <p id="cognitive-portrait-kicker">内在图志</p>
+                  <h2 id="cognitive-portrait-title">她理解的我</h2>
+                  <output id="cognitive-portrait-count" aria-live="polite">4 条 · 6 主题</output>
+                </div>
+              </div>
+              <div class="cognitive-portrait-update" aria-label="理解更新设置">
+                <label class="cognitive-portrait-update-switch">
+                  <input id="cognitive-portrait-auto-update" type="checkbox" aria-label="自动更新理解">
+                  <span class="cognitive-portrait-update-track" aria-hidden="true"><span></span></span>
+                  <span>自动更新</span>
+                </label>
+                <label class="cognitive-portrait-update-time">
+                  <span class="sr-only">更新时间</span>
+                  <input id="cognitive-portrait-update-at" type="time" value="21:00" disabled
+                    aria-label="自动更新时间">
+                </label>
+              </div>
+            </header>
+            <div class="cognitive-portrait-reading" aria-live="polite">
+              <article id="cognitive-portrait-feature" class="cognitive-portrait-feature" hidden></article>
+              <div id="cognitive-portrait-list" class="cognitive-portrait-list"></div>
+              <p id="cognitive-portrait-empty" class="cognitive-portrait-empty">正在核对可追溯的长期理解…</p>
+            </div>
+            <footer class="cognitive-portrait-foot">
+              <button id="cognitive-portrait-open" type="button" data-cognitive-secondary="context"
+                aria-controls="cognitive-chain-drawer" aria-expanded="false">
+                <span>展开全部理解与依据</span><span aria-hidden="true">↗</span>
+              </button>
+            </footer>
+          </section>
+        </div>
+
+      </section>
+
+      <section id="legacy-dashboard-shell" class="legacy-dashboard" aria-label="记录主页">
+        <div id="record-summary" class="record-summary" aria-live="polite"></div>
+
+        <div class="prompt-row legacy-output-control">
+          <span class="prompt-word">复制</span>
+          <select id="range-select" aria-label="选择时间段"></select>
+          <span class="prompt-word">的</span>
+          <select id="style-select" aria-label="选择 prompt 风格"></select>
+          <span class="prompt-word">→ AI</span>
+        </div>
+
+        <div class="cta-row legacy-output-control">
+          <button id="copy-btn" class="cta-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="9" y="3" width="6" height="4" rx="2"/>
+              <path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2"/>
+            </svg>
+            <span class="btn-label">复制今天 → AI</span>
+          </button>
+          <button id="easter-egg" class="memento-egg" title="" aria-label="Memento 模式">
+            <span class="egg-photo">M</span>
+          </button>
+        </div>
+
+        <div id="stats" class="stats"></div>
+        <div id="heatmap" class="heatmap" role="list" aria-label="过去 90 天记录热力图"></div>
+        <div class="heatmap-legend"><span>90 天前</span><span>今天</span></div>
+
+        <div id="section-record-date" class="section-divider">
+          <span id="record-date-label" aria-live="polite"></span>
+        </div>
+        <div id="chips" class="chips"></div>
+        <div id="entry-list"></div>
+      </section>
+    </section>
+
+    <footer class="footnote" hidden aria-hidden="true"></footer>
+  </main>
+
+  <!-- 右边缘功能导轨 -->
+  <nav class="edge-tabs" aria-label="Memento 侧边栏" aria-hidden="true" inert>
+    <button id="context-tab" class="edge-tab context-tab" hidden
+            aria-label="打开她理解的我" aria-controls="context-drawer" aria-expanded="false">
+      <span class="at-label">她理解的我</span>
+      <span id="context-count" class="at-count"></span>
+    </button>
+    <button id="archive-tab" class="edge-tab archive-tab" hidden
+            aria-label="打开归档库" aria-controls="archive-drawer" aria-expanded="false">
+      <span class="at-label">归档</span>
+      <span id="archive-count" class="at-count"></span>
+    </button>
+    <button id="daily-summary-tab" class="edge-tab daily-summary-tab" hidden
+            aria-label="打开每日总结" aria-controls="daily-summary-drawer" aria-expanded="false">
+      <span class="at-label">每日总结</span>
+      <span id="daily-summary-count" class="at-count"></span>
+    </button>
+  </nav>
+
+  <!-- 右侧抽屉共用遮罩 -->
+  <div id="drawer-scrim" class="drawer-scrim"></div>
+
+  <div id="cognitive-drawer-scrim" class="cognitive-drawer-scrim" hidden></div>
+  <aside id="cognitive-chain-drawer" class="cognitive-chain-drawer" role="dialog" aria-modal="true"
+         aria-labelledby="cognitive-drawer-title" aria-hidden="true">
+    <header class="cognitive-drawer-head">
+      <div>
+        <p id="cognitive-drawer-eyebrow">形成链路</p>
+        <h2 id="cognitive-drawer-title">详情</h2>
+      </div>
+      <button id="cognitive-drawer-close" type="button" aria-label="关闭详情">×</button>
+    </header>
+    <div id="cognitive-drawer-body" class="cognitive-drawer-body"></div>
+    <footer id="cognitive-drawer-foot" class="cognitive-drawer-foot"></footer>
+  </aside>
+
+  <aside id="context-drawer" class="side-drawer context-drawer" role="dialog" aria-modal="true"
+         aria-labelledby="context-drawer-title" aria-hidden="true">
+    <div class="drawer-head context-drawer-head">
+      <div>
+        <span id="context-drawer-title" class="drawer-title">她理解的我 · 认知秘书</span>
+        <p class="drawer-subtitle">查看能回到来源的倾向，以及它们如何收束成更深的理解。</p>
+      </div>
+      <button id="context-drawer-close" class="drawer-close" aria-label="关闭她理解的我">✕</button>
+    </div>
+    <div id="context-status" class="context-status" role="status" aria-live="polite"></div>
+    <div id="context-content" class="context-content"
+         aria-labelledby="context-drawer-title" aria-live="polite" tabindex="0">
+      <div class="context-empty">正在读取本地 Context…</div>
+    </div>
+  </aside>
+
+  <aside id="archive-drawer" class="side-drawer archive-drawer" role="dialog" aria-modal="true"
+         aria-labelledby="archive-drawer-title" aria-hidden="true">
+    <div class="drawer-head">
+      <span id="archive-drawer-title" class="drawer-title">归档</span>
+      <button id="drawer-close" class="drawer-close" aria-label="关闭">✕</button>
+    </div>
+    <div id="archive-drop" class="archive-drop" role="button" tabindex="0"
+         aria-controls="archive-input" aria-label="选择 HTML 文件存入归档">
+      <input type="file" id="archive-input" accept=".html,.htm,text/html" multiple hidden>
+      <span class="ad-icon" aria-hidden="true">⬆</span>
+      <span class="ad-text">拖 HTML 到这里,或<u>点击选择</u></span>
+      <span class="ad-hint">存进 ~/AISecretary/.archives/</span>
+    </div>
+    <div id="archive-status" class="archive-status" role="status" aria-live="polite"></div>
+    <div id="archive-list" class="archive-list"></div>
+  </aside>
+
+  <aside id="daily-summary-drawer" class="side-drawer daily-summary-drawer" role="dialog" aria-modal="true"
+         aria-labelledby="daily-summary-drawer-title" aria-hidden="true">
+    <div class="drawer-head daily-summary-drawer-head">
+      <div>
+        <span id="daily-summary-drawer-title" class="drawer-title">每日总结</span>
+        <p class="drawer-subtitle">每个记录日的当天第一帧、AI 总结和处理状态。</p>
+      </div>
+      <button id="daily-summary-drawer-close" class="drawer-close" aria-label="关闭每日总结">✕</button>
+    </div>
+    <div class="daily-summary-toolbar">
+      <label for="daily-summary-month">月份</label>
+      <select id="daily-summary-month" aria-label="选择总结月份"></select>
+      <span id="daily-summary-meta" class="daily-summary-meta"></span>
+    </div>
+    <div id="daily-summary-status" class="daily-summary-status" role="status" aria-live="polite"></div>
+    <div id="daily-summary-list" class="daily-summary-list" aria-label="按日期排列的每日总结"></div>
+  </aside>
+
+  <script src="photo-cache-library.js"></script>
+  <script src="photo-library.js"></script>
+  <script src="daily-summary-library.js"></script>
+  <script src="directory-access-library.js"></script>
+  <script src="dashboard-cache-library.js"></script>
+  <script src="dashboard-operations-library.js"></script>
+  <script src="context-agent-library.js"></script>
+  <script src="remember-agent-v1-library.js"></script>
+  <script src="cognitive-home-library.js"></script>
+  <script src="cognitive-demo-fixture.js?v=time-echo-integrated-1"></script>
+  <script src="prompts.js"></script>
+  <script src="dashboard.js?v=time-echo-integrated-1"></script>
+</body>
+</html>

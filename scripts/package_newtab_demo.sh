@@ -3,59 +3,56 @@
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-DEMO_DIR="chrome-newtab-demo"
-MANIFEST="$ROOT/$DEMO_DIR/manifest.json"
+WEB_RUNTIME="docs/demo"
+MANIFEST="$ROOT/$WEB_RUNTIME/manifest.json"
 
-if ! command -v python3 >/dev/null 2>&1 || ! command -v node >/dev/null 2>&1 \
-  || ! command -v git >/dev/null 2>&1 || ! command -v shasum >/dev/null 2>&1; then
-  echo '缺少 python3、node、git 或 shasum，无法构建 Chrome Demo。' >&2
-  exit 1
-fi
+for command_name in python3 node git shasum; do
+  command -v "$command_name" >/dev/null 2>&1 || {
+    echo "缺少 ${command_name}，无法构建 Chrome Demo。" >&2
+    exit 1
+  }
+done
 
 cd "$ROOT"
+python3 scripts/build_standalone_preview.py --check >/dev/null
 VERSION=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["version"])' "$MANIFEST")
 OUTPUT=${1:-"$ROOT/dist/Memento-New-Tab-Demo-v${VERSION}.zip"}
-PREFIX="Memento-New-Tab-Demo-v${VERSION}/"
-REQUIRED_FILES=(
-  chrome-newtab-demo/manifest.json
-  chrome-newtab-demo/dashboard.html
-  chrome-newtab-demo/dashboard.css
-  chrome-newtab-demo/dashboard.js
-  chrome-newtab-demo/cognitive-demo-fixture.js
-  chrome-newtab-demo/README-DEMO.md
-)
+PREFIX="Memento-New-Tab-Demo-v${VERSION}/Memento-Demo/"
 
-if ! git rev-parse --verify HEAD >/dev/null 2>&1; then
+git rev-parse --verify HEAD >/dev/null 2>&1 || {
   echo '当前仓库没有可归档的 HEAD。' >&2
   exit 1
-fi
-if ! git diff --quiet || ! git diff --cached --quiet; then
-  echo 'Chrome Demo 必须从已提交的确定性 HEAD 构建。' >&2
-  exit 1
-fi
+}
 
-for file in "${REQUIRED_FILES[@]}"; do
-  if ! git cat-file -e "HEAD:${file}" 2>/dev/null || [ ! -f "$ROOT/$file" ]; then
-    echo "Demo 缺少必需文件：${file}" >&2
+RUNTIME_FILES=()
+while IFS= read -r file; do
+  RUNTIME_FILES+=("$file")
+done < <(python3 - "$WEB_RUNTIME/runtime.json" <<'PY'
+import json
+import sys
+
+runtime = json.load(open(sys.argv[1], encoding='utf-8'))
+for name in runtime['files']:
+    print(name)
+print('runtime.json')
+PY
+)
+
+for name in "${RUNTIME_FILES[@]}"; do
+  path="$WEB_RUNTIME/$name"
+  if [ ! -f "$path" ] || ! git cat-file -e "HEAD:$path" 2>/dev/null; then
+    echo "共享 Demo 缺少已提交文件：${path}" >&2
+    exit 1
+  fi
+  if ! git diff --quiet HEAD -- "$path"; then
+    echo "共享 Demo 文件尚未提交：${path}" >&2
     exit 1
   fi
 done
 
-UNTRACKED_RUNTIME=$(git ls-files --others --exclude-standard -- "$DEMO_DIR")
-if [ -n "$UNTRACKED_RUNTIME" ]; then
-  echo 'Chrome Demo 运行时存在未跟踪文件，拒绝从工作树发布：' >&2
-  printf '%s\n' "$UNTRACKED_RUNTIME" >&2
-  exit 1
-fi
-
-for source in "$DEMO_DIR"/*.js; do
+for source in "$WEB_RUNTIME"/*.js; do
   node --check "$source" >/dev/null
 done
-
-if /usr/bin/grep -R -E -n '(showDirectoryPicker|indexedDB|localStorage|sessionStorage|CacheStorage|caches\.|document\.cookie|navigator\.storage|openDatabase|FileSystem|createWritable|requestPermission|fetch[[:space:]]*\(|XMLHttpRequest|WebSocket|EventSource|sendBeacon|chrome\.|browser\.)' "$DEMO_DIR" >/dev/null; then
-  echo '独立 Demo 包不得包含目录、存储、网络、权限或浏览器运行时。' >&2
-  exit 1
-fi
 
 python3 - "$MANIFEST" <<'PY'
 import json
@@ -79,10 +76,35 @@ if [ "${MEMENTO_REQUIRE_RELEASE_TAG:-0}" = "1" ]; then
 fi
 
 mkdir -p "$(dirname "$OUTPUT")"
-rm -f "$OUTPUT" "$OUTPUT.sha256"
-git archive --format=zip --prefix="$PREFIX" --output="$OUTPUT" HEAD -- "${REQUIRED_FILES[@]}"
+python3 - "$OUTPUT" "$PREFIX" "${RUNTIME_FILES[@]}" <<'PY'
+from __future__ import annotations
 
-python3 - "$OUTPUT" "$PREFIX" "${REQUIRED_FILES[@]}" <<'PY'
+import subprocess
+import sys
+import zipfile
+from pathlib import Path
+
+output, prefix, *names = sys.argv[1:]
+target = Path(output)
+temporary = target.with_suffix(target.suffix + '.tmp')
+if temporary.exists():
+    temporary.unlink()
+with zipfile.ZipFile(temporary, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
+    for name in names:
+        repo_path = f'docs/demo/{name}'
+        content = subprocess.run(
+            ['git', 'show', f'HEAD:{repo_path}'],
+            check=True,
+            stdout=subprocess.PIPE,
+        ).stdout
+        info = zipfile.ZipInfo(prefix + name, date_time=(2026, 8, 24, 0, 0, 0))
+        info.compress_type = zipfile.ZIP_DEFLATED
+        info.external_attr = 0o100644 << 16
+        archive.writestr(info, content)
+temporary.replace(target)
+PY
+
+python3 - "$OUTPUT" "$PREFIX" "${RUNTIME_FILES[@]}" <<'PY'
 import sys
 import zipfile
 
@@ -92,12 +114,10 @@ with zipfile.ZipFile(archive_path) as archive:
     if len(names) != len(set(names)):
         raise SystemExit('Demo ZIP contains duplicate paths')
     files = {name for name in names if not name.endswith('/')}
-    expected = {prefix + path for path in required}
+    expected = {prefix + name for name in required}
     if files != expected:
-        unexpected = sorted(files - expected)
-        missing = sorted(expected - files)
-        raise SystemExit('Demo ZIP contract mismatch; missing=' + ', '.join(missing) + '; unexpected=' + ', '.join(unexpected))
+        raise SystemExit('Demo ZIP contract mismatch')
 PY
 
 (cd "$(dirname "$OUTPUT")" && shasum -a 256 "$(basename "$OUTPUT")" > "$(basename "$OUTPUT").sha256")
-echo "已构建 $OUTPUT"
+echo "已从 $WEB_RUNTIME 构建 $OUTPUT"

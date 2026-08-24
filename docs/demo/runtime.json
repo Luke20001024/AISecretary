@@ -1,0 +1,27 @@
+{
+  "entrypoint": "dashboard.html",
+  "files": [
+    "manifest.json",
+    "dashboard.html",
+    "dashboard.css",
+    "dashboard.js",
+    "cognitive-demo-fixture.js",
+    "photo-cache-library.js",
+    "photo-library.js",
+    "daily-summary-library.js",
+    "directory-access-library.js",
+    "dashboard-cache-library.js",
+    "dashboard-operations-library.js",
+    "context-agent-library.js",
+    "remember-agent-v1-library.js",
+    "cognitive-home-library.js",
+    "prompts.js",
+    "viewer.html",
+    "viewer.js",
+    "archive-sanitizer-library.js",
+    "README-DEMO.md"
+  ],
+  "source": "chrome-newtab",
+  "source_sha256": "fb9859321cc4191cf49a224a3bc46c856a21b82c462ef1216543ea0104bd3899",
+  "version": "0.10.1"
+}

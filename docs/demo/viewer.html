@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  归档预览沙箱页 (manifest sandbox.pages 之一)。
+  主页面通过 postMessage 送入 HTML；本页先移除脚本、事件属性、刷新/基地址、嵌入内容与外部 URL，再导入安全 DOM。
+  manifest CSP 只允许扩展自带的 viewer 脚本，并阻止连接、表单、子页、worker 和外部媒体。
+  保留静态 HTML/CSS、details/summary 和页内锚点；归档自带 JavaScript 不执行。
+-->
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>Memento · 归档预览</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #FAFAF7; }
+    #memento-loading {
+      font: 15px/1.6 -apple-system, "PingFang SC", sans-serif;
+      color: #999; text-align: center; padding-top: 30vh;
+    }
+  </style>
+</head>
+<body>
+  <div id="memento-loading">正在加载归档…</div>
+  <script src="archive-sanitizer-library.js"></script>
+  <script src="viewer.js"></script>
+</body>
+</html>

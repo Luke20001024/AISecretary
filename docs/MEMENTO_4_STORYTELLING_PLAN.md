@@ -3,7 +3,7 @@
 > 更新日期：2026-08-23
 > 目标页面：[index.html](index.html)
 > 产品边界：[MEMENTO_PRODUCT_FINAL_STATE.md](MEMENTO_PRODUCT_FINAL_STATE.md)
-> 真实产品：[Memento-Cognitive-Home-Standalone.html](Memento-Cognitive-Home-Standalone.html)
+> 真实产品：[demo/dashboard.html](demo/dashboard.html)
 > 统一文案：[MEMENTO_PRODUCT_NARRATIVE.md](MEMENTO_PRODUCT_NARRATIVE.md)
 
 ## 1. 页面只完成一件事
@@ -209,7 +209,7 @@ MCP 在页面中被明确解释为个人上下文的双向接口。用户选择�
 ## 10. HTML 实现原则
 
 - 认知地形与自我诠释英雄镜头保留真实操作
-- 产品价值页通过 `iframe` 直接载入 `Memento-Cognitive-Home-Standalone.html`
+- 产品价值页通过 `iframe` 直接载入 `demo/dashboard.html`；独立预览使用相同 URL
 - 故事段落中的地形继续直接复用真实产品算法与固定演示数据
 - 地形直接复用真实产品的生成算法和固定数据
 - 地形画面只显示等高线 节点 关系和主题峰
