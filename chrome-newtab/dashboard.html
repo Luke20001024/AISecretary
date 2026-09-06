@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
   <title>Memento</title>
-  <link rel="stylesheet" href="dashboard.css?v=evidence-river-2">
+  <link rel="stylesheet" href="dashboard.css?v=record-browser-20260905">
 </head>
 <body>
   <main id="app">
@@ -42,13 +42,52 @@
               <p hidden>本地认知秘书 · 可追溯理解</p>
             </div>
           </div>
-          <div id="cognitive-home-summary" class="cognitive-home-summary" aria-live="polite"></div>
-          <nav class="cognitive-topbar-actions" aria-label="认知秘书次要功能">
-            <button id="cognitive-history-action" type="button" data-cognitive-secondary="archive"
-              aria-controls="cognitive-chain-drawer" aria-expanded="false">记录轨迹</button>
+          <nav class="cognitive-primary-nav" aria-label="Memento 主导航">
+            <button id="cognitive-home-action" type="button" data-cognitive-page="home"
+              aria-controls="cognitive-home-view" aria-pressed="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                <path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/>
+              </svg>
+              <span>认知首页</span>
+            </button>
+            <button id="cognitive-history-action" type="button" data-cognitive-page="records"
+              aria-controls="cognitive-records-view" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                <path d="M5 4v16M10 6h10M10 12h7M10 18h10"/>
+                <circle cx="5" cy="6" r="1.5" fill="currentColor" stroke="none"/>
+                <circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+                <circle cx="5" cy="18" r="1.5" fill="currentColor" stroke="none"/>
+              </svg>
+              <span>记录轨迹</span>
+            </button>
           </nav>
+          <div id="cognitive-home-summary" class="cognitive-home-summary" aria-live="polite"></div>
+          <details id="cognitive-connection-menu" class="cognitive-connection-menu">
+            <summary>
+              <span class="cognitive-connection-label">连接管理</span>
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                <path d="m4 6 4 4 4-4"/>
+              </svg>
+              <span id="cognitive-runtime-action" role="status" data-runtime-state="fixture"
+                aria-live="polite" aria-describedby="cognitive-runtime-status">示例数据</span>
+            </summary>
+            <div class="cognitive-connection-popover">
+              <p id="cognitive-runtime-status" class="cognitive-runtime-status" hidden></p>
+              <button id="cognitive-reconnect-action" type="button" hidden>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                  <path d="M20 7v5h-5M4 17v-5h5M6.1 7a7 7 0 0 1 11.5-1.8L20 8M4 16l2.4 2.8A7 7 0 0 0 17.9 17"/>
+                </svg>
+                <span>连接真实数据</span>
+              </button>
+            </div>
+          </details>
         </header>
 
+        <section id="cognitive-home-view" aria-label="认知首页">
         <section class="cognitive-today-section" aria-labelledby="cognitive-today-title">
           <header class="cognitive-section-head cognitive-today-head">
             <div class="cognitive-module-heading">
@@ -78,7 +117,7 @@
           <div class="cognitive-status-rail" aria-label="今日整理进度">
             <span><strong id="cognitive-saved-count">0</strong><em>已保存</em></span>
             <i aria-hidden="true"></i>
-            <span><strong id="cognitive-interpreted-count">0</strong><em>有主题</em></span>
+            <span><strong id="cognitive-interpreted-count">0</strong><em>已整理</em></span>
             <i aria-hidden="true"></i>
             <span><strong id="cognitive-merged-count">0</strong><em>已进入地图</em></span>
             <i aria-hidden="true"></i>
@@ -92,7 +131,7 @@
 
         <div class="cognitive-overview-grid">
           <section class="cognitive-landscape-section" aria-labelledby="cognitive-landscape-title">
-            <header class="cognitive-section-head">
+            <header class="cognitive-section-head cognitive-landscape-head">
               <div class="cognitive-module-heading">
                 <svg class="cognitive-module-icon cognitive-module-icon--terrain" data-cognitive-section-icon="terrain"
                   viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.25"
@@ -109,7 +148,21 @@
                   <p id="cognitive-landscape-caption" hidden></p>
                 </div>
               </div>
+              <details id="cognitive-growth-status" class="cognitive-growth-status" hidden>
+                <summary>
+                  <span id="cognitive-growth-summary">等待新证据</span>
+                  <span class="cognitive-growth-toggle-label">整理详情</span>
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+                    aria-hidden="true" focusable="false"><path d="m4 6 4 4 4-4"/></svg>
+                </summary>
+                <div class="cognitive-growth-panel">
+                  <p id="cognitive-growth-feedback" class="cognitive-drawer-muted" role="status" hidden></p>
+                  <p id="cognitive-growth-snapshot" hidden></p>
+                  <div id="cognitive-growth-stages" class="cognitive-growth-stages" aria-live="polite"></div>
+                </div>
+              </details>
             </header>
+            <div id="cognitive-learning-strip" class="cognitive-learning-strip" aria-label="最近七天的资料积累" hidden></div>
             <div id="cognitive-map-region" class="cognitive-map-region" tabindex="0"
               aria-label="认知地形图。滚轮缩放，拖拽移动，方向键平移，加减键缩放，数字 0 返回全景。">
               <div id="cognitive-map-stage" class="cognitive-map-stage">
@@ -176,8 +229,9 @@
                 </div>
               </div>
               <div class="cognitive-portrait-update" aria-label="理解更新设置">
+                <span id="cognitive-update-scope" class="cognitive-update-scope" hidden>每日自动整理</span>
                 <label class="cognitive-portrait-update-switch">
-                  <input id="cognitive-portrait-auto-update" type="checkbox" aria-label="自动更新理解">
+                  <input id="cognitive-portrait-auto-update" type="checkbox" aria-label="自动更新理解" disabled>
                   <span class="cognitive-portrait-update-track" aria-hidden="true"><span></span></span>
                   <span>自动更新</span>
                 </label>
@@ -201,7 +255,60 @@
             </footer>
           </section>
         </div>
+        </section>
 
+        <section id="cognitive-records-view" class="cognitive-record-browser" aria-labelledby="cognitive-records-title" hidden>
+          <header class="cognitive-record-browser-head">
+            <div>
+              <h2 id="cognitive-records-title" tabindex="-1">记录轨迹</h2>
+              <p id="cognitive-records-count">正在读取记录…</p>
+            </div>
+            <p class="cognitive-record-browser-intro">标签用于查找资料，不代表长期理解。</p>
+          </header>
+          <div class="cognitive-record-browser-toolbar">
+            <div class="cognitive-record-browser-modes" role="group" aria-label="记录浏览方式">
+              <button type="button" data-cognitive-record-mode="tags" aria-controls="cognitive-record-tags-panel cognitive-record-results" aria-pressed="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                  <path d="M20 13 11 22 2 13V4h9Z" transform="translate(1 -1)"/><circle cx="7.5" cy="7.5" r="1"/>
+                </svg>
+                <span>按标签</span>
+              </button>
+              <button type="button" data-cognitive-record-mode="time" aria-controls="cognitive-record-results" aria-pressed="false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                  <circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/>
+                </svg>
+                <span>按时间</span>
+              </button>
+            </div>
+            <label class="cognitive-record-range-field" for="cognitive-record-range">
+              <span>时间范围</span>
+              <select id="cognitive-record-range">
+                <option value="all">全部记录</option>
+                <option value="7">最近 7 天</option>
+                <option value="30">最近 30 天</option>
+              </select>
+            </label>
+          </div>
+          <div class="cognitive-record-browser-body">
+            <details id="cognitive-record-tags-panel" class="cognitive-record-tags-panel" open hidden>
+              <summary>
+                <span>资料标签</span>
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                  <path d="m4 6 4 4 4-4"/>
+                </svg>
+              </summary>
+              <label class="cognitive-record-tag-search-field" for="cognitive-record-tag-search">
+                <span>查找标签</span>
+                <input id="cognitive-record-tag-search" type="search" placeholder="输入标签名" autocomplete="off">
+              </label>
+              <div id="cognitive-record-tags" class="cognitive-record-tags" aria-label="选择资料标签"></div>
+            </details>
+            <div id="cognitive-record-results" class="cognitive-record-results" tabindex="-1" aria-live="polite" aria-atomic="false"></div>
+          </div>
+        </section>
       </section>
 
       <section id="legacy-dashboard-shell" class="legacy-dashboard" aria-label="记录主页">
@@ -339,8 +446,14 @@
   <script src="context-agent-library.js"></script>
   <script src="remember-agent-v1-library.js"></script>
   <script src="cognitive-home-library.js"></script>
+  <script src="cognitive-v2-contract.js"></script>
+  <script src="cognitive-runtime-config.js"></script>
+  <script src="cognitive-v2-data-source.js?v=record-browser-20260905"></script>
+  <script src="cognitive-v2-actions.js"></script>
+  <script src="cognitive-v2-shadow-fixture.js"></script>
   <script src="cognitive-demo-fixture.js?v=time-echo-integrated-1"></script>
   <script src="prompts.js"></script>
-  <script src="dashboard.js?v=time-echo-integrated-1"></script>
+  <script src="cognitive-record-browser.js?v=record-browser-20260905"></script>
+  <script src="dashboard.js?v=record-browser-20260905"></script>
 </body>
 </html>

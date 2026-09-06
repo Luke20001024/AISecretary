@@ -5,7 +5,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const html = fs.readFileSync(path.join(root, 'docs', 'index.html'), 'utf8');
 
-const closing = html.match(/<section class="closing shell"[\s\S]*?<\/section>/);
+const closing = html.match(/<section[^>]*id="system"[\s\S]*?<\/section>/);
 assert.ok(closing, 'product guide must contain the closing installation section');
 
 assert.match(

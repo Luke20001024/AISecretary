@@ -2699,6 +2699,13 @@
       font: 400 9px/1.5 var(--sans);
     }
     .terrain-reading-key > span:first-child { border-left: 0; }
+    .terrain-reading-key > .preview-caption {
+      grid-column: 1 / -1;
+      min-height: 38px;
+      padding-block: 8px;
+      border-bottom: 1px solid var(--line);
+    }
+    .terrain-reading-key > .preview-caption + span { border-left: 0; }
     .terrain-reading-key strong { color: var(--blue-deep); font-weight: 650; }
     .terrain-key-shape {
       position: relative;
@@ -3752,19 +3759,10 @@
         <figure class="terrain-final" aria-labelledby="terrain-final-caption">
           <div class="terrain-final-annotated">
             <div class="terrain-final-map">
-              <img src="assets/product/memento-cognitive-landscape-latest-20260823.png" width="2158" height="1084" loading="lazy" decoding="async" alt="Memento 最新认知地景 六座聚合主题山峰 十二个可用记忆点与已确认的关系线共同形成等高线">
-              <svg class="terrain-map-focus" viewBox="0 0 1000 502" preserveAspectRatio="none" aria-hidden="true">
-                <g class="terrain-focus is-memory"><circle cx="68" cy="80" r="17"></circle><path d="M80 68 L109 52"></path></g>
-                <g class="terrain-focus is-peak"><circle cx="178" cy="119" r="21"></circle><path d="M193 104 L218 62"></path></g>
-                <g class="terrain-focus is-relation"><ellipse cx="487" cy="255" rx="43" ry="16" transform="rotate(61 487 255)"></ellipse><path d="M468 223 L445 210"></path></g>
-                <g class="terrain-focus is-valley"><ellipse cx="737" cy="250" rx="52" ry="42"></ellipse><path d="M700 222 L680 210"></path></g>
-              </svg>
-              <aside class="terrain-map-note is-memory"><small>记忆点</small><strong>可回到原文的可用记忆</strong></aside>
-              <aside class="terrain-map-note is-peak"><small>山峰</small><strong>通过校验的长期主题</strong></aside>
-              <aside class="terrain-map-note is-relation"><small>关系线</small><strong>正式确认后才进入地图</strong></aside>
-              <aside class="terrain-map-note is-valley"><small>山谷</small><strong>关系尚未密集的低缓区域</strong></aside>
+              <img src="assets/product/memento-public-home-20260906.png" width="1428" height="873" loading="lazy" decoding="async" alt="2026-09-06 Memento 在线交互预览实拍，使用合成示例数据，包含时间河、六座主题山峰、长期理解和记录轨迹入口">
             </div>
             <figcaption class="terrain-reading-key" id="terrain-final-caption">
+              <span class="preview-caption"><strong>公开预览实拍</strong>2026-09-06 · 合成示例数据</span>
               <span><i class="terrain-key-shape is-height" aria-hidden="true"></i><strong>山峰高度</strong>经校验的证据积累</span>
               <span><i class="terrain-key-shape is-distance" aria-hidden="true"></i><strong>峰间距离</strong>只用于稳定排版</span>
               <span><i class="terrain-key-shape is-boundary" aria-hidden="true"></i><strong>外层线</strong>当前证据能够支持的边界</span>

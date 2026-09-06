@@ -19,6 +19,23 @@ SOURCE_DIR = ROOT / "chrome-newtab"
 OUTPUT_DIR = ROOT / "docs" / "demo"
 LEGACY_OUTPUT = ROOT / "docs" / "Memento-Cognitive-Home-Standalone.html"
 
+# The public configuration is executable JavaScript. Accept one reviewed program,
+# not matching property fragments that comments, duplicate keys, or appended code
+# could override. The installer has its own private template and cannot pass here.
+PUBLIC_RUNTIME_CONFIG = """// Installed Backend V2 replaces this owner-only file with a local bearer token.
+// The published demo deliberately keeps the token empty and remains on fixture data.
+(function exposeMementoRuntimeConfig(root) {
+  'use strict';
+
+  root.MementoRuntimeConfig = Object.freeze({
+    publicPreview: true,
+    mode: 'fixture',
+    baseUrl: '',
+    token: '',
+  });
+})(typeof window !== 'undefined' ? window : globalThis);
+"""
+
 RUNTIME_FILES = (
     "manifest.json",
     "dashboard.html",
@@ -34,6 +51,12 @@ RUNTIME_FILES = (
     "context-agent-library.js",
     "remember-agent-v1-library.js",
     "cognitive-home-library.js",
+    "cognitive-record-browser.js",
+    "cognitive-v2-contract.js",
+    "cognitive-runtime-config.js",
+    "cognitive-v2-data-source.js",
+    "cognitive-v2-actions.js",
+    "cognitive-v2-shadow-fixture.js",
     "prompts.js",
     "viewer.html",
     "viewer.js",
@@ -43,10 +66,12 @@ RUNTIME_FILES = (
 
 
 def source_digest() -> str:
+    if SOURCE_DIR.is_symlink():
+        raise ValueError("canonical demo directory must not be a symbolic link")
     digest = hashlib.sha256()
     for name in RUNTIME_FILES:
         path = SOURCE_DIR / name
-        if not path.is_file():
+        if path.is_symlink() or not path.is_file():
             raise FileNotFoundError(f"missing canonical demo dependency: {name}")
         digest.update(name.encode("utf-8"))
         digest.update(b"\0")
@@ -76,14 +101,22 @@ def legacy_redirect(version: str, digest: str) -> bytes:
     return html.encode("utf-8")
 
 
+def validate_public_runtime_config(config: str) -> None:
+    """Reject installed/private config before any public files are written."""
+    if config.strip() != PUBLIC_RUNTIME_CONFIG.strip():
+        raise ValueError("public demo requires the complete reviewed public configuration template")
+
+
 def expected_outputs() -> dict[Path, bytes]:
-    manifest = json.loads((SOURCE_DIR / "manifest.json").read_text(encoding="utf-8"))
     digest = source_digest()
+    validate_public_runtime_config((SOURCE_DIR / "cognitive-runtime-config.js").read_text(encoding="utf-8"))
+    manifest = json.loads((SOURCE_DIR / "manifest.json").read_text(encoding="utf-8"))
     outputs = {OUTPUT_DIR / name: (SOURCE_DIR / name).read_bytes() for name in RUNTIME_FILES}
     outputs[OUTPUT_DIR / "runtime.json"] = (
         json.dumps(
             {
                 "version": manifest["version"],
+                "preview_revision": "2026-09-06",
                 "source": "chrome-newtab",
                 "source_sha256": digest,
                 "entrypoint": "dashboard.html",
@@ -99,28 +132,42 @@ def expected_outputs() -> dict[Path, bytes]:
     return outputs
 
 
-def check(outputs: dict[Path, bytes]) -> int:
-    stale = [path for path, expected in outputs.items() if not path.is_file() or path.read_bytes() != expected]
+def unexpected_outputs(outputs: dict[Path, bytes]) -> list[Path]:
+    """Fail closed on any non-allowlisted entry, including directories and links."""
     expected_names = {path.name for path in outputs if path.parent == OUTPUT_DIR}
-    unexpected = []
-    if OUTPUT_DIR.is_dir():
-        unexpected = [path for path in OUTPUT_DIR.iterdir() if path.is_file() and path.name not in expected_names]
-    if stale or unexpected:
-        for path in stale:
-            print(f"shared demo output is stale: {path}")
+    if OUTPUT_DIR.is_symlink() or (OUTPUT_DIR.exists() and not OUTPUT_DIR.is_dir()):
+        return [OUTPUT_DIR]
+    unexpected = [
+        path for path in OUTPUT_DIR.iterdir()
+        if path.name not in expected_names or path.is_symlink() or not path.is_file()
+    ] if OUTPUT_DIR.is_dir() else []
+    unexpected.extend(
+        path for path in outputs if path.parent != OUTPUT_DIR
+        and (path.is_symlink() or (path.exists() and not path.is_file()))
+    )
+    return unexpected
+
+
+def check(outputs: dict[Path, bytes]) -> int:
+    unexpected = unexpected_outputs(outputs)
+    # Do not dereference an unexpected symbolic link while checking its contents.
+    if unexpected:
         for path in unexpected:
             print(f"shared demo output is unexpected: {path}")
+        return 1
+    stale = [path for path, expected in outputs.items() if not path.is_file() or path.read_bytes() != expected]
+    if stale:
+        for path in stale:
+            print(f"shared demo output is stale: {path}")
         return 1
     print(f"shared demo runtime is current: {OUTPUT_DIR}")
     return 0
 
 
 def write(outputs: dict[Path, bytes]) -> int:
+    if unexpected_outputs(outputs):
+        raise ValueError("public demo output contains unexpected entries; no files were written")
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    expected_names = {path.name for path in outputs if path.parent == OUTPUT_DIR}
-    for path in OUTPUT_DIR.iterdir():
-        if path.is_file() and path.name not in expected_names:
-            path.unlink()
     for path, content in outputs.items():
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(content)

@@ -9,6 +9,7 @@ const html = fs.readFileSync(path.join(root, 'chrome-newtab', 'dashboard.html'),
 const css = fs.readFileSync(path.join(root, 'chrome-newtab', 'dashboard.css'), 'utf8');
 const js = fs.readFileSync(path.join(root, 'chrome-newtab', 'dashboard.js'), 'utf8');
 const evidenceRiverCss = css.slice(css.indexOf('Cognitive home · evidence-first time river'));
+const historyAction = html.match(/<button id="cognitive-history-action"[^>]*>[\s\S]*?<\/button>/)?.[0] || '';
 
 assert.match(html, /<meta name="color-scheme" content="light">/,
   '纸张型认知主页应固定浅色配色，不随浏览器自动反色');
@@ -22,6 +23,8 @@ for (const id of [
   'cognitive-portrait-kicker', 'cognitive-portrait-title', 'cognitive-portrait-count',
   'cognitive-portrait-auto-update', 'cognitive-portrait-update-at',
   'cognitive-portrait-open', 'cognitive-history-action', 'cognitive-today-title',
+  'cognitive-home-view', 'cognitive-records-view', 'cognitive-record-results',
+  'cognitive-record-tags-panel', 'cognitive-record-range',
   'legacy-dashboard-shell',
 ]) {
   assert.match(html, new RegExp(`id="${id}"`), `${id} 必须存在`);
@@ -37,8 +40,13 @@ assert.ok(
 );
 assert.equal((html.match(/cognitive-demo-fixture\.js/g) || []).length, 1,
   '唯一版本只能加载一份固定认知数据');
+assert.ok(html.indexOf('cognitive-record-browser.js') >= 0
+  && html.indexOf('cognitive-record-browser.js') < html.indexOf('dashboard.js'),
+  '记录浏览的数据模块必须先于页面入口加载');
+assert.equal((html.match(/cognitive-record-browser\.js/g) || []).length, 1,
+  '记录浏览模块只能加载一次');
 assert.match(html, /data-cognitive-secondary="context"/);
-assert.match(html, /data-cognitive-secondary="archive"/);
+assert.match(html, /data-cognitive-page="records"/);
 assert.doesNotMatch(html, /data-cognitive-secondary="daily"/,
   '认知主页不得保留独立每日评价入口');
 assert.doesNotMatch(html, /data-cognitive-secondary="output"/,
@@ -54,6 +62,12 @@ assert.match(html,
 assert.match(html,
   /id="cognitive-portrait-update-at" type="time" value="21:00" disabled/,
   '更新时间初始为 21:00，并在自动更新关闭时不可编辑');
+assert.match(css,
+  /\.cognitive-portrait-section \{[\s\S]*?container-name:\s*cognitive-portrait;[\s\S]*?container-type:\s*inline-size;/,
+  '她理解的我必须按分栏自身宽度响应，不能只依赖浏览器视口断点');
+assert.match(css,
+  /@container cognitive-portrait \(max-width: 560px\) \{[\s\S]*?\.cognitive-portrait-head \{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\);[\s\S]*?grid-template-rows:\s*auto auto;/,
+  '窄分栏下标题与更新控件必须分行，避免标题、开关和时间重叠');
 assert.match(html, /id="cognitive-today-title">今天的时间河<\/h2>/);
 assert.match(html,
   /data-cognitive-timeline-now[^>]*aria-controls="cognitive-record-list"[^>]*hidden>回到现在<\/button>/,
@@ -83,13 +97,17 @@ assert.match(css,
 assert.match(css,
   /\.cognitive-module-icon--river \{[\s\S]*?color: var\(--cog-blue-deep\);/,
   '时间河图标必须使用地景蓝色');
-assert.match(html, /id="cognitive-history-action"[^>]*>记录轨迹<\/button>/);
+assert.match(historyAction, /<span>记录轨迹<\/span>/);
 assert.match(html,
   /id="cognitive-portrait-open"[^>]*data-cognitive-secondary="context"[^>]*aria-controls="cognitive-chain-drawer"/,
   '她理解的我应使用认知主页的统一详情抽屉');
-assert.match(html,
-  /id="cognitive-history-action"[^>]*data-cognitive-secondary="archive"[^>]*aria-controls="cognitive-chain-drawer"/,
-  '记录轨迹应使用认知主页的统一详情抽屉');
+assert.match(historyAction,
+  /data-cognitive-page="records"[^>]*aria-controls="cognitive-records-view"[^>]*aria-pressed="false"/,
+  '记录轨迹应通过主导航进入独立记录浏览页，初始保持认知首页选中');
+assert.doesNotMatch(historyAction, /data-cognitive-secondary="archive"|aria-controls="cognitive-chain-drawer"/,
+  '记录浏览入口不得继续打开旧轨迹抽屉');
+assert.match(html, /id="cognitive-records-view"[^>]*hidden/,
+  '记录浏览页初始应隐藏，切换主导航后显示');
 assert.doesNotMatch(html, /class="cognitive-secondary-nav"/,
   '深层理解已成为常驻内容，不再使用边缘导轨');
 assert.equal((html.match(/data-cognitive-manual-day/g) || []).length, 1,
@@ -102,6 +120,24 @@ for (const state of [
 ]) {
   assert.match(js, new RegExp(`${state}:`), `${state} 必须拥有用户可读状态`);
 }
+for (const state of [
+  'candidate', 'waiting_evidence', 'waiting_confirmation', 'promoted',
+  'not_candidate', 'rejected',
+]) {
+  assert.match(js, new RegExp(`${state}:`), `${state} 必须拥有用户可读的记忆升级状态`);
+}
+assert.match(js, /function cognitiveAttachBridgeRecordMetadata/,
+  '页面必须将 V2\.1 的关系判断与记忆状态附加到冻结的 V1 主页投影');
+assert.match(js, /function cognitiveTodayView/,
+  '页面必须把今日时间河与上一份认知快照分开');
+assert.match(js, /runtimeLocalDate: bootstrap\.runtime_local_date/,
+  '真实运行时必须使用后端返回的权威本地日期');
+assert.match(js, /cognitiveHomeState\.todayHome \|\| cognitiveHomeState\.home/,
+  '今日时间河必须读取经过日期隔离的今日视图');
+assert.match(js, /认知快照更新至/,
+  '跨日时必须告知认知地景的快照日期');
+assert.match(js, /Agent 如何理解这条记录/,
+  '记录详情必须解释 Agent 对作者、与用户关系和认知信号的判断');
 for (const status of ['no_candidate', 'no_records', 'no_receipts']) {
   assert.match(js, new RegExp(`${status}:`), `${status} 必须拥有用户可读日级状态`);
 }
@@ -124,6 +160,12 @@ assert.match(js, /cognitiveHomeState\.status === 'ready'/);
 assert.match(js, /本地认知主页没有通过合同与来源映射校验/);
 assert.match(js, /本地认知主页版本与当前页面不兼容/);
 assert.match(js, /认知主页尚未生成/);
+assert.match(js,
+  /title: '无法载入本机个人认知'[\s\S]*?status: `连接失败：\$\{shortError\(error\)\}`[\s\S]*?action: 'runtime'/,
+  'Runtime 或快照合同校验失败必须退出无限加载并显示实际错误');
+assert.match(js,
+  /if \(grantAction === 'runtime'\) \{[\s\S]*?connectCognitiveRuntimeFromDirectory\(\{ requestPermission: true \}\)/,
+  '载入失败画面上的重新连接必须真正重试 Backend V2');
 
 const cognitiveStart = js.indexOf('function cognitiveHomeLibrary()');
 const cognitiveEnd = js.indexOf('function renderRecordSummary', cognitiveStart);
@@ -554,8 +596,8 @@ assert.match(cognitiveSource,
   /if \(kind === 'library'\)[\s\S]*title: '她理解的我'[\s\S]*contextInsightMarkup\(\)/,
   '统一抽屉应在 library 模式内渲染第三层理解内容');
 
-assert.match(js, /fixture\.mode !== 'synthetic'/,
-  '合成数据必须经过显式 synthetic 模式边界');
+assert.match(js, /!\['synthetic', 'v1_adapter', 'v2_shadow', 'v2_live'\]\.includes\(fixture\.mode\)/,
+  '每种认知数据都必须经过显式模式边界');
 assert.match(js, /window\.MementoCognitiveDemoFixture \|\| null/,
   '页面入口必须读取 fixture 脚本实际暴露的浏览器全局');
 assert.match(js,
@@ -820,8 +862,8 @@ assert.doesNotMatch(html, /class="cognitive-map-boundary"|id="cognitive-map-help
   '地图内不得保留解释性说明、操作教程或常驻图例');
 assert.doesNotMatch(js, /主题地图保持当前版本/,
   '固定版今日标题只保留事实数量，不显示版本解释');
-assert.match(js, /if \(cognitiveDemoState\.active\) \{\s*return \{ text: '', tone: '' \};\s*\}/,
-  '固定版不应显示常驻投影说明条');
+assert.match(js, /if \(cognitiveDemoState\.active && !cognitiveUsingLiveBackend\(\)\) \{\s*return \{ text: '', tone: '' \};\s*\}/,
+  '固定版不显示常驻投影说明条，真实运行时仍需提示快照日期');
 assert.doesNotMatch(html, /位置只表达已经建立的关系/,
   '不得把稳定排版坐标误写成关系语义');
 assert.doesNotMatch(css, /\.cognitive-peak(?::[^,{ ]+)?\s*\{[^}]*transform\s*:/s,
@@ -973,18 +1015,30 @@ assert.match(evidenceRiverCss,
   '手机宽度必须保留横向记录浏览，并限制单条宽度');
 
 const portraitUpdateSource = cognitiveSource.slice(
-  cognitiveSource.indexOf('function initCognitivePortraitUpdateControls()'),
+  cognitiveSource.indexOf('function syncCognitivePortraitUpdateControls('),
   cognitiveSource.indexOf('function initCognitiveHomeInteractions()')
 );
 assert.match(portraitUpdateSource,
-  /updateAt\.disabled = !autoUpdate\.checked/,
-  '自动更新开关当前只负责控制更新时间输入的界面状态');
+  /autoUpdate\.checked = Boolean\(hasSchedule && schedule\.enabled\)/,
+  '自动更新开关必须显示 Backend V2 投影中的真实计划状态');
 assert.match(portraitUpdateSource,
-  /autoUpdate\.addEventListener\('change', sync\)/,
-  '更新设置应在切换时即时反映');
+  /schedule\.hour[\s\S]*schedule\.minute[\s\S]*updateAt\.value/,
+  '更新时间必须来自同一份后端计划投影');
+assert.match(portraitUpdateSource,
+  /cognitiveBackendState\.runtimeSettings\?\.schedule \|\| home\?\.schedule/,
+  '在线页面必须优先复读本地 Runtime 的持久化计划设置');
+assert.match(portraitUpdateSource,
+  /runtimeTransport\?\.updateRuntimeSettings[\s\S]*autoUpdate\.disabled = !writable/,
+  '只有已连接的可写 Backend V2 才能启用计划开关');
+assert.match(portraitUpdateSource,
+  /addEventListener\('change'[\s\S]*updateRuntimeSettings\(\{[\s\S]*schedule: \{ enabled: requested \}/,
+  '计划开关必须通过后端设置接口持久化');
 assert.doesNotMatch(portraitUpdateSource,
-  /fetch|XMLHttpRequest|localStorage|indexedDB|writeContext|submit|Provider|DeepSeek/,
-  '当前自动更新设置不得写入数据、触发任务或调用模型');
+  /localStorage|indexedDB|writeContext|Provider|DeepSeek/,
+  '计划设置不得建立浏览器私有真相或触发模型');
+assert.match(cognitiveSource,
+  /const home = cognitiveHomeState\.home;[\s\S]{0,160}?syncCognitivePortraitUpdateControls\(home\)/,
+  '每次真实投影重绘都必须恢复后端日级计划状态');
 assert.match(js, /matchMedia\('\(max-width: 600px\)'\)/,
   '页面必须监听手机宽度断点');
 assert.match(cognitiveSource,

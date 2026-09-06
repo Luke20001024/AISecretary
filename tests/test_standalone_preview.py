@@ -1,11 +1,16 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.util
+import io
 import json
 import re
 import subprocess
+import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
+from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,7 +21,113 @@ GUIDE = ROOT / "docs" / "index.html"
 BUILDER = ROOT / "scripts" / "build_standalone_preview.py"
 
 
+def load_builder():
+    spec = importlib.util.spec_from_file_location("shared_demo_builder", BUILDER)
+    assert spec is not None and spec.loader is not None
+    builder = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(builder)
+    return builder
+
+
 class SharedDemoRuntimeTests(unittest.TestCase):
+    def test_public_build_rejects_installed_config_without_exposing_tokens(self) -> None:
+        builder = load_builder()
+        safe = (SOURCE / "cognitive-runtime-config.js").read_text(encoding="utf-8")
+        builder.validate_public_runtime_config(safe)
+        for config in (
+            "{mode:'fixture', token:'', publicPreview:true}",
+            "{mode:'v2_live', token:'private-test-token', publicPreview:true}",
+            "{mode:'fixture', token:'private-test-token', publicPreview:true}",
+            "{mode:'fixture', token:'', publicPreview:false}",
+            "{mode:'fixture', token:''}",
+            "{mode:'fixture', token:'', token:'private-test-token', publicPreview:true}",
+            safe.replace("mode: 'fixture'", "mode: 'v2_live'"),
+            safe.replace("token: ''", "token: 'private-test-token'"),
+            safe.replace("publicPreview: true", "publicPreview: true, \"publicPreview\": false"),
+            safe.replace("token: ''", "token: '', \"token\": 'private-test-token'"),
+            safe.replace("baseUrl: ''", "baseUrl: 'http://127.0.0.1:4318'"),
+            safe + "\nwindow.MementoRuntimeConfig = {mode:'v2_live'};",
+            "/*" + safe + "*/\nwindow.MementoRuntimeConfig = {mode:'v2_live'};",
+        ):
+            with self.subTest(config=config), self.assertRaises(ValueError) as error:
+                builder.validate_public_runtime_config(config)
+            self.assertNotIn("private-test-token", str(error.exception))
+
+    def test_output_gate_rejects_unknown_entries_without_writing(self) -> None:
+        builder = load_builder()
+        for kind in ("directory", "file", "link", "allowed-name-link"):
+            with self.subTest(kind=kind), tempfile.TemporaryDirectory() as directory:
+                base = Path(directory)
+                target = base / "demo"
+                target.mkdir()
+                entry = target / "dashboard.html"
+                external = base / "private.txt"
+                external.write_bytes(b"private-marker")
+                if kind == "allowed-name-link":
+                    entry.symlink_to(external)
+                else:
+                    entry.write_bytes(b"previous publication")
+                    unexpected = target / "unexpected"
+                    if kind == "directory":
+                        unexpected.mkdir()
+                        (unexpected / "private.txt").write_bytes(b"private-marker")
+                    elif kind == "link":
+                        unexpected.symlink_to(external)
+                    else:
+                        unexpected.write_bytes(b"private-marker")
+                with mock.patch.object(builder, "OUTPUT_DIR", target):
+                    outputs = {entry: b"new publication"}
+                    with redirect_stdout(io.StringIO()):
+                        self.assertEqual(builder.check(outputs), 1)
+                    with self.assertRaises(ValueError):
+                        builder.write(outputs)
+                self.assertEqual(external.read_bytes(), b"private-marker")
+                if kind == "allowed-name-link":
+                    self.assertTrue(entry.is_symlink())
+                else:
+                    self.assertEqual(entry.read_bytes(), b"previous publication")
+                    self.assertTrue(unexpected.exists())
+
+    def test_output_gate_rejects_linked_root_and_legacy_redirect(self) -> None:
+        builder = load_builder()
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            external = base / "external"
+            external.mkdir()
+            linked_root = base / "demo"
+            linked_root.symlink_to(external, target_is_directory=True)
+            with mock.patch.object(builder, "OUTPUT_DIR", linked_root):
+                outputs = {linked_root / "dashboard.html": b"new publication"}
+                with redirect_stdout(io.StringIO()):
+                    self.assertEqual(builder.check(outputs), 1)
+                with self.assertRaises(ValueError):
+                    builder.write(outputs)
+            self.assertEqual(list(external.iterdir()), [])
+            target = base / "ordinary-demo"
+            legacy = base / "legacy.html"
+            original = external / "private.txt"
+            original.write_bytes(b"private-marker")
+            legacy.symlink_to(original)
+            with mock.patch.object(builder, "OUTPUT_DIR", target):
+                outputs = {target / "dashboard.html": b"new publication", legacy: b"redirect"}
+                with self.assertRaises(ValueError):
+                    builder.write(outputs)
+            self.assertFalse(target.exists())
+            self.assertEqual(original.read_bytes(), b"private-marker")
+
+    def test_canonical_sources_must_not_be_symbolic_links(self) -> None:
+        builder = load_builder()
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory)
+            private = source / "private.txt"
+            private.write_bytes(b"private-marker")
+            (source / "dashboard.js").symlink_to(private)
+            with mock.patch.object(builder, "SOURCE_DIR", source), mock.patch.object(
+                builder, "RUNTIME_FILES", ("dashboard.js",)
+            ):
+                with self.assertRaises(FileNotFoundError):
+                    builder.source_digest()
+
     def test_shared_runtime_is_current_and_byte_identical(self) -> None:
         subprocess.run(
             ["python3", str(BUILDER), "--check"],

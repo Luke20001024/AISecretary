@@ -32,6 +32,13 @@ for source in docs/demo/*.js; do
   node --check "$source" >/dev/null
 done
 node tests/test_preview_demo_fixture.js >/dev/null
+node tests/test_public_demo_runtime.js >/dev/null
+node tests/test_product_guide_install_cta.js >/dev/null
+node tests/test_product_guide_fullscreen.js >/dev/null
+node tests/test_record_browser.js >/dev/null
+node tests/test_record_browser_dashboard.js >/dev/null
+node tests/test_ui_home_clarity.js >/dev/null
+node tests/test_ui_detail_clarity.js >/dev/null
 
 python3 - <<'PY'
 import json
@@ -44,8 +51,9 @@ assert runtime['version'] == manifest['version'] == '0.10.1'
 assert runtime['source'] == 'chrome-newtab'
 for name in runtime['files']:
     assert (root / 'chrome-newtab' / name).read_bytes() == (root / 'docs/demo' / name).read_bytes(), name
-for key in ('permissions', 'host_permissions', 'background', 'content_scripts', 'externally_connectable'):
+for key in ('permissions', 'background', 'content_scripts', 'externally_connectable'):
     assert not manifest.get(key), key
+assert manifest.get('host_permissions') == ['http://127.0.0.1:4318/*']
 PY
 
 bash tests/test_newtab_demo_package.sh >/dev/null

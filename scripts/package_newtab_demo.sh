@@ -62,9 +62,11 @@ manifest = json.load(open(sys.argv[1], encoding='utf-8'))
 assert manifest['manifest_version'] == 3
 assert manifest['chrome_url_overrides']['newtab'] == 'dashboard.html'
 assert manifest['version'].count('.') >= 1
-for key in ('permissions', 'host_permissions', 'background', 'content_scripts', 'externally_connectable'):
+for key in ('permissions', 'background', 'content_scripts', 'externally_connectable'):
     if key in manifest and manifest[key]:
         raise AssertionError(f'Preview manifest must not declare {key}')
+if manifest.get('host_permissions') != ['http://127.0.0.1:4318/*']:
+    raise AssertionError('Preview manifest may only access the Memento loopback runtime')
 PY
 
 if [ "${MEMENTO_REQUIRE_RELEASE_TAG:-0}" = "1" ]; then

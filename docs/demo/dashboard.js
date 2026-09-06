@@ -12,6 +12,29 @@
 // 0. IndexedDB · 存放 directoryHandle
 // =============================================================
 
+// This explicit release flag outranks saved feature modes and installed tokens.
+// The installer writes a separate configuration without publicPreview.
+const COGNITIVE_PUBLIC_PREVIEW = window.MementoRuntimeConfig?.publicPreview === true;
+
+function cognitiveIsPublicPreview() {
+  return COGNITIVE_PUBLIC_PREVIEW;
+}
+
+function cognitiveRequireLocalRuntime() {
+  if (cognitiveIsPublicPreview()) {
+    throw new Error('在线体验仅使用示例数据；采集、AI 整理与本地数据操作需在安装版使用。');
+  }
+}
+
+function cognitiveConfiguredBackendMode(dataSourceLibrary) {
+  if (cognitiveIsPublicPreview()) return 'fixture';
+  const runtimeConfig = window.MementoRuntimeConfig || {};
+  const hasInstalledRuntime = runtimeConfig.mode === 'v2_live'
+    && typeof runtimeConfig.token === 'string'
+    && runtimeConfig.token.length >= 32;
+  return hasInstalledRuntime ? 'v2_live' : dataSourceLibrary.readFeatureMode();
+}
+
 const DB_NAME = 'aisecretary';
 const STORE = 'handles';
 const HANDLE_KEY = 'dir';
@@ -20,6 +43,7 @@ const CACHE_FIRST_DECISION_MS = 250;
 const CACHE_CONTEXT_GRACE_MS = 250;
 
 function openDB() {
+  cognitiveRequireLocalRuntime();
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, 1);
     req.onupgradeneeded = () => req.result.createObjectStore(STORE);
@@ -72,10 +96,10 @@ async function loadHandle() {
   });
 }
 
-const dashboardCacheRepository = window.MementoDashboardCache
+const dashboardCacheRepository = !cognitiveIsPublicPreview() && window.MementoDashboardCache
   ? window.MementoDashboardCache.createRepository({ openDB })
   : null;
-const photoThumbnailCacheRepository = window.MementoPhotoCache
+const photoThumbnailCacheRepository = !cognitiveIsPublicPreview() && window.MementoPhotoCache
   ? window.MementoPhotoCache.createRepository()
   : null;
 const CORE_REFRESH_CHANNEL_NAME = 'memento.dashboard.core-refresh.events.v1';
@@ -120,12 +144,15 @@ async function persistBrowserStorage() {
 // =============================================================
 
 async function queryRead(handle) {
+  cognitiveRequireLocalRuntime();
   return handle.queryPermission({ mode: 'read' });
 }
 async function requestRead(handle) {
+  cognitiveRequireLocalRuntime();
   return handle.requestPermission({ mode: 'read' });
 }
 async function pickFolder() {
+  cognitiveRequireLocalRuntime();
   return window.showDirectoryPicker({ mode: 'read' });
 }
 async function persistSelectedDirectoryHandle(handle, preparedSelection = null, onEventuallyPersisted = null) {
@@ -746,8 +773,11 @@ const cognitiveHomeState = {
   readId: 0,
   status: 'idle', // idle / loading / authorizing / ready / missing / legacy / invalid
   home: null,
+  todayHome: null,
   landscape: null,
   landscapeSha256: '',
+  runtimeLocalDate: '',
+  snapshotLocalDate: '',
   recordLocators: new Map(),
   candidate: null,
   stale: false,
@@ -774,6 +804,23 @@ const cognitiveDemoState = {
   active: false,
   fixture: null,
   rawRecordsById: new Map(),
+};
+const cognitiveBackendState = {
+  mode: 'fixture',
+  source: null,
+  runtimeTransport: null,
+  runtimeSettings: null,
+  runtimeActivity: null,
+  runtimeActivityRefreshError: '',
+  learningActivity: null,
+  v2Home: null,
+  verifiedThemes: new Map(),
+  actionClient: null,
+  fallbackReason: '',
+};
+const cognitiveRecordBrowserState = {
+  page: 'home', mode: 'tags', tag: null, tagQuery: '', range: 'all', limit: 40,
+  scroll: {home: 0, records: 0}, tagsInitialized: false,
 };
 const COGNITIVE_MAP_BOUNDS = Object.freeze({ x: 0, y: 0, width: 1100, height: 520 });
 const COGNITIVE_MAP_MIN_ZOOM = 1;
@@ -984,7 +1031,7 @@ function cognitiveUpdateAtlasHud(svg) {
 
 function cognitiveApplyMapCamera({ clamp = true } = {}) {
   const svg = document.getElementById('cognitive-landscape-map');
-  if (!svg) return;
+  if (!svg || document.getElementById('cognitive-home-view')?.hidden) return;
   if (clamp) cognitiveClampMapCamera(svg);
   const width = COGNITIVE_MAP_BOUNDS.width / cognitiveMapCameraState.zoom;
   const height = COGNITIVE_MAP_BOUNDS.height / cognitiveMapCameraState.zoom;
@@ -1156,6 +1203,61 @@ function cognitiveDemoSyncTodayCounts() {
   }
 }
 
+function cognitiveUsingLiveBackend() {
+  return cognitiveDemoState.fixture?.mode === 'v2_live';
+}
+
+function cognitiveRuntimeLocalDate(fixture) {
+  if (fixture?.mode !== 'v2_live') {
+    return fixture?.window?.end || fixture?.home?.local_date || getLocalDate();
+  }
+  const value = String(fixture.runtimeLocalDate || '');
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : getLocalDate();
+}
+
+function cognitiveTodayView(home, runtimeLocalDate, enforceCurrentDay = true) {
+  if (!enforceCurrentDay) {
+    return {
+      home,
+      stale: false,
+      snapshotLocalDate: home.local_date,
+      runtimeLocalDate,
+    };
+  }
+  const library = window.MementoCognitiveV2DataSource;
+  if (!library || typeof library.resolveTodayView !== 'function') {
+    throw new Error('今日日期投影模块未加载');
+  }
+  return library.resolveTodayView(home, runtimeLocalDate);
+}
+
+function cognitiveReadableLocalDate(value) {
+  const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return match ? `${Number(match[2])}月${Number(match[3])}日` : String(value || '');
+}
+
+function cognitiveAttachBridgeRecordMetadata(fixture) {
+  if (!fixture?.home || !Array.isArray(fixture.home.records) || !Array.isArray(fixture.records)) {
+    return fixture;
+  }
+  const metadataById = new Map(fixture.records.map(record => [record.record_ref?.id || record.id, record]));
+  const records = fixture.home.records.map(record => {
+    const metadata = metadataById.get(record.record_ref.id);
+    if (!metadata) return record;
+    return {
+      ...record,
+      summary_kind: metadata.summary_kind || 'interpretation',
+      summary_scope: metadata.summary_scope || null,
+      authorship: metadata.authorship || null,
+      relation_to_user: metadata.relation_to_user || null,
+      cognitive_signal: metadata.cognitive_signal || null,
+      memory_state: metadata.memory_state || null,
+      dispatch_actions: Array.isArray(metadata.dispatch_actions) ? [...metadata.dispatch_actions] : [],
+    };
+  });
+  return { ...fixture, home: { ...fixture.home, records } };
+}
+
 const directoryLoadGate = window.MementoDirectoryAccess.createGenerationGate();
 let selectionEpoch = 0;
 
@@ -1208,8 +1310,11 @@ function resetCognitiveHomeState() {
   cognitiveHomeState.readId += 1;
   cognitiveHomeState.status = 'idle';
   cognitiveHomeState.home = null;
+  cognitiveHomeState.todayHome = null;
   cognitiveHomeState.landscape = null;
   cognitiveHomeState.landscapeSha256 = '';
+  cognitiveHomeState.runtimeLocalDate = '';
+  cognitiveHomeState.snapshotLocalDate = '';
   cognitiveHomeState.recordLocators = new Map();
   cognitiveHomeState.verifiedReceipts = new Map();
   cognitiveHomeState.verifiedMemories = new Map();
@@ -1642,6 +1747,7 @@ function failCognitiveHomeAuthority(error) {
   console.warn('认知主页投影未通过当前 head 授权，继续使用记录主页', error);
   cognitiveHomeState.status = 'invalid';
   cognitiveHomeState.home = null;
+  cognitiveHomeState.todayHome = null;
   cognitiveHomeState.landscape = null;
   cognitiveHomeState.landscapeSha256 = '';
   cognitiveHomeState.recordLocators = new Map();
@@ -1683,15 +1789,20 @@ function finalizeCognitiveHomeAuthority() {
     cognitiveHomeLibrary().validateProjectionAuthority(
       candidate.home, candidate.landscape, authority
     );
+    const runtimeLocalDate = getLocalDate();
+    const todayView = cognitiveTodayView(candidate.home, runtimeLocalDate);
     cognitiveHomeState.status = 'ready';
     cognitiveHomeState.home = candidate.home;
+    cognitiveHomeState.todayHome = todayView.home;
     cognitiveHomeState.landscape = candidate.landscape;
     cognitiveHomeState.landscapeSha256 = candidate.landscapeSha256;
+    cognitiveHomeState.runtimeLocalDate = todayView.runtimeLocalDate;
+    cognitiveHomeState.snapshotLocalDate = todayView.snapshotLocalDate;
     cognitiveHomeState.recordLocators = candidate.authorityBase.recordLocators;
     cognitiveHomeState.verifiedReceipts = candidate.authorityBase.receiptRevisions;
     cognitiveHomeState.verifiedMemories = candidate.authorityBase.memoryRevisions;
     cognitiveHomeState.verifiedRelations = candidate.authorityBase.relationRevisions;
-    cognitiveHomeState.stale = candidate.home.local_date !== getLocalDate();
+    cognitiveHomeState.stale = todayView.stale;
     cognitiveHomeState.issue = '';
     renderDashboard();
   } catch (error) {
@@ -1726,6 +1837,7 @@ async function refreshCognitiveHomeProjection(handle, generation) {
     if (!homeResult.exists) {
       cognitiveHomeState.status = 'missing';
       cognitiveHomeState.home = null;
+      cognitiveHomeState.todayHome = null;
       cognitiveHomeState.landscape = null;
       cognitiveHomeState.recordLocators = new Map();
       cognitiveHomeState.verifiedReceipts = new Map();
@@ -1738,6 +1850,7 @@ async function refreshCognitiveHomeProjection(handle, generation) {
     if (cognitiveProjectionIsLegacy(homeResult.value)) {
       cognitiveHomeState.status = 'legacy';
       cognitiveHomeState.home = null;
+      cognitiveHomeState.todayHome = null;
       cognitiveHomeState.landscape = null;
       cognitiveHomeState.recordLocators = new Map();
       cognitiveHomeState.verifiedReceipts = new Map();
@@ -1768,6 +1881,7 @@ async function refreshCognitiveHomeProjection(handle, generation) {
         || !directoryLoadGate.isCurrent(generation)) return;
     cognitiveHomeState.status = 'authorizing';
     cognitiveHomeState.home = null;
+    cognitiveHomeState.todayHome = null;
     cognitiveHomeState.landscape = null;
     cognitiveHomeState.landscapeSha256 = '';
     cognitiveHomeState.recordLocators = new Map();
@@ -1788,6 +1902,7 @@ async function refreshCognitiveHomeProjection(handle, generation) {
     console.warn('认知主页投影未通过校验，继续使用记录主页', error);
     cognitiveHomeState.status = 'invalid';
     cognitiveHomeState.home = null;
+    cognitiveHomeState.todayHome = null;
     cognitiveHomeState.landscape = null;
     cognitiveHomeState.landscapeSha256 = '';
     cognitiveHomeState.recordLocators = new Map();
@@ -1892,19 +2007,249 @@ function cognitiveThemeCandidate(value, maximum) {
 }
 
 function cognitivePeakScope(peak, index) {
+  const theme = cognitiveLiveTheme(peak);
+  if (theme) return theme.scope || theme.title;
   const memory = cognitiveVerifiedUnderstanding(peak.understanding_ref);
   return memory?.scope?.trim() || `长期理解 ${String(index + 1).padStart(2, '0')}`;
 }
 
 function cognitivePeakTitle(peak, index) {
+  const theme = cognitiveLiveTheme(peak);
+  if (theme) return cognitiveThemeCandidate(theme.title, 18) || '未命名主题';
   const memory = cognitiveVerifiedUnderstanding(peak.understanding_ref);
   return cognitiveThemeCandidate(memory?.title, 18)
     || `长期理解 ${String(index + 1).padStart(2, '0')}`;
 }
 
 function cognitivePeakStatement(peak) {
+  const theme = cognitiveLiveTheme(peak);
+  if (theme) return theme.statement || '';
   const memory = cognitiveVerifiedUnderstanding(peak.understanding_ref);
   return memory?.statement || memory?.title || '';
+}
+
+function cognitiveLiveTheme(peak) {
+  if (!cognitiveUsingLiveBackend()) return null;
+  const theme = cognitiveBackendState.verifiedThemes.get(peak.understanding_ref.id);
+  return theme && theme.ref.revision === peak.understanding_ref.revision
+    && theme.ref.revision_sha256 === peak.understanding_ref.revision_sha256 ? theme : null;
+}
+
+function cognitiveGrowthStageLabel(stage) {
+  return ({ idle: '等待新证据', queued: '等待处理', completed: '已更新',
+    no_change: '已检查 · 暂无升级', retry_wait: '更新失败 · 待重试',
+    failed: '更新失败', rejected: '处理未完成', conflict: '输入已变化',
+    disabled: '自动整理已关闭' })[stage?.state] || '尚无运行记录';
+}
+
+function renderCognitiveGrowthActivity(todayHome) {
+  const live = cognitiveUsingLiveBackend();
+  const box = document.getElementById('cognitive-growth-status');
+  const strip = document.getElementById('cognitive-learning-strip');
+  const scope = document.getElementById('cognitive-update-scope');
+  if (!box || !strip) return;
+  const activity = cognitiveBackendState.runtimeActivity;
+  const refreshError = cognitiveBackendState.runtimeActivityRefreshError;
+  box.hidden = !live || (!activity && !refreshError);
+  // Material grouping now lives in the record browser, outside the terrain.
+  strip.hidden = true;
+  if (scope) scope.hidden = !live && !cognitiveIsPublicPreview();
+  document.querySelector('.cognitive-today-section')?.classList.toggle(
+    'is-today-empty', live && !todayHome.records.length
+  );
+  if (!live) return;
+  const feedback = document.getElementById('cognitive-growth-feedback');
+  feedback.textContent = refreshError ? '认知结果仍已保留。请通过顶部「连接管理」重新连接，再查看整理进度。' : '';
+  feedback.hidden = !refreshError;
+  const snapshot = document.getElementById('cognitive-growth-snapshot');
+  snapshot.textContent = cognitiveHomeState.stale
+    ? `认知快照更新至 ${cognitiveReadableLocalDate(cognitiveHomeState.snapshotLocalDate)}；新结果完整发布前继续保留此版本。` : '';
+  snapshot.hidden = !snapshot.textContent;
+  box.classList.toggle('has-issue', Boolean(refreshError));
+  document.getElementById('cognitive-growth-stages').hidden = Boolean(refreshError);
+  if (activity) {
+    const labels = { daily: '日级整理', theme: '主题地图', self: '她理解的我' };
+    const failed = Object.keys(labels).some(key => ['failed', 'retry_wait', 'conflict', 'rejected'].includes(activity[key]?.state));
+    box.classList.toggle('has-issue', failed);
+    document.getElementById('cognitive-growth-summary').textContent = failed
+      ? '整理异常 · 原有结果已保留'
+      : activity.theme?.last_change_at
+        ? `更新于 ${cognitiveDateTimeLabel(activity.theme.last_change_at)}` : '等待新证据';
+    document.getElementById('cognitive-growth-stages').innerHTML = Object.entries(labels).map(([key, name]) => {
+      const item = activity[key] || {};
+      const when = value => value ? escapeHtml(cognitiveDateTimeLabel(value)) : '尚无记录';
+      const next = item.next_run_at ? `下次：${when(item.next_run_at)}`
+        : item.state === 'failed' ? '本轮已停止自动尝试；等待新的有效输入'
+          : '有上游新证据后处理';
+      const reason = item.reason_code?.includes('provider') ? '模型调用未完成，原有结果已保留。'
+        : item.state === 'no_change' ? '已检查当前输入，未新增正式记忆或理解。' : '';
+      return `<article><strong>${name}</strong><span>${escapeHtml(cognitiveGrowthStageLabel(item))}</span>
+        <small>最近检查：${when(item.last_finished_at)}<br>最近有新增：${when(item.last_change_at)}<br>${next}</small>
+        ${reason ? `<small>${reason}</small>` : ''}</article>`;
+    }).join('');
+  }
+  // This header disclosure owns update timestamps; never repeat them below the title.
+  if (!box.hidden) {
+    const caption = document.getElementById('cognitive-landscape-caption');
+    caption.textContent = '';
+    caption.hidden = true;
+  }
+  if (refreshError) {
+    box.classList.add('has-issue');
+    document.getElementById('cognitive-growth-summary').textContent = refreshError;
+  }
+}
+
+function cognitiveBrowserRecords() {
+  const records = cognitiveDemoState.fixture?.records || cognitiveHomeState.home?.records || [];
+  const enriched = records.map(record => {
+    const themes = (record.understanding_refs || []).map(ref => {
+      const peak = cognitivePeakById(ref.id);
+      return peak ? cognitivePeakTitle(peak, cognitivePeakIndex(peak)) : '';
+    }).filter(Boolean);
+    return {
+      ...record,
+      source_app: record.source_app || COGNITIVE_SOURCE_LABELS[record.source_type],
+      themeTitles: themes,
+      detailAvailable: record.detailAvailable !== false
+        && Boolean(cognitiveRecordById(record.id || record.recordId || record.record_ref?.id)),
+    };
+  });
+  // Recently saved heads can precede the published bundle. Keep them visible,
+  // but never open old/unverified content as their detail or invent tags.
+  if (cognitiveUsingLiveBackend()) {
+    for (const record of cognitiveBackendState.learningActivity?.recent_records || []) {
+      enriched.push({...record, detailAvailable: false});
+    }
+  }
+  return enriched;
+}
+
+function cognitiveRecordBrowserItem(record) {
+  const summaryStatus = record.summaryState === 'ready' ? '摘要已完成'
+    : record.summaryState === 'preview' ? '原文预览 · 待整理' : '等待摘要';
+  const destination = record.themeTitles.length
+    ? `已关联主题：${record.themeTitles.join(' · ')}` : '尚未关联认知主题';
+  const readable = record.summary || (record.detailAvailable
+    ? '暂无可读文字 · 查看原始记录' : '原文已保存 · 摘要待整理');
+  return `<button type="button" class="cognitive-record-browser-item"
+      ${record.detailAvailable ? `data-cognitive-browser-record="${escapeHtml(record.id)}"`
+        : 'disabled aria-disabled="true"'}>
+    <span class="cognitive-record-browser-meta"><time>${escapeHtml(record.time || '时间未标注')}</time>
+      <span>${escapeHtml(record.source)}</span><span>${summaryStatus}</span></span>
+    <span class="cognitive-record-browser-digest">${escapeHtml(readable)}</span>
+    <span class="cognitive-record-browser-tags">${record.tags.length
+      ? record.tags.map(tag => `<span>#${escapeHtml(tag)}</span>`).join('') : '<span>未分类</span>'}</span>
+    <span class="cognitive-record-browser-foot">${record.detailAvailable
+      ? escapeHtml(destination) + ' · 查看原文与整理结果 →'
+      : '记录已保存 · 详情等待下一份完整快照发布'}</span>
+  </button>`;
+}
+
+function renderCognitiveRecordBrowser() {
+  const root = document.getElementById('cognitive-records-view');
+  const library = window.MementoCognitiveRecordBrowser;
+  if (!root || !library) return;
+  const browser = cognitiveRecordBrowserState;
+  const view = library.buildView(cognitiveBrowserRecords(), {
+    ...browser, today: cognitiveHomeState.runtimeLocalDate,
+  });
+  const panel = document.getElementById('cognitive-record-tags-panel');
+  panel.hidden = browser.mode !== 'tags';
+  if (!browser.tagsInitialized && browser.mode === 'tags') {
+    panel.open = !window.matchMedia('(max-width: 760px)').matches;
+    browser.tagsInitialized = true;
+  }
+  const tags = [{key: '', label: '全部记录', count: view.totalCount}, ...view.tags];
+  const query = browser.tagQuery.trim().toLocaleLowerCase('zh-CN');
+  const matchingTags = tags.filter(tag => !tag.key || tag.label.toLocaleLowerCase('zh-CN').includes(query));
+  document.getElementById('cognitive-record-tags').innerHTML = matchingTags.map(tag => `
+    <button type="button" class="cognitive-record-tag-button" data-cognitive-record-tag="${escapeHtml(tag.key)}"
+      aria-pressed="${(browser.tag || '') === tag.key}"><span>${escapeHtml(tag.label)}</span>
+      <span>${tag.count}</span></button>`).join('') + (query && matchingTags.length === 1
+        ? '<p class="cognitive-drawer-muted" role="status">没有匹配的标签，可以换个词试试。</p>' : '');
+  const search = document.getElementById('cognitive-record-tag-search');
+  if (search && search.value !== browser.tagQuery) search.value = browser.tagQuery;
+  const selected = view.tags.find(tag => tag.key === browser.tag);
+  const selectedLabel = selected?.label || (browser.tag === '__untagged__' ? '未分类' : browser.tag);
+  panel.querySelector('summary span').textContent = `资料标签 · ${selectedLabel || '全部记录'}`;
+  const rangeLabel = {'all': '全部', '7': '最近 7 天', '30': '最近 30 天'}[browser.range];
+  document.getElementById('cognitive-records-count').textContent =
+    `${rangeLabel} ${view.totalCount} 条记录${browser.mode === 'tags' && browser.tag ? ` · ${selectedLabel} ${view.visibleCount} 条` : ''}`;
+  document.getElementById('cognitive-record-range').value = browser.range;
+  document.querySelectorAll('[data-cognitive-record-mode]').forEach(button => {
+    button.setAttribute('aria-pressed', String(button.dataset.cognitiveRecordMode === browser.mode));
+  });
+  let remaining = browser.limit;
+  const groups = view.groups.map(group => {
+    const records = group.records.slice(0, remaining);
+    remaining = Math.max(0, remaining - records.length);
+    if (!records.length) return '';
+    return `<h3 class="cognitive-record-browser-day">${escapeHtml(group.date || '日期未标注')}
+      <small>${group.records.length} 条</small></h3>${records.map(cognitiveRecordBrowserItem).join('')}`;
+  }).join('');
+  document.getElementById('cognitive-record-results').innerHTML = view.visibleCount
+    ? `<div class="cognitive-record-browser-list">${groups}</div>${view.visibleCount > browser.limit
+      ? `<button type="button" class="cognitive-record-browser-more" data-cognitive-record-more>继续查看 · 还有 ${view.visibleCount - browser.limit} 条</button>` : ''}`
+    : `<div class="cognitive-record-browser-empty"><h3>${browser.tag && browser.mode === 'tags'
+      ? '这个时间范围内没有该标签的记录' : browser.range === 'all' ? '还没有留下记录' : '这个时间范围内没有记录'}</h3>
+      <p>${browser.range === 'all' && !browser.tag ? '使用现有采集快捷键留下第一条记录。'
+        : '可以选择其他标签或将时间范围切换为全部记录。'}</p></div>`;
+}
+
+function applyCognitivePage() {
+  const page = cognitiveRecordBrowserState.page;
+  const home = document.getElementById('cognitive-home-view');
+  const records = document.getElementById('cognitive-records-view');
+  if (!home || !records) return;
+  home.hidden = page !== 'home';
+  records.hidden = page !== 'records';
+  const summary = document.getElementById('cognitive-home-summary');
+  if (summary) summary.hidden = page === 'records';
+  document.querySelectorAll('[data-cognitive-page]').forEach(button => {
+    button.setAttribute('aria-pressed', String(button.dataset.cognitivePage === page));
+  });
+  if (page === 'records') renderCognitiveRecordBrowser();
+}
+
+function switchCognitivePage(page, {updateHistory = true, focus = true} = {}) {
+  if (!['home', 'records'].includes(page) || page === cognitiveRecordBrowserState.page) return;
+  const browser = cognitiveRecordBrowserState;
+  browser.scroll[browser.page] = window.scrollY;
+  closeCognitiveChainDrawer(false);
+  closeCognitiveOutputPopover(false);
+  document.getElementById('cognitive-connection-menu').open = false;
+  const growthMenu = document.getElementById('cognitive-growth-status');
+  if (growthMenu) growthMenu.open = false;
+  browser.page = page;
+  applyCognitivePage();
+  if (updateHistory) window.history.pushState(null, '', page === 'records' ? '#records' : '#home');
+  requestAnimationFrame(() => {
+    window.scrollTo({top: browser.scroll[page], behavior: 'instant'});
+    if (page === 'home') cognitiveApplyMapCamera();
+    if (focus) (page === 'records' ? document.getElementById('cognitive-records-title')
+      : document.getElementById('cognitive-home-action')).focus({preventScroll: true});
+  });
+}
+
+function cognitiveLearningDrawer(identifier) {
+  const activity = cognitiveBackendState.learningActivity;
+  if (!activity) return null;
+  const group = activity.groups.find(item => item.id === identifier);
+  const records = activity.recent_records.filter(item => !group || item.group_id === group.id);
+  return {
+    eyebrow: '近期积累 · 可回溯资料',
+    title: group?.title || '最近 7 天的记录',
+    body: `<section class="cognitive-drawer-section"><p>${escapeHtml(group?.reason || '摘要已保留；资料积累与个人记忆升级分别处理。')}</p>
+      <p class="cognitive-drawer-muted">${escapeHtml(activity.window.start)} — ${escapeHtml(activity.window.end)} · ${records.length} 条</p>
+      <ol class="cognitive-learning-records">${records.map(record => `<li>
+        <small>${escapeHtml(record.local_date)} · ${escapeHtml(record.source_app || record.source_type)}</small>
+        ${cognitiveRecordById(record.record_id)
+          ? `<button type="button" data-demo-open-record="${escapeHtml(record.record_id)}">${escapeHtml(record.summary || '摘要尚未完成 · 查看原文')}</button>`
+          : `<button type="button" disabled aria-disabled="true">${escapeHtml(record.summary || '摘要尚未完成')}</button><small>记录已保存；详情等待下一份快照发布，稍后重新连接查看。</small>`}
+        <p>${escapeHtml(record.reason)}</p></li>`).join('')}</ol></section>`,
+    foot: '点击记录查看原文与整理结果。等待确认只暂停个人记忆升级，不影响阅读。',
+  };
 }
 
 function cognitivePeakForUnderstanding(ref) {
@@ -1945,7 +2290,7 @@ function cognitiveDateTimeLabel(value) {
 
 function cognitiveTodayHeadline(home) {
   if (cognitiveDemoState.active) {
-    return `<strong>今天 ${home.today_status.saved} 条记录</strong>`;
+    return ''; // The adjacent saved count already supplies today's record total.
   }
   const label = COGNITIVE_DAILY_STATUS_LABELS[home.today_status.daily_run_status] || '今日状态未知';
   const next = home.schedule.enabled
@@ -1955,7 +2300,7 @@ function cognitiveTodayHeadline(home) {
 }
 
 function cognitiveProjectionNotice(home) {
-  if (cognitiveDemoState.active) {
+  if (cognitiveDemoState.active && !cognitiveUsingLiveBackend()) {
     return { text: '', tone: '' };
   }
   const messages = [];
@@ -1964,7 +2309,7 @@ function cognitiveProjectionNotice(home) {
     messages.push(cognitiveHomeState.actionNotice);
     tone = cognitiveHomeState.actionNoticeTone;
   }
-  if (cognitiveHomeState.stale) {
+  if (cognitiveHomeState.stale && !cognitiveUsingLiveBackend()) {
     messages.push(`当前显示 ${home.local_date} 的上一份已校验投影；今天的投影尚未可用。`);
     tone = 'is-warning';
   }
@@ -1973,17 +2318,19 @@ function cognitiveProjectionNotice(home) {
     messages.push(COGNITIVE_WARNING_LABELS[warning] || '有一项本地结果未进入本次投影。');
     tone = 'is-warning';
   }
-  if (home.today_status.daily_run_status === 'running') {
+  const activityOwnsRunState = cognitiveUsingLiveBackend()
+    && Boolean(cognitiveBackendState.runtimeActivity);
+  if (!activityOwnsRunState && home.today_status.daily_run_status === 'running') {
     messages.push('今天的归并仍在进行；地景继续显示上一份已提交结果。');
   }
-  if (home.today_status.daily_run_status === 'no_receipts') {
+  if (!activityOwnsRunState && home.today_status.daily_run_status === 'no_receipts') {
     messages.push('今天有记录尚未完成逐条整理；地景继续显示上一份已提交结果。');
     tone = 'is-warning';
   }
-  if (home.today_status.daily_run_status === 'no_candidate') {
+  if (!activityOwnsRunState && home.today_status.daily_run_status === 'no_candidate') {
     messages.push('今日记录已检查，本次没有形成可归并内容。');
   }
-  if (['error', 'budget_exhausted'].includes(home.today_status.daily_run_status)) {
+  if (!activityOwnsRunState && ['error', 'budget_exhausted'].includes(home.today_status.daily_run_status)) {
     messages.push('今天的归并尚未形成新的提交；原始记录仍已保留。');
     tone = 'is-error';
   }
@@ -2133,16 +2480,24 @@ function renderCognitiveHome() {
   if (!ready) return;
 
   const home = cognitiveHomeState.home;
+  syncCognitivePortraitUpdateControls(home);
+  const todayHome = cognitiveUsingLiveBackend()
+    ? window.MementoCognitiveV2DataSource.resolveActivityToday(
+      home, cognitiveHomeState.runtimeLocalDate, cognitiveBackendState.runtimeActivity
+    ).home : cognitiveHomeState.todayHome || home;
   const landscape = cognitiveHomeState.landscape;
   const homeSummary = document.getElementById('cognitive-home-summary');
   if (cognitiveDemoState.active) {
     const fixture = cognitiveDemoState.fixture;
     const themeCount = fixture?.themes?.length || landscape.peaks.length;
-    const changeCount = fixture?.changes?.length || landscape.summary.recent_changes;
+    const changeCount = cognitiveUsingLiveBackend()
+      ? window.MementoCognitiveV2DataSource.changesInWindow(
+        cognitiveBackendState.v2Home?.recent_changes, cognitiveHomeState.runtimeLocalDate
+      ).length : fixture?.changes?.length || landscape.summary.recent_changes;
     const recordCount = fixture?.stats?.totalRecords || fixture?.records?.length || 0;
     homeSummary.innerHTML = `
       <span><strong>${themeCount}</strong> 个聚合主题</span>
-      <span><strong>${changeCount}</strong> 项近期变化</span>
+      <span><strong>${changeCount}</strong> ${cognitiveUsingLiveBackend() ? '项近 7 天变化' : '项近期变化'}</span>
       <span><strong>${recordCount}</strong> 条记录</span>`;
   } else {
     homeSummary.innerHTML = `
@@ -2159,19 +2514,28 @@ function renderCognitiveHome() {
   notice.hidden = !noticeValue.text;
   notice.className = `cognitive-projection-notice${noticeValue.tone ? ` ${noticeValue.tone}` : ''}`;
 
-  document.getElementById('cognitive-landscape-caption').textContent = cognitiveDemoState.active
-    ? ''
-    : landscape.peaks.length
-      ? '山峰来自当前 active 的长期理解；点和连线只来自已提交对象。'
-      : '还没有足够证据形成长期理解；今天的记录仍会继续被保留和整理。';
-  document.getElementById('cognitive-today-caption').textContent = cognitiveDemoState.active
-    ? ''
-    : cognitiveHomeState.stale
-      ? `${home.local_date} 的逐条整理回执。主页没有把它误标成今天。`
+  const landscapeCaption = document.getElementById('cognitive-landscape-caption');
+  landscapeCaption.textContent = cognitiveUsingLiveBackend() && cognitiveHomeState.stale
+    ? `认知快照更新至 ${cognitiveReadableLocalDate(cognitiveHomeState.snapshotLocalDate)}；地形保留上一次完整结果。`
+    : cognitiveDemoState.active
+      ? ''
+      : landscape.peaks.length
+        ? '山峰来自当前 active 的长期理解；点和连线只来自已提交对象。'
+        : '还没有足够证据形成长期理解；今天的记录仍会继续被保留和整理。';
+  landscapeCaption.hidden = !landscapeCaption.textContent;
+  renderCognitiveGrowthActivity(todayHome);
+  const todayCaption = document.getElementById('cognitive-today-caption');
+  todayCaption.textContent = cognitiveUsingLiveBackend() && cognitiveHomeState.stale
+    ? cognitiveReadableLocalDate(cognitiveHomeState.runtimeLocalDate)
+    : cognitiveDemoState.active
+      ? ''
       : '原文先保存；主页展示逐条整理后的结果和去向。';
-  document.getElementById('cognitive-today-status-copy').innerHTML = cognitiveTodayHeadline(home);
+  todayCaption.hidden = !todayCaption.textContent;
+  const todayHeadline = document.getElementById('cognitive-today-status-copy');
+  todayHeadline.innerHTML = cognitiveTodayHeadline(todayHome);
+  todayHeadline.hidden = !todayHeadline.innerHTML;
   const manualDayButton = document.getElementById('cognitive-manual-day-button');
-  const manualDayRunning = home.today_status.daily_run_status === 'running';
+  const manualDayRunning = todayHome.today_status.daily_run_status === 'running';
   manualDayButton.hidden = cognitiveDemoState.active;
   manualDayButton.disabled = cognitiveHomeState.manualDayMutating || manualDayRunning;
   manualDayButton.textContent = manualDayRunning || cognitiveHomeState.manualDayMutating
@@ -2182,16 +2546,17 @@ function renderCognitiveHome() {
   manualDayStatus.hidden = !cognitiveHomeState.manualDayNotice;
   manualDayStatus.className = `cognitive-manual-day-status${cognitiveHomeState.manualDayNoticeTone
     ? ` ${cognitiveHomeState.manualDayNoticeTone}` : ''}`;
-  document.getElementById('cognitive-saved-count').textContent = String(home.today_status.saved);
-  document.getElementById('cognitive-interpreted-count').textContent = String(home.today_status.interpreted);
-  document.getElementById('cognitive-merged-count').textContent = String(home.today_status.merged);
-  document.getElementById('cognitive-review-count').textContent = String(home.today_status.needs_review);
+  document.getElementById('cognitive-saved-count').textContent = String(todayHome.today_status.saved);
+  document.getElementById('cognitive-interpreted-count').textContent = String(todayHome.today_status.interpreted);
+  document.getElementById('cognitive-merged-count').textContent = String(todayHome.today_status.merged);
+  document.getElementById('cognitive-review-count').textContent = String(todayHome.today_status.needs_review);
 
   renderCognitivePortrait();
   renderCognitiveLandscape();
   renderCognitiveUnderstandingList();
   renderCognitiveRecords();
   applyCognitiveView();
+  applyCognitivePage();
   initCognitiveHomeInteractions();
 }
 
@@ -3136,6 +3501,35 @@ function cognitiveRecordDestination(record) {
     title: `${record.memory_refs.length} 个可用记忆`,
     detail: cognitiveDemoState.active ? '尚未关联聚合主题' : '尚未关联长期理解',
   };
+  const memoryStateDestinations = {
+    candidate: {
+      title: '等待 21:00 日级归并',
+      detail: '逐条摘要已形成，今日尚未发布长期记忆',
+    },
+    waiting_evidence: {
+      title: '等待跨日证据',
+      detail: '摘要已形成，弱信号需在另一天重复出现',
+    },
+    waiting_confirmation: {
+      title: '等待你确认',
+      detail: '摘要照常展示，个人记忆升级已暂停',
+    },
+    promoted: {
+      title: '已进入长期记忆',
+      detail: '这条记录已有可追溯的主题或记忆依据',
+    },
+    not_candidate: {
+      title: '仅作本条记录',
+      detail: '摘要可读，当前不升级为个人长期记忆',
+    },
+    rejected: {
+      title: '已停止记忆升级',
+      detail: '原文与摘要仍保留，不进入个人长期记忆',
+    },
+  };
+  if (memoryStateDestinations[record.memory_state]) {
+    return memoryStateDestinations[record.memory_state];
+  }
   if (['ready', 'needs_review'].includes(record.status)) return {
     title: cognitiveDemoState.active ? '线索已保留' : '等待今日归并',
     detail: cognitiveDemoState.active ? '尚未进入主题地图' : '尚未进入正式地景',
@@ -3147,6 +3541,15 @@ function cognitiveRecordDestination(record) {
 }
 
 function cognitiveRecordStatusLabel(record) {
+  const memoryLabels = {
+    candidate: '摘要已形成 · 等待归并',
+    waiting_evidence: '摘要已形成 · 等待跨日证据',
+    waiting_confirmation: '摘要已形成 · 等待确认',
+    promoted: '已进入长期记忆',
+    not_candidate: '摘要已形成 · 仅作本条记录',
+    rejected: '摘要已保留 · 已停止升级',
+  };
+  if (memoryLabels[record.memory_state]) return memoryLabels[record.memory_state];
   if (!cognitiveDemoState.active) return COGNITIVE_RECORD_STATUS_LABELS[record.status] || record.status;
   const labels = {
     merged: '已形成主题',
@@ -3161,8 +3564,20 @@ function cognitiveRecordStatusLabel(record) {
   return labels[record.status] || '已保存';
 }
 
+function cognitiveRecordDigestLabel(record) {
+  if (record.status === 'failed') return '整理失败 · 原文已保存';
+  if (record.status === 'processing' || record.summary_state === 'pending') return '正在整理';
+  if (record.summary_kind === 'resource_preview') return '原文预览 · 待整理';
+  if (record.summary_kind === 'pending') return '等待摘要';
+  if (record.memory_state === 'rejected' && record.summary) return '摘要已保留';
+  if (record.summary && (record.memory_state
+      || ['ready', 'merged', 'needs_review', 'no_candidate'].includes(record.status))) return '摘要已形成';
+  if (record.status === 'original_only') return '原文已保存';
+  return '原文已保存 · 待整理';
+}
+
 function cognitiveRecordTimelineState(record) {
-  if (record.status === 'needs_review') return 'uncertain';
+  if (record.status === 'needs_review' || record.memory_state === 'waiting_confirmation') return 'uncertain';
   if (record.status === 'merged' || record.understanding_refs.length) return 'map';
   return 'ordinary';
 }
@@ -3371,14 +3786,14 @@ function settleCognitiveTimelineAfterRender(list, options) {
 function renderCognitiveRecords() {
   const list = document.getElementById('cognitive-record-list');
   const empty = document.getElementById('cognitive-record-empty');
-  const home = cognitiveHomeState.home;
+  const home = cognitiveHomeState.todayHome || cognitiveHomeState.home;
   if (!list || !empty || !home) return;
   if (!home.records.length) {
     list.replaceChildren();
     empty.hidden = false;
-    empty.innerHTML = cognitiveHomeState.stale
-      ? '<strong>这份投影没有记录</strong><p>当前展示的是上一份已校验结果；今天的新记录尚未进入主页投影。</p>'
-      : '<strong>今天还没有留下记录</strong><p>Memento 会安静等待。下一条内容出现后，先确认原文已保存，再展示逐条整理状态。</p>';
+    empty.innerHTML = '<strong>今天还没有留下记录</strong><p>用采集快捷键留下一段文字、截图或语音。</p>';
+    cognitiveTimelineState.initialized = true;
+    cognitiveTimelineState.recordCount = 0;
     return;
   }
   empty.hidden = true;
@@ -3391,7 +3806,7 @@ function renderCognitiveRecords() {
   const recordsNewestFirst = cognitiveRecordsNewestFirst(home.records);
   list.dataset.cognitiveTimeline = 'today';
   list.innerHTML = recordsNewestFirst.map((record, index) => {
-    const status = cognitiveRecordStatusLabel(record);
+    const status = cognitiveRecordDigestLabel(record);
     const timelineState = cognitiveRecordTimelineState(record);
     const destination = cognitiveRecordDestination(record);
     const content = record.content_types.map(value => COGNITIVE_CONTENT_LABELS[value] || value);
@@ -3420,14 +3835,13 @@ function renderCognitiveRecords() {
         </span>
         <span class="cognitive-record-summary">
           <strong>${escapeHtml(summary)}</strong>
-          <span>${escapeHtml(purposes.slice(0, 2).join(' · ') || status)}</span>
+          <span>${escapeHtml(purposes.slice(0, 2).join(' · '))}</span>
         </span>
         <span class="cognitive-record-facets">
           <span>${escapeHtml(facets || '尚未形成内容标签')}</span>
         </span>
         <span class="cognitive-record-destination">
           <strong>${escapeHtml(destination.title)}</strong>
-          <span>${escapeHtml(destination.detail)}</span>
         </span>
         <span class="cognitive-record-state is-${record.status}">${escapeHtml(status)}</span>
       </span>
@@ -3703,12 +4117,13 @@ function cognitiveDemoEvidenceMarkup(recordIds, emptyCopy, previewLimit = 5) {
 function cognitiveDemoPeakDrawer(peak) {
   const theme = cognitiveDemoThemeByUnderstandingId(peak.understanding_ref.id);
   if (!theme) return null;
-  const dayCount = cognitiveDemoState.fixture?.window?.days
+  let dayCount = cognitiveDemoState.fixture?.window?.days
     || cognitiveDemoState.fixture?.history?.length || 0;
   const portraitItems = (cognitiveDemoState.fixture?.portrait || [])
-    .filter(item => (item.themeIds || []).includes(theme.id));
+    .filter(item => (item.themeIds || []).some(id => id === theme.id || id === theme.understandingId));
   const evidenceRecords = (theme.evidenceRecordIds || []).map(cognitiveDemoRecordMeta).filter(Boolean);
   const evidenceDates = new Set(evidenceRecords.map(record => record.date).filter(Boolean));
+  if (cognitiveUsingLiveBackend()) dayCount = evidenceDates.size;
   return {
     eyebrow: '第二层 · 形成依据',
     title: theme.title,
@@ -3731,8 +4146,8 @@ function cognitiveDemoPeakDrawer(peak) {
         </div>
       </section>
       <section class="cognitive-drawer-section">
-        <h3>形成依据 · ${dayCount} 天</h3>
-        <p class="cognitive-drawer-muted">先展示时间跨度上的 5 条代表记录，其余依据可按需展开。</p>
+        <h3>形成依据 · ${dayCount} ${cognitiveUsingLiveBackend() ? '个记录日' : '天'}</h3>
+        <p class="cognitive-drawer-muted">共 ${evidenceRecords.length} 条依据${evidenceRecords.length > 5 ? '，先展示 5 条代表记录，其余可展开' : ''}。</p>
         ${cognitiveDemoEvidenceMarkup(theme.evidenceRecordIds, '这个主题尚无支持记录。', 5)}
       </section>
       <section class="cognitive-drawer-section">
@@ -3745,6 +4160,12 @@ function cognitiveDemoPeakDrawer(peak) {
 
 function cognitiveDemoPortraitMarkup(selectedIdentifier = '') {
   const fixture = cognitiveDemoState.fixture;
+  if (!fixture?.portrait?.length) {
+    return `<section class="cognitive-demo-portrait cognitive-drawer-section">
+      <h3>尚未形成长期理解</h3>
+      <p class="cognitive-drawer-muted">记录和已有主题会继续保留。形成有来源与适用边界的理解后，会显示在这里。</p>
+    </section>`;
+  }
   const themes = new Map((fixture?.themes || []).map(theme => [theme.id, theme]));
   return `<section class="cognitive-demo-portrait">
     <header class="cognitive-demo-portrait-intro">
@@ -3890,7 +4311,7 @@ function cognitiveNodeDrawer(node) {
   const records = cognitiveRelatedRecords('node', node.memory_ref.id);
   return {
     eyebrow: node.recent ? '可用记忆 · 近期归并' : '可用记忆 · 已提交',
-    title: memory?.statement || `可用记忆 ${String(index + 1).padStart(2, '0')}`,
+    title: `可用记忆 ${String(index + 1).padStart(2, '0')}`,
     body: `
       ${memory ? `<section class="cognitive-drawer-section"><h3>当前记忆</h3><p class="cognitive-drawer-lead">${escapeHtml(memory.statement)}</p><p class="cognitive-drawer-muted">${escapeHtml(memory.topics.join(' · ') || '尚未标记主题')}</p></section>` : ''}
       <section class="cognitive-drawer-section">
@@ -3958,7 +4379,8 @@ function cognitiveEdgeDrawer(edge) {
 
 function cognitiveRecordDrawer(record) {
   const demoRecord = cognitiveDemoState.active;
-  const status = COGNITIVE_RECORD_STATUS_LABELS[record.status] || record.status;
+  const resourcePreview = record.summary_kind === 'resource_preview';
+  const status = cognitiveRecordStatusLabel(record);
   const destination = cognitiveRecordDestination(record);
   const content = record.content_types.map(value => COGNITIVE_CONTENT_LABELS[value] || value);
   const purposes = record.purposes.map(value => COGNITIVE_PURPOSE_LABELS[value] || value);
@@ -3973,31 +4395,44 @@ function cognitiveRecordDrawer(record) {
       : status);
   const receipt = cognitiveVerifiedRevision(cognitiveHomeState.verifiedReceipts, record.receipt_ref);
   const understandingLabel = cognitiveDemoState.active ? '聚合主题' : '长期理解';
+  const semanticLabels = {
+    selected: '选中部分', visible: '当前可见部分', full: '全文', transcript: '转写全文', note: '备注',
+    user: '我的表达', external: '外部内容', mixed: '我的判断与外部内容', unknown: '待确认',
+    explicit_self_expression: '我的直接表达', selected_reference: '我选中的参考', user_question: '我正在追问',
+    read_later: '稍后阅读', resource_only: '仅作资料', external_result: '外部 AI 回流结果',
+    strong: '强信号', weak: '弱信号', none: '不升级个人记忆', uncertain: '待确认',
+  };
+  const semanticFacts = [
+    record.summary_scope ? `摘要范围：${semanticLabels[record.summary_scope] || record.summary_scope}` : '',
+    record.authorship ? `内容归属：${semanticLabels[record.authorship] || record.authorship}` : '',
+    record.relation_to_user ? `与我的关系：${semanticLabels[record.relation_to_user] || record.relation_to_user}` : '',
+    record.cognitive_signal ? `认知信号：${semanticLabels[record.cognitive_signal] || record.cognitive_signal}` : '',
+  ].filter(Boolean);
   const downstreamSteps = record.status === 'original_only'
     ? `<li>你选择“仅保留原文”，本条没有下游可用记忆或${understandingLabel}</li>`
     : record.status === 'no_candidate'
       ? `<li>本条已完成检查，没有形成可归并回执、可用记忆或${understandingLabel}</li>`
-    : `<li>${record.memory_refs.length
-      ? (demoRecord ? `形成 ${record.memory_refs.length} 条可用线索` : `拆解并归并为 ${record.memory_refs.length} 个可用记忆`)
-      : (demoRecord ? '目前只保留整理结果，尚未形成主题线索' : '尚未形成已提交的可用记忆')}</li>
-      <li>${escapeHtml(destination.title)} · ${escapeHtml(destination.detail)}</li>`;
+    : '';
   return {
     eyebrow: demoRecord
       ? `本条记录 · ${cognitiveTimeLabel(record.captured_at)}`
       : `${record.receipt_ref ? '逐条整理回执' : '逐条整理状态'} · ${cognitiveTimeLabel(record.captured_at)}`,
-    title: record.summary || status,
+    title: '记录详情',
     body: `
       <section class="cognitive-drawer-section">
-        <h3>${demoRecord ? '这条记录表达了什么' : '本条整理结果'}</h3>
-        <p class="cognitive-drawer-lead">${escapeHtml(record.summary || '当前没有形成可展示的整理摘要。')}</p>
+        <h3>${resourcePreview ? '资源内容预览' : (demoRecord ? '这条记录表达了什么' : '本条整理结果')}</h3>
+        <p class="cognitive-drawer-lead">${escapeHtml(record.summary || '这条记录尚未形成整理摘要')}</p>
+        ${resourcePreview ? '<p class="cognitive-drawer-muted">这是 OCR 原文的节选，尚未归入“她理解的我”</p>' : ''}
         <p class="cognitive-drawer-muted">${escapeHtml([...content, ...record.topics].slice(0, 5).join(' · ') || '尚未形成内容标签')}</p>
       </section>
+      ${semanticFacts.length ? `<section class="cognitive-drawer-section"><h3>Agent 如何理解这条记录</h3><ul class="cognitive-reference-list">${semanticFacts.map(value => `<li>${escapeHtml(value)}</li>`).join('')}</ul></section>` : ''}
       <section class="cognitive-drawer-section">
         <h3>${demoRecord ? '这条记录如何进入主题' : '形成链路'}</h3>
         <ol class="cognitive-chain-list">
           <li>${demoRecord ? '原始记录已保存在本地' : `SourceRecord 已保存（${cognitiveRefVersionLabel(record.record_ref)}）`}</li>
           <li>${escapeHtml(receiptStep)}</li>
           ${downstreamSteps}
+          <li>${escapeHtml(destination.title)} · ${escapeHtml(destination.detail)}</li>
         </ol>
       </section>
       <section class="cognitive-drawer-section">
@@ -4016,7 +4451,6 @@ function cognitiveRecordDrawer(record) {
           <div><span>当前状态</span><strong>${escapeHtml(status)}</strong></div>
           <div><span>来源</span><strong>${escapeHtml(record.source_app || COGNITIVE_SOURCE_LABELS[record.source_type] || '本地记录')}</strong></div>
           <div><span>保存时间</span><strong>${escapeHtml(cognitiveDateTimeLabel(record.captured_at))}</strong></div>
-          <div><span>原文</span><strong>仅在本抽屉中读取</strong></div>
         </div>
       </section>
       ${cognitiveReceiptActions(record, receipt)}`,
@@ -4027,6 +4461,9 @@ function cognitiveRecordDrawer(record) {
 }
 
 function cognitiveDrawerContent(kind, identifier) {
+  if (kind === 'learning_activity' && cognitiveUsingLiveBackend()) {
+    return cognitiveLearningDrawer(identifier);
+  }
   if (kind === 'library') {
     if (cognitiveDemoState.active) {
       return {
@@ -4645,8 +5082,7 @@ function openCognitiveSecondary(name, trigger = null) {
     return;
   }
   if (name === 'archive' && cognitiveDemoState.active) {
-    openCognitiveChainDrawer('demo_history', 'current', trigger);
-    setCognitiveSecondaryExpanded(name);
+    switchCognitivePage('records');
     return;
   }
   const target = {
@@ -4895,16 +5331,92 @@ function initCognitiveMapCameraInteractions() {
 }
 
 let cognitiveHomeInteractionsInited = false;
-function initCognitivePortraitUpdateControls() {
+function syncCognitivePortraitUpdateControls(home = cognitiveHomeState.home) {
   const autoUpdate = document.getElementById('cognitive-portrait-auto-update');
   const updateAt = document.getElementById('cognitive-portrait-update-at');
   if (!autoUpdate || !updateAt) return;
-  const sync = () => {
-    updateAt.disabled = !autoUpdate.checked;
-    updateAt.setAttribute('aria-disabled', String(updateAt.disabled));
-  };
-  autoUpdate.addEventListener('change', sync);
-  sync();
+  if (cognitiveIsPublicPreview()) {
+    const scope = document.getElementById('cognitive-update-scope');
+    const description = '本机自动整理 · 在线体验不启用';
+    if (scope) {
+      scope.hidden = false;
+      scope.textContent = description;
+    }
+    autoUpdate.checked = false;
+    updateAt.value = '21:00';
+    for (const control of [autoUpdate, updateAt]) {
+      control.disabled = true;
+      control.setAttribute('aria-disabled', 'true');
+      control.setAttribute('aria-describedby', 'cognitive-update-scope');
+      control.title = description;
+    }
+    return;
+  }
+  const schedule = cognitiveBackendState.runtimeSettings?.schedule || home?.schedule;
+  const hasSchedule = Boolean(schedule && Number.isInteger(schedule.hour)
+    && Number.isInteger(schedule.minute));
+  autoUpdate.checked = Boolean(hasSchedule && schedule.enabled);
+  const writable = cognitiveBackendState.mode === 'v2_live'
+    && Boolean(cognitiveBackendState.runtimeTransport?.updateRuntimeSettings);
+  autoUpdate.disabled = !writable;
+  autoUpdate.setAttribute('aria-disabled', writable ? 'false' : 'true');
+  updateAt.value = hasSchedule
+    ? `${String(schedule.hour).padStart(2, '0')}:${String(schedule.minute).padStart(2, '0')}`
+    : '21:00';
+  updateAt.disabled = true;
+  updateAt.setAttribute('aria-disabled', 'true');
+  const description = hasSchedule
+    ? `本地 Backend V2 已${schedule.enabled ? '开启' : '关闭'}日级更新，计划时间 ${updateAt.value}${writable ? '' : '，当前只读'}`
+    : '正在读取本地 Backend V2 的日级更新状态';
+  autoUpdate.title = description;
+  updateAt.title = description;
+  if (cognitiveUsingLiveBackend()) {
+    autoUpdate.setAttribute('aria-label', '自动整理：每日21点归并，新证据触发主题与个人理解更新');
+    autoUpdate.title = `${description}；主题与个人理解随有效新证据更新。`;
+  }
+}
+
+function initCognitivePortraitUpdateControls() {
+  syncCognitivePortraitUpdateControls();
+  const autoUpdate = document.getElementById('cognitive-portrait-auto-update');
+  if (!autoUpdate || autoUpdate.dataset.runtimeScheduleBound === 'true') return;
+  autoUpdate.dataset.runtimeScheduleBound = 'true';
+  autoUpdate.addEventListener('change', async () => {
+    if (cognitiveIsPublicPreview()) {
+      syncCognitivePortraitUpdateControls();
+      return;
+    }
+    const transport = cognitiveBackendState.runtimeTransport;
+    if (!transport?.updateRuntimeSettings) {
+      syncCognitivePortraitUpdateControls();
+      return;
+    }
+    const requested = autoUpdate.checked;
+    autoUpdate.disabled = true;
+    autoUpdate.title = '正在保存本地日级更新设置';
+    try {
+      cognitiveBackendState.runtimeSettings = await transport.updateRuntimeSettings({
+        schedule: { enabled: requested },
+      });
+      await refreshCognitiveGrowthActivity(transport);
+    } catch (error) {
+      console.warn('保存日级更新设置失败', error);
+    }
+    syncCognitivePortraitUpdateControls();
+  });
+}
+
+async function refreshCognitiveGrowthActivity(transport) {
+  try {
+    const bootstrap = await transport.bootstrap();
+    if (!bootstrap.runtime_activity) throw new Error('运行状态暂不可用');
+    cognitiveBackendState.runtimeActivity = bootstrap.runtime_activity;
+    cognitiveBackendState.runtimeActivityRefreshError = '';
+  } catch {
+    cognitiveBackendState.runtimeActivityRefreshError = '设置已保存；运行状态刷新失败，请从“连接管理”重新连接。';
+  }
+  const home = cognitiveHomeState.todayHome || cognitiveHomeState.home;
+  if (home) renderCognitiveGrowthActivity(home);
 }
 
 function initCognitiveHomeInteractions() {
@@ -4931,6 +5443,58 @@ function initCognitiveHomeInteractions() {
         && event.target.closest?.('#cognitive-map-region')) {
       event.preventDefault();
       event.stopPropagation();
+      return;
+    }
+    const connectionMenu = document.getElementById('cognitive-connection-menu');
+    if (connectionMenu.open && !event.target.closest('#cognitive-connection-menu')) connectionMenu.open = false;
+    const growthMenu = document.getElementById('cognitive-growth-status');
+    if (growthMenu?.open && !event.target.closest('#cognitive-growth-status')) growthMenu.open = false;
+    const pageAction = event.target.closest('[data-cognitive-page]');
+    if (pageAction) {
+      switchCognitivePage(pageAction.dataset.cognitivePage);
+      return;
+    }
+    const modeAction = event.target.closest('[data-cognitive-record-mode]');
+    if (modeAction) {
+      cognitiveRecordBrowserState.mode = modeAction.dataset.cognitiveRecordMode;
+      cognitiveRecordBrowserState.limit = 40;
+      renderCognitiveRecordBrowser();
+      return;
+    }
+    const tagAction = event.target.closest('[data-cognitive-record-tag]');
+    if (tagAction) {
+      const tag = tagAction.dataset.cognitiveRecordTag;
+      cognitiveRecordBrowserState.tag = tag || null;
+      cognitiveRecordBrowserState.limit = 40;
+      renderCognitiveRecordBrowser();
+      // Rendering replaces tag buttons; keep keyboard focus on the selected one.
+      [...document.querySelectorAll('[data-cognitive-record-tag]')]
+        .find(button => button.dataset.cognitiveRecordTag === tag)?.focus({preventScroll: true});
+      return;
+    }
+    const browserRecord = event.target.closest('[data-cognitive-browser-record]');
+    if (browserRecord) {
+      openCognitiveChainDrawer('record', browserRecord.dataset.cognitiveBrowserRecord, browserRecord);
+      return;
+    }
+    if (event.target.closest('[data-cognitive-record-more]')) {
+      const oldLimit = cognitiveRecordBrowserState.limit;
+      cognitiveRecordBrowserState.limit += 40;
+      renderCognitiveRecordBrowser();
+      const nextRecord = [...document.querySelectorAll('.cognitive-record-browser-item')].slice(oldLimit)
+        .find(button => !button.disabled);
+      (nextRecord || document.querySelector('[data-cognitive-record-more]')
+        || document.getElementById('cognitive-record-results'))?.focus({preventScroll: true});
+      return;
+    }
+    const runtimeAction = event.target.closest('#cognitive-reconnect-action');
+    if (runtimeAction) {
+      void connectCognitiveRuntimeFromDirectory({ requestPermission: true });
+      return;
+    }
+    const learningAction = event.target.closest('[data-cognitive-learning]');
+    if (learningAction && cognitiveUsingLiveBackend()) {
+      openCognitiveChainDrawer('learning_activity', learningAction.dataset.cognitiveLearning, learningAction);
       return;
     }
     const manualDay = event.target.closest('[data-cognitive-manual-day]');
@@ -4998,6 +5562,19 @@ function initCognitiveHomeInteractions() {
       if (cognitiveMapInteractionState.insightId) clearCognitiveInsightMapFocus();
     }
   });
+  document.getElementById('cognitive-record-range')?.addEventListener('change', event => {
+    cognitiveRecordBrowserState.range = event.target.value;
+    cognitiveRecordBrowserState.limit = 40;
+    renderCognitiveRecordBrowser();
+  });
+  document.getElementById('cognitive-record-tag-search')?.addEventListener('input', event => {
+    cognitiveRecordBrowserState.tagQuery = event.target.value;
+    renderCognitiveRecordBrowser();
+  });
+  window.addEventListener('popstate', () => {
+    switchCognitivePage(window.location.hash === '#records' ? 'records' : 'home', {updateHistory: false});
+  });
+  if (window.location.hash === '#records') switchCognitivePage('records', {updateHistory: false, focus: false});
   shell.addEventListener('pointerover', event => {
     const portrait = event.target.closest?.('[data-cognitive-portrait-id]');
     if (portrait) return;
@@ -5033,6 +5610,20 @@ function initCognitiveHomeInteractions() {
     clearCognitiveMapHover();
   });
   shell.addEventListener('keydown', event => {
+    const growthMenu = document.getElementById('cognitive-growth-status');
+    if (event.key === 'Escape' && growthMenu?.open && event.target.closest('#cognitive-growth-status')) {
+      growthMenu.open = false;
+      growthMenu.querySelector('summary').focus({preventScroll: true});
+      event.stopPropagation();
+      return;
+    }
+    const connectionMenu = document.getElementById('cognitive-connection-menu');
+    if (event.key === 'Escape' && connectionMenu.open && event.target.closest('#cognitive-connection-menu')) {
+      connectionMenu.open = false;
+      connectionMenu.querySelector('summary').focus();
+      event.preventDefault();
+      return;
+    }
     const portrait = event.target.closest('[data-cognitive-portrait-id]');
     if (portrait && (event.key === 'Enter' || event.key === ' ')) {
       event.preventDefault();
@@ -8457,13 +9048,21 @@ function resetContextAgentState() {
 }
 
 function applyCognitiveDemoFixture(fixture) {
-  if (!fixture || fixture.mode !== 'synthetic') {
+  if (!fixture || !['synthetic', 'v1_adapter', 'v2_shadow', 'v2_live'].includes(fixture.mode)) {
     throw new Error('当前认知数据没有通过完整性校验');
   }
+  fixture = cognitiveAttachBridgeRecordMetadata(fixture);
   cognitiveDemoState.active = true;
   cognitiveDemoState.fixture = fixture;
   cognitiveDemoState.rawRecordsById = new Map(Object.entries(fixture.rawRecordsById || {}));
-  cognitiveDemoSyncTodayCounts();
+  if (fixture.mode !== 'v2_live') cognitiveDemoSyncTodayCounts();
+
+  const runtimeLocalDate = cognitiveRuntimeLocalDate(fixture);
+  const todayView = cognitiveTodayView(
+    fixture.home,
+    runtimeLocalDate,
+    fixture.mode === 'v2_live'
+  );
 
   rememberAgentV1Enabled = false;
   contextAgentState = {
@@ -8494,8 +9093,11 @@ function applyCognitiveDemoFixture(fixture) {
 
   cognitiveHomeState.status = 'ready';
   cognitiveHomeState.home = fixture.home;
+  cognitiveHomeState.todayHome = todayView.home;
   cognitiveHomeState.landscape = fixture.landscape;
   cognitiveHomeState.landscapeSha256 = fixture.landscapeSha256 || '';
+  cognitiveHomeState.runtimeLocalDate = todayView.runtimeLocalDate;
+  cognitiveHomeState.snapshotLocalDate = todayView.snapshotLocalDate;
   cognitiveHomeState.recordLocators = new Map();
   cognitiveHomeState.verifiedReceipts = cognitiveDemoRevisionMap(
     fixture.receipts, ['receipt_id', 'receiptId', 'id']
@@ -8507,7 +9109,7 @@ function applyCognitiveDemoFixture(fixture) {
     fixture.relations, ['relation_id', 'relationId', 'id']
   );
   cognitiveHomeState.candidate = null;
-  cognitiveHomeState.stale = false;
+  cognitiveHomeState.stale = todayView.stale;
   cognitiveHomeState.issue = '';
   cognitiveHomeState.activeView = 'map';
 
@@ -8515,7 +9117,7 @@ function applyCognitiveDemoFixture(fixture) {
   const entries = files.flatMap(file => parseFile(file.text, file.date));
   state.files = files;
   state.allEntries = entries;
-  state.todayDate = fixture.window?.end || getLocalDate();
+  state.todayDate = todayView.runtimeLocalDate;
   state.todayFileText = files.find(file => file.date === state.todayDate)?.text || '';
   state.todayEntries = entries.filter(entry => entry.date === state.todayDate);
   state.selectedDate = state.todayDate;
@@ -8560,6 +9162,252 @@ function enterCognitiveDemo() {
   retireActiveCoreLoad();
   quarantineDirectoryActions();
   applyCognitiveDemoFixture(library.createFixture());
+}
+
+async function enterConfiguredCognitiveBackend() {
+  document.documentElement.classList.toggle('is-public-preview', cognitiveIsPublicPreview());
+  setCognitiveRuntimeUi('fixture');
+  const dataSourceLibrary = window.MementoCognitiveV2DataSource;
+  const embedded = window.MementoCognitiveV2ShadowFixture;
+  if (!dataSourceLibrary) {
+    enterCognitiveDemo();
+    return;
+  }
+  const mode = cognitiveConfiguredBackendMode(dataSourceLibrary);
+  cognitiveBackendState.mode = mode;
+  cognitiveBackendState.source = null;
+  cognitiveBackendState.runtimeTransport = null;
+  cognitiveBackendState.runtimeSettings = null;
+  cognitiveBackendState.actionClient = window.MementoCognitiveV2Actions
+    ? window.MementoCognitiveV2Actions.createActionClient({ mode, transport: {} })
+    : null;
+  cognitiveBackendState.fallbackReason = '';
+  if (mode === 'fixture') {
+    enterCognitiveDemo();
+  } else if (mode === 'v1_adapter' || mode === 'v2_shadow') {
+    try {
+      if (!embedded?.snapshot) throw new Error('内置 V2 Shadow bundle 未加载');
+      const source = dataSourceLibrary.createMemoryDataSource(embedded.snapshot, {
+        mode,
+        legacyView: { ...embedded.legacy_view, mode },
+      });
+      const legacyView = await source.readLegacyView();
+      if (!legacyView) throw new Error('V2 bundle 缺少经过校验的前端桥接视图');
+      cognitiveBackendState.source = source;
+      applyCognitiveDemoFixture(legacyView);
+    } catch (error) {
+      console.warn('V2 数据源未通过校验，已回退固定 fixture', error);
+      cognitiveBackendState.mode = 'fixture';
+      cognitiveBackendState.fallbackReason = shortError(error);
+      enterCognitiveDemo();
+    }
+  } else {
+    cognitiveBackendState.fallbackReason = '正在连接本机 Backend V2';
+    showGrantUI({
+      title: '正在载入上一版个人认知',
+      help: 'Memento 正在读取最近一次完整发布的个人快照。新的 AI 整理全部写完以前，这里会继续使用上一版真实数据。',
+      label: '重新连接',
+      status: '正在连接本机 Backend V2',
+      action: 'runtime',
+    });
+  }
+  window.MementoCognitiveBackend = Object.freeze({
+    getMode: () => cognitiveBackendState.mode,
+    getSource: () => cognitiveBackendState.source,
+    getFallbackReason: () => cognitiveBackendState.fallbackReason,
+    getActionClient: () => cognitiveBackendState.actionClient,
+    connectRuntime: async options => {
+      cognitiveRequireLocalRuntime();
+      const actionLibrary = window.MementoCognitiveV2Actions;
+      if (!actionLibrary) throw new Error('V2 Action 模块未加载');
+      const targetMode = options?.mode || (mode === 'fixture' ? 'v2_live' : mode);
+      if (!['v1_adapter', 'v2_shadow', 'v2_live'].includes(targetMode)) {
+        throw new Error('Runtime 数据模式无效');
+      }
+      const transportOptions = { ...(options || {}) };
+      delete transportOptions.mode;
+      const transport = actionLibrary.createHttpTransport(transportOptions);
+      const health = await transport.health();
+      const bootstrap = await transport.bootstrap();
+      const bridge = window.MementoCognitiveV2Contract.validateFrontendBridge(
+        bootstrap.bridge,
+        bootstrap.snapshot
+      );
+      const source = dataSourceLibrary.createMemoryDataSource(bootstrap.snapshot, {
+        mode: targetMode,
+        legacyView: bridge.legacy_view,
+        readExternalSession: sessionId => transport.readExternalSession(sessionId),
+        readRunStatus: runId => transport.readRunStatus(runId),
+        readRecentRunStatuses: limit => transport.listRunStatuses(limit),
+      });
+      cognitiveBackendState.runtimeTransport = transport;
+      cognitiveBackendState.runtimeSettings = bootstrap.runtime_settings || null;
+      cognitiveBackendState.runtimeActivity = bootstrap.runtime_activity || null;
+      cognitiveBackendState.runtimeActivityRefreshError = '';
+      cognitiveBackendState.learningActivity = bootstrap.learning_activity || null;
+      cognitiveBackendState.v2Home = bootstrap.snapshot.projections['projections/home.json'];
+      cognitiveBackendState.verifiedThemes = new Map(
+        bootstrap.snapshot.projections['projections/landscape.json'].peaks.map(peak => [
+          `mem_${peak.theme_ref.id.slice(4)}`,
+          { ref: peak.theme_ref, title: peak.title, statement: peak.statement },
+        ])
+      );
+      cognitiveBackendState.mode = targetMode;
+      cognitiveBackendState.actionClient = actionLibrary.createActionClient({ mode: targetMode, transport });
+      cognitiveBackendState.source = source;
+      cognitiveBackendState.fallbackReason = '';
+      dataSourceLibrary.writeFeatureMode(targetMode);
+      applyCognitiveDemoFixture({
+        ...bridge.legacy_view,
+        mode: targetMode,
+        runtimeLocalDate: bootstrap.runtime_local_date,
+      });
+      syncCognitivePortraitUpdateControls();
+      return {
+        ...health,
+        mode: targetMode,
+        bundleSha256: source.bundleSha256,
+        writes_enabled: bootstrap.writes_enabled,
+      };
+    },
+    activateDirectorySource: async vaultRoot => {
+      cognitiveRequireLocalRuntime();
+      if (!['v1_adapter', 'v2_shadow', 'v2_live'].includes(mode)) {
+        throw new Error('当前 feature flag 未启用 V2 数据源');
+      }
+      const source = await dataSourceLibrary.createDirectoryDataSource(vaultRoot, { mode });
+      const legacyView = await source.readLegacyView();
+      if (!legacyView) throw new Error('目录中的 V2 bundle 尚未发布前端桥接包');
+      cognitiveBackendState.source = source;
+      cognitiveBackendState.fallbackReason = '';
+      applyCognitiveDemoFixture({ ...legacyView, mode });
+      return { mode, bundleSha256: source.bundleSha256 };
+    },
+    readExternalSession: sessionId => {
+      cognitiveRequireLocalRuntime();
+      if (!cognitiveBackendState.runtimeTransport) throw new Error('Runtime transport 尚未连接');
+      return cognitiveBackendState.runtimeTransport.readExternalSession(sessionId);
+    },
+    submitAction: action => {
+      cognitiveRequireLocalRuntime();
+      return cognitiveBackendState.actionClient.submitAction(action);
+    },
+    waitForActionResult: actionId => {
+      cognitiveRequireLocalRuntime();
+      return cognitiveBackendState.actionClient.waitForActionResult(actionId);
+    },
+    requestRun: (kind, scope) => {
+      cognitiveRequireLocalRuntime();
+      return cognitiveBackendState.actionClient.requestRun(kind, scope);
+    },
+    waitForRunResult: runId => {
+      cognitiveRequireLocalRuntime();
+      return cognitiveBackendState.actionClient.waitForRunResult(runId);
+    },
+    listRunStatuses: (limit = 20) => {
+      cognitiveRequireLocalRuntime();
+      if (!cognitiveBackendState.runtimeTransport) throw new Error('Runtime transport 尚未连接');
+      return cognitiveBackendState.runtimeTransport.listRunStatuses(limit);
+    },
+    readRuntimeSettings: () => {
+      cognitiveRequireLocalRuntime();
+      if (!cognitiveBackendState.runtimeTransport) throw new Error('Runtime transport 尚未连接');
+      return cognitiveBackendState.runtimeTransport.readRuntimeSettings();
+    },
+    updateRuntimeSettings: settings => {
+      cognitiveRequireLocalRuntime();
+      if (!cognitiveBackendState.runtimeTransport) throw new Error('Runtime transport 尚未连接');
+      return cognitiveBackendState.runtimeTransport.updateRuntimeSettings(settings);
+    },
+    setMode: nextMode => {
+      cognitiveRequireLocalRuntime();
+      dataSourceLibrary.writeFeatureMode(nextMode);
+      window.location.reload();
+    },
+  });
+  if (mode === 'v2_live') void connectCognitiveRuntimeFromDirectory();
+}
+
+function setCognitiveRuntimeUi(runtimeState, message = '') {
+  const button = document.getElementById('cognitive-runtime-action');
+  const status = document.getElementById('cognitive-runtime-status');
+  const reconnect = document.getElementById('cognitive-reconnect-action');
+  if (!button || !status) return;
+  const publicPreview = cognitiveIsPublicPreview();
+  const label = document.querySelector('.cognitive-connection-label');
+  if (label) label.textContent = publicPreview ? '在线体验' : '连接管理';
+  if (reconnect) reconnect.hidden = publicPreview;
+  if (publicPreview) {
+    button.dataset.runtimeState = 'fixture';
+    button.textContent = '示例数据';
+    status.textContent = '地图、标签与详情可自由浏览。页面使用固定示例数据，不读取个人记录；快捷键采集、OCR、语音与 AI 整理需要本地安装版。';
+    status.hidden = false;
+    if (reconnect) reconnect.disabled = true;
+    return;
+  }
+  button.dataset.runtimeState = runtimeState;
+  button.textContent = runtimeState === 'live' ? '本地已连接'
+    : runtimeState === 'connecting' ? '正在连接…'
+      : runtimeState === 'error' ? '连接中断'
+        : '示例数据';
+  if (reconnect) {
+    reconnect.disabled = runtimeState === 'connecting';
+    reconnect.textContent = runtimeState === 'connecting' ? '正在连接…'
+      : runtimeState === 'live' ? '重新连接本地数据' : '连接本地数据';
+  }
+  status.textContent = message;
+  status.hidden = !message;
+  if (runtimeState === 'error') document.getElementById('cognitive-connection-menu').open = true;
+}
+
+async function connectCognitiveRuntimeFromDirectory(options = {}) {
+  if (cognitiveIsPublicPreview()) {
+    setCognitiveRuntimeUi('fixture');
+    return null;
+  }
+  const backend = window.MementoCognitiveBackend;
+  const dataSourceLibrary = window.MementoCognitiveV2DataSource;
+  if (!backend || !dataSourceLibrary) return;
+  setCognitiveRuntimeUi('connecting', '正在检查本机 Memento Runtime…');
+  try {
+    const runtimeConfig = window.MementoRuntimeConfig || {};
+    let token = typeof runtimeConfig.token === 'string' ? runtimeConfig.token.trim() : '';
+    let baseUrl = typeof runtimeConfig.baseUrl === 'string'
+      ? runtimeConfig.baseUrl : 'http://127.0.0.1:4318';
+    if (token.length < 32) {
+      const handle = state.dirHandle || rememberedDirectoryHandle || await loadHandle();
+      if (!handle) throw new Error('请先选择 Memento 数据目录');
+      let permission = await queryRead(handle);
+      if (permission !== 'granted' && options.requestPermission) permission = await requestRead(handle);
+      if (permission !== 'granted') throw new Error('需要允许读取 Memento 数据目录');
+      rememberedDirectoryHandle = handle;
+      token = await dataSourceLibrary.readRuntimeToken(handle);
+      baseUrl = 'http://127.0.0.1:4318';
+    }
+    const result = await backend.connectRuntime({
+      mode: 'v2_live',
+      baseUrl,
+      token,
+    });
+    setCognitiveRuntimeUi(
+      'live',
+      result.writes_enabled ? 'Backend V2 已连接，读取与用户操作已启用' : 'Backend V2 已连接，当前保持只读'
+    );
+    return result;
+  } catch (error) {
+    cognitiveBackendState.fallbackReason = shortError(error);
+    setCognitiveRuntimeUi('error', `真实数据连接失败：${shortError(error)}`);
+    showGrantUI({
+      title: '无法载入本机个人认知',
+      help: 'Backend V2 没有提供一份能被当前页面完整校验的个人快照。原始记录与最近一次发布仍保留在本地，可以修复后重新连接。',
+      label: '重新连接',
+      status: `连接失败：${shortError(error)}`,
+      tone: 'accent',
+      action: 'runtime',
+    });
+    if (options.requestPermission) console.warn('连接 Memento Runtime 失败', error);
+    return null;
+  }
 }
 
 async function getArchiveDir(create = false, h = state.dirHandle) {
@@ -9871,6 +10719,7 @@ const grantTitle = grantSection.querySelector('h2');
 const grantHelp = grantSection.querySelector('.muted');
 let rememberedDirectoryHandle = null;
 let forceFolderPicker = false;
+let grantAction = 'directory';
 
 function setStatus(text, tone = 'muted') {
   statusEl.textContent = text;
@@ -9932,7 +10781,15 @@ function quarantineDirectoryActions() {
   }
 }
 
-function showGrantUI({ title, help, label, status, tone = 'muted', forcePicker = false }) {
+function showGrantUI({
+  title,
+  help,
+  label,
+  status,
+  tone = 'muted',
+  forcePicker = false,
+  action = 'directory',
+}) {
   retireActiveCoreLoad();
   quarantineDirectoryActions();
   closeSideDrawers(false);
@@ -9946,6 +10803,7 @@ function showGrantUI({ title, help, label, status, tone = 'muted', forcePicker =
   grantHelp.innerHTML = help;
   btnLabelGrant.textContent = label;
   forceFolderPicker = forcePicker;
+  grantAction = action;
   setStatus(status, tone);
 }
 
@@ -10900,6 +11758,7 @@ if (coreRefreshChannel) {
 }
 
 async function reloadPersistedSelectionAfterBroadcast() {
+  if (cognitiveIsPublicPreview()) return;
   const flowId = ++selectionFlowId;
   const reloadId = ++persistedSelectionReloadId;
   // Invalidate even a restore/picker flow that has not created a session yet.
@@ -11047,6 +11906,7 @@ function showAccessResult(result) {
 }
 
 async function tryAutoLoad() {
+  if (cognitiveIsPublicPreview()) return;
   const flowId = ++selectionFlowId;
   const generation = directoryLoadGate.begin();
   retireActiveCoreLoad();
@@ -11111,6 +11971,7 @@ async function loadSelectedDirectory(
   flowId = selectionFlowId,
   options = {}
 ) {
+  if (cognitiveIsPublicPreview()) return { ok: false, stale: true, generation: null };
   if (!selectionFlowStillCurrent(flowId)) return { ok: false, stale: true, generation: null };
   const generation = directoryLoadGate.begin();
   try {
@@ -11137,7 +11998,17 @@ async function loadSelectedDirectory(
 }
 
 grantBtn.addEventListener('click', async () => {
+  if (cognitiveIsPublicPreview()) return;
   if (grantBtn.disabled) return;
+  if (grantAction === 'runtime') {
+    setGrantBusy(true);
+    try {
+      await connectCognitiveRuntimeFromDirectory({ requestPermission: true });
+    } finally {
+      setGrantBusy(false);
+    }
+    return;
+  }
   const flowId = ++selectionFlowId;
   // A permission prompt or picker can overlap an earlier restore before that
   // restore created activeCoreLoad. Fence it immediately, not only via UI.
@@ -11272,7 +12143,7 @@ grantBtn.addEventListener('click', async () => {
   }
 });
 
-enterCognitiveDemo();
+void enterConfiguredCognitiveBackend();
 
 (() => {
   if (window.parent === window) return;

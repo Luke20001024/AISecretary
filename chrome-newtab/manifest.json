@@ -6,6 +6,9 @@
   "chrome_url_overrides": {
     "newtab": "dashboard.html"
   },
+  "host_permissions": [
+    "http://127.0.0.1:4318/*"
+  ],
   "content_security_policy": {
     "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src data:; font-src data:; media-src data:; connect-src 'none'; form-action 'none'; child-src 'none'; frame-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'none';"
   },

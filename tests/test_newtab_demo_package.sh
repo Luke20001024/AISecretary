@@ -13,7 +13,11 @@ trap cleanup EXIT
 
 FIXTURE="$TMP_ROOT/repo"
 mkdir -p "$FIXTURE"
-tar -C "$ROOT" --exclude='./.git' --exclude='./dist' -cf - . | tar -C "$FIXTURE" -xf -
+tar -C "$ROOT" \
+  --exclude='./.git' \
+  --exclude='./dist' \
+  --exclude='./backend/.capture-dataset' \
+  -cf - . | tar -C "$FIXTURE" -xf -
 (
   cd "$FIXTURE"
   git init -q
